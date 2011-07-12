@@ -1,0 +1,15 @@
+MANIFEST.in
+README.txt
+setup.cfg
+setup.py
+docs/HISTORY.txt
+pmr2/__init__.py
+pmr2.oauth.egg-info/PKG-INFO
+pmr2.oauth.egg-info/SOURCES.txt
+pmr2.oauth.egg-info/dependency_links.txt
+pmr2.oauth.egg-info/entry_points.txt
+pmr2.oauth.egg-info/namespace_packages.txt
+pmr2.oauth.egg-info/not-zip-safe
+pmr2.oauth.egg-info/requires.txt
+pmr2.oauth.egg-info/top_level.txt
+pmr2/oauth/__init__.py

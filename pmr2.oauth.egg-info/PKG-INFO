@@ -1,0 +1,25 @@
+Metadata-Version: 1.0
+Name: pmr2.oauth
+Version: 0.1dev
+Summary: PMR2 OAuth
+Home-page: UNKNOWN
+Author: Tommy Yu
+Author-email: tommy.yu@auckland.ac.nz
+License: GPL
+Description: Introduction
+        ============
+        
+        
+        
+        Changelog
+        =========
+        
+        0.1 - Unreleased
+        ----------------
+        
+        * Initial release
+        
+        
+Platform: UNKNOWN
+Classifier: Programming Language :: Python
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
