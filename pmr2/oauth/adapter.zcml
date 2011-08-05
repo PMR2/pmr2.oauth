@@ -1,0 +1,11 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    i18n_domain="pmr2.oauth">
+
+  <adapter
+      for="zope.publisher.interfaces.browser.IBrowserRequest"
+      factory=".request.BrowserRequestAdapter"
+      provides=".interfaces.IRequest"
+      />
+
+</configure>
