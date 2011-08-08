@@ -4,17 +4,15 @@ from zope.publisher.browser import BrowserPage
 from zExceptions import BadRequest
 from zExceptions import Forbidden
 
-from pmr2.oauth.interfaces import IOAuthUtility
-from pmr2.oauth.interfaces import IRequest
-from pmr2.oauth.interfaces import IConsumerManager
+from pmr2.oauth.interfaces import *
 
 
-class RequestToken(BrowserPage):
+class RequestTokenPage(BrowserPage):
 
     def __call__(self):
-        o_request = zope.component.getAdapter(request, IRequest)
+        o_request = zope.component.getAdapter(self.request, IRequest)
 
-        if not request:
+        if not o_request:
             raise BadRequest()
 
         cm = zope.component.getMultiAdapter((self.context, self.request),
@@ -25,14 +23,16 @@ class RequestToken(BrowserPage):
             raise BadRequest('Invalid consumer key')
 
         oauth = zope.component.getUtility(IOAuthUtility)
-        if not oauth.verify(consumer, o_request):
+        try:
+            params = oauth.verify_request(o_request, consumer, None)
+        except oauth.Error:
             raise BadRequest('Could not verify OAuth request.')
 
         # create token
 
         tm = zope.component.getMultiAdapter((self.context, self.request),
             ITokenManager)
-        token = tm.createToken(consumer, o_request)
+        token = tm.generateRequestToken(consumer, o_request)
 
         # return token
         return token.to_string()
