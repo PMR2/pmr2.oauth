@@ -8,4 +8,18 @@
       provides=".interfaces.IRequest"
       />
 
+  <adapter
+      for="zope.annotation.interfaces.IAnnotatable
+           *"
+      factory=".consumer.ConsumerManagerFactory"
+      provides=".interfaces.IConsumerManager"
+      />
+
+  <adapter
+      for="zope.annotation.interfaces.IAnnotatable
+           *"
+      factory=".token.TokenManagerFactory"
+      provides=".interfaces.ITokenManager"
+      />
+
 </configure>

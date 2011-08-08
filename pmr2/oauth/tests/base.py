@@ -7,7 +7,7 @@ from Products.PloneTestCase.layer import onsetup
 from Products.PloneTestCase.layer import onteardown
 
 import zope.publisher.browser
-import oauth2
+import oauth2 as oauth
 
 @onsetup
 def setup():
@@ -33,6 +33,31 @@ class TestRequest(zope.publisher.browser.TestRequest):
     def __init__(self, oauth_keys=None, *a, **kw):
         super(TestRequest, self).__init__(*a, **kw)
         if oauth_keys:
-            req = oauth2.Request("GET", self.getURL(), oauth_keys)
+            req = oauth.Request("GET", self.getURL(), oauth_keys)
             headers = req.to_header()
             self._auth = headers['Authorization']
+
+
+signature_method = oauth.SignatureMethod_HMAC_SHA1()
+
+def SignedTestRequest(form=None, oauth_keys=None, consumer=None, token=None,
+        *a, **kw):
+    """\
+    Creates a signed TestRequest
+    """
+
+    if not consumer:
+        raise ValueError('Consumer must be provided')
+
+    if form is None:
+        form = {}
+
+    result = TestRequest(form=form, *a, **kw)
+    url = result.getURL()  # may want to make this an argument
+    req = oauth.Request.from_consumer_and_token(
+        consumer, token, http_url=url, parameters=oauth_keys)
+    req.update(form)
+    req.sign_request(signature_method, consumer, token)
+    headers = req.to_header()
+    result._auth = headers['Authorization']
+    return result

@@ -1,18 +1,19 @@
-import oauth2
+import oauth2 as oauth
 
 from persistent import Persistent
 from BTrees.OOBTree import OOBTree
 
-from zope.annotation import factory
-from zope.annotation.interfaces import IAnnotatable
+from zope.app.container.contained import Contained
+from zope.annotation.interfaces import IAttributeAnnotatable
 import zope.interface
 from zope.schema import fieldproperty
 
 from pmr2.oauth.interfaces import IConsumer
 from pmr2.oauth.interfaces import IConsumerManager
+from pmr2.oauth.factory import factory
 
 
-class ConsumerManager(Persistent):
+class ConsumerManager(Persistent, Contained):
     """\
     A very basic consumer manager for the default layer.
 
@@ -21,7 +22,7 @@ class ConsumerManager(Persistent):
     a way that is more integrated into the Plone (or other) CMS.
     """
 
-    zope.component.adapts(IAnnotatable)
+    zope.component.adapts(IAttributeAnnotatable, zope.interface.Interface)
     zope.interface.implements(IConsumerManager)
     
     def __init__(self):
@@ -44,7 +45,7 @@ class ConsumerManager(Persistent):
 ConsumerManagerFactory = factory(ConsumerManager)
 
 
-class Consumer(Persistent, oauth2.Consumer):
+class Consumer(Persistent, oauth.Consumer):
     """\
     Basic persistent consumer class.
     """

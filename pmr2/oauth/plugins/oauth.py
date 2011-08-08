@@ -1,3 +1,4 @@
+import zope.component
 from Acquisition import aq_parent
 from AccessControl.SecurityInfo import ClassSecurityInfo
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
@@ -8,6 +9,8 @@ from Products.PluggableAuthService.interfaces.plugins \
 from zExceptions import Redirect
 import transaction
 import logging
+
+from pmr2.oauth.interfaces import IRequest
 
 manage_addOAuthPlugin = PageTemplateFile("../www/oauthAdd", globals(), 
                 __name__="manage_addOAuthPlugin")
@@ -48,8 +51,9 @@ class OAuthPlugin(BasePlugin):
         """
 
         result = {}
+        o_request = zope.component.getAdapter(request, IRequest)
         fragment = 'oauth_'
-        for k, v in request.form.iteritems():
+        for k, v in o_request.iteritems():
             if k.startswith(fragment):
                 result[k] = v
         return result

@@ -73,7 +73,7 @@ class IToken(zope.interface.Interface):
         required=True,
     )
 
-    callback = zope.schema.ASCIILine(
+    callback = zope.schema.TextLine(
         title=u'Callback',
         required=True,
     )
@@ -83,7 +83,7 @@ class IToken(zope.interface.Interface):
         required=True,
     )
 
-    verifier = zope.schema.ASCIILine(
+    verifier = zope.schema.TextLine(
         title=u'Verifier',
         required=True,
     )

@@ -1,6 +1,11 @@
+import zope.component
+from zope.publisher.interfaces.browser import IBrowserRequest
 from time import time
 import unittest
 from zExceptions import Redirect
+
+from pmr2.oauth.interfaces import *
+from pmr2.oauth.request import BrowserRequestAdapter
 
 
 class TestExtraction(unittest.TestCase):
@@ -15,6 +20,11 @@ class TestExtraction(unittest.TestCase):
         'oauth_signature': "wOJIO9A2W5mFwDgiDvZbTSMK%2FPY%3D",
     }
 
+    def setUp(self):
+        self.plugin = self.createPlugin()
+        zope.component.provideAdapter(
+            BrowserRequestAdapter, (IBrowserRequest,), IRequest)
+
     def createPlugin(self):
         from pmr2.oauth.tests.utility import MockPAS
         from pmr2.oauth.tests.utility import MockSite
@@ -23,12 +33,7 @@ class TestExtraction(unittest.TestCase):
         return plugin.__of__((MockPAS()).__of__(MockSite()))
 
     def testEmptyExtraction(self):
-        plugin = self.createPlugin()
-        creds = plugin.extractCredentials(plugin.REQUEST)
-        self.assertEqual(creds, {})
-
-    def testEmptyExtraction(self):
-        plugin = self.createPlugin()
+        plugin = self.plugin
         creds = plugin.extractCredentials(plugin.REQUEST)
         self.assertEqual(creds, {})
 
