@@ -10,6 +10,8 @@
         The site <strong tal:content="view/consumer_key"></strong> 
         is requesting access to your data.
       </p>
+      <input type="hidden" name="oauth_token"
+          tal:attributes="value request/oauth_token" />
     </metal:fill>
 
   </body>

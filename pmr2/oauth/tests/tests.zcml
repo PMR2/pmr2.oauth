@@ -10,4 +10,11 @@
       permission="zope2.View"
       />
 
+  <browser:page
+      for="*"
+      name="test_oauth_callback"
+      class=".browser.OAuthCallbackView"
+      permission="zope2.View"
+      />
+
 </configure>

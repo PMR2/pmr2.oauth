@@ -115,8 +115,14 @@ class AuthorizeTokenPage(form.Form):
     @button.buttonAndHandler(_('Grant access'), name='approve')
     def handleApprove(self, action):
         """\
-        User approves this token
+        User approves this token.  Redirect user to the callback URL to
+        give the provider the OAuth Verifier key.
         """
+
+        if self._errors or not self.token:
+            return
+        self.token.set_verifier()
+        return self.request.response.redirect(self.token.get_callback_url())
 
     @button.buttonAndHandler(_('Deny access'), name='deny')
     def handleDeny(self, action):

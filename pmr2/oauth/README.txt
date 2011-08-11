@@ -22,6 +22,7 @@ Firstly import all the modules we need.
     >>> request = TestRequest()
     >>> o_logged_view = zope.component.getMultiAdapter(
     ...     (self.portal, request), name='test_current_user')
+    >>> baseurl = self.portal.absolute_url()
 
 The default OAuth utility should have been registered.
 ::
@@ -102,6 +103,8 @@ is not signed properly.
 
 Now we construct a request signed with the key, using python-oauth2.
 The desired request token string should be generated and returned.
+While the callback URL is still on the portal, this is for convenience
+sake.
 ::
 
     >>> timestamp = str(int(time.time()))
@@ -109,7 +112,7 @@ The desired request token string should be generated and returned.
     ...     'oauth_version': "1.0",
     ...     'oauth_nonce': "4572616e48616d6d65724c61686176",
     ...     'oauth_timestamp': timestamp,
-    ...     'oauth_callback': 'http://www.example.com/oauth/callback',
+    ...     'oauth_callback': baseurl + '/test_oauth_callback',
     ... }, consumer=consumer1)
     >>> rt = RequestTokenPage(self.portal, request)
     >>> tokenstr = rt()
@@ -168,7 +171,6 @@ Now we do the test with the test browser class.  First we see that the
 browser is currently not logged in.
 ::
 
-    >>> baseurl = self.portal.absolute_url()
     >>> browser = Browser()
     >>> browser.open(baseurl + '/test_current_user')
     >>> print browser.contents
@@ -204,7 +206,7 @@ provided was invalid so we will receive a token invalid page.
 
 Now we use the token string returned by the token request initiated a
 bit earlier.  Two confirmation button should be visible along with the
-name of the consumer.
+name of the consumer, along with its identity.
 ::
 
     >>> browser.open(auth_baseurl + '?oauth_token=' + token.key)
@@ -214,3 +216,42 @@ name of the consumer.
     True
     >>> 'The site <strong>' + consumer1.key + '</strong>' in browser.contents
     True
+
+We can approve this token by selecting the 'Grant access' button.  Since
+no `xoauth_displayname` was specified, the browser should have been
+redirected to the callback URL with the token and verifier specified.
+::
+
+    >>> browser.getControl(name='form.buttons.approve').click()
+    >>> callback_url = baseurl + '/test_oauth_callback?'
+    >>> browser.url.startswith(callback_url)
+    True
+    >>> token.key in browser.url
+    True
+
+----------------------------
+Request the Authorized Token
+----------------------------
+
+As the consumer had received the verifier, it can then use it to
+construct the final request to acquire the authorized token.
+
+
+------------------
+Using OAuth Tokens
+------------------
+
+This is basic auth, which we want to avoid since consumers would have to
+retain (thus know) the user/password combination.
+::
+
+    >>> from Products.PloneTestCase.ptc import portal_owner
+    >>> from Products.PloneTestCase.ptc import default_user
+    >>> from Products.PloneTestCase.ptc import default_password
+    >>> baseurl = self.portal.absolute_url()
+    >>> browser = Browser()
+    >>> auth = '%s:%s' % (default_user, default_password)
+    >>> browser.addHeader('Authorization', 'Basic %s' % auth.encode('base64'))
+    >>> browser.open(baseurl + '/test_current_user')
+    >>> print browser.contents
+    test_user_1_

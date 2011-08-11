@@ -10,3 +10,11 @@ class CurrentUserView(BrowserPage):
             return 'Anonymous User'
         user = mt.getAuthenticatedMember()
         return user.id
+
+
+class OAuthCallbackView(BrowserPage):
+
+    def __call__(self):
+        verifier = 'Verifier: %s' % self.request.form.get('oauth_verifier')
+        token = 'Token: %s' % self.request.form.get('oauth_token')
+        return verifier + '\n' + token
