@@ -178,9 +178,42 @@ class TestToken(unittest.TestCase):
         #self.manager = ConsumerManager()
 
     def test_000_token(self):
-        c = Token('token-key', 'token-secret')
-        self.assertEqual(c.key, 'token-key')
-        self.assertEqual(c.secret, 'token-secret')
+        token = Token('token-key', 'token-secret')
+        self.assertEqual(token.key, 'token-key')
+        self.assertEqual(token.secret, 'token-secret')
+
+    def test_010_token_set_verifier(self):
+        token = Token('token-key', 'token-secret')
+        token.set_verifier()
+        verifier = token.verifier
+        token.set_verifier()
+        self.assertEqual(verifier, token.verifier)
+        token.set_verifier(True)
+        self.assertNotEqual(verifier, token.verifier)
+
+    def test_020_token_get_callback_url(self):
+        token = Token('token-key', 'token-secret')
+        token.set_callback(u'http://example.com/')
+        token.set_verifier('foo')
+        url = token.get_callback_url()
+        a = 'http://example.com/?oauth_verifier=foo&oauth_token=token-key'
+        self.assertEqual(url, a)
+
+    def test_021_token_get_callback_url(self):
+        token = Token('token-key', 'token-secret')
+        token.set_callback(u'http://example.com/;bar;?bus=4')
+        token.set_verifier('foo')
+        url = token.get_callback_url()
+        a = 'http://example.com/;bar;?bus=4&oauth_verifier=foo&' \
+            'oauth_token=token-key'
+        self.assertEqual(url, a)
+
+    def test_011_token_set_verifier(self):
+        token = Token('token-key', 'token-secret')
+        token.set_verifier('verify')
+        self.assertEqual('verify', token.verifier)
+        token.set_verifier()
+        self.assertEqual('verify', token.verifier)
 
     def test_100_token_manager_empty(self):
         m = TokenManager()

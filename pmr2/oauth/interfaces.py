@@ -98,7 +98,7 @@ class IToken(zope.interface.Interface):
         required=True,
     )
 
-    verifier = zope.schema.TextLine(
+    verifier = zope.schema.ASCIILine(
         title=u'Verifier',
         required=True,
     )

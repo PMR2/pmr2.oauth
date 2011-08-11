@@ -1,4 +1,5 @@
 import time
+import urlparse
 import oauth2 as oauth
 
 from persistent import Persistent
@@ -104,3 +105,44 @@ class Token(Persistent, oauth.Token):
     consumer_key = fieldproperty.FieldProperty(IToken['consumer_key'])
     timestamp = fieldproperty.FieldProperty(IToken['timestamp'])
     scope = fieldproperty.FieldProperty(IToken['scope'])
+
+    def set_verifier(self, verifier=None):
+        """\
+        Differs from original implementation.
+        
+        This uses the random_string method to generate the verifier key.
+        Does not regenerate a new key if verifier is already set, unless
+        a specific verifier is specified which will the be set.  To
+        generate a new random value, set the verifier parameter to True.
+        """
+
+        if verifier is True or (verifier is None and self.verifier is None):
+            # As the user could hit back or whatever reason and reload
+            # the key before the consumer gets to complete the request,
+            # and to simplify how this is invoked by the authorization
+            # form, we only generate this once, unless the caller really
+            # wants to do this.
+            self.verifier = random_string(24)
+            return
+
+        if verifier is not None:
+            # fieldproperty should validate this input automatically.
+            self.verifier = verifier
+
+    def get_callback_url(self):
+        """\
+        Original was broken.
+        """
+
+        if self.callback and self.verifier:
+            # Append the oauth_verifier.
+            parts = urlparse.urlparse(self.callback)
+            scheme, netloc, path, params, query, fragment = parts[:6]
+            q = query and [query] or []
+            q.append('oauth_verifier=%s' % self.verifier)
+            q.append('oauth_token=%s' % self.key)
+            query = '&'.join(q)
+            return urlparse.urlunparse((scheme, netloc, path, params,
+                query, fragment))
+        return self.callback
+
