@@ -127,7 +127,6 @@ class TestConsumer(unittest.TestCase):
 
     def setUp(self):
         pass
-        #self.manager = ConsumerManager()
 
     def test_000_consumer(self):
         c = Consumer('consumer-key', 'consumer-secret')

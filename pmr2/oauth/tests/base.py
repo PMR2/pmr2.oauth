@@ -6,7 +6,7 @@ from Products.PloneTestCase.layer import PloneSite
 from Products.PloneTestCase.layer import onsetup
 from Products.PloneTestCase.layer import onteardown
 
-import zope.publisher.browser
+import z3c.form.testing
 import oauth2 as oauth
 
 @onsetup
@@ -28,7 +28,7 @@ teardown()
 ptc.setupPloneSite(products=())
 
 
-class TestRequest(zope.publisher.browser.TestRequest):
+class TestRequest(z3c.form.testing.TestRequest):
 
     def __init__(self, oauth_keys=None, *a, **kw):
         super(TestRequest, self).__init__(*a, **kw)

@@ -4,25 +4,33 @@ OAuth for PMR2
 
 This module provides OAuth authentication for PMR2.  Could probably be
 used elsewhere in Plone.
+
+Firstly import all the modules we need.
 ::
 
     >>> import time
     >>> import oauth2 as oauth
     >>> import zope.component
+    >>> import zope.interface
+    >>> from Testing.testbrowser import Browser
+    >>> from plone.z3cform.interfaces import IWrappedForm
     >>> from pmr2.oauth.interfaces import *
     >>> from pmr2.oauth.browser import *
     >>> from pmr2.oauth.consumer import *
     >>> from pmr2.oauth.tests.base import TestRequest
     >>> from pmr2.oauth.tests.base import SignedTestRequest
+    >>> request = TestRequest()
+    >>> o_logged_view = zope.component.getMultiAdapter(
+    ...     (self.portal, request), name='test_current_user')
 
-The default OAuth utility should be registered.
+The default OAuth utility should have been registered.
 ::
 
     >>> utility = zope.component.getUtility(IOAuthUtility)
     >>> utility
     <pmr2.oauth.utility.OAuthUtility object at ...>
 
-The request adapter should have been registered:
+The request adapter should have been registered.
 ::
 
     >>> request = TestRequest()
@@ -47,9 +55,9 @@ In order for a client to use the site contents, it needs to register
 onto the site.  For now we just add a consumer to the ConsumerManager.
 ::
 
-    >>> consumer1 = Consumer('consumer1-key', 'consumer1-secret')
+    >>> consumer1 = Consumer('consumer1.example.com', 'consumer1-secret')
     >>> consumerManager.add(consumer1)
-    >>> consumer1 == consumerManager.get('consumer1-key')
+    >>> consumer1 == consumerManager.get('consumer1.example.com')
     True
 
 It will be possible to use the browser form to add one also.
@@ -61,17 +69,39 @@ Consumer Requests
 
 Once the consumer is registered onto the site, it is now possible to
 use it to request token.  We can try a standard request without any
-authorization.
+authorization, however we should log out here first.
 ::
 
+    >>> self.logout()
     >>> request = TestRequest()
     >>> rt = RequestTokenPage(self.portal, request)
     >>> rt()
     Traceback (most recent call last):
     ...
-    BadRequest
+    BadRequest: missing oauth parameters
+
+We can try to make up some random request, that should fail because it
+is not signed properly.
+:::
+
+    >>> timestamp = str(int(time.time()))
+    >>> request = TestRequest(oauth_keys={
+    ...     'oauth_version': "1.0",
+    ...     'oauth_consumer_key': "consumer1.example.com",
+    ...     'oauth_nonce': "123123123123123123123123123",
+    ...     'oauth_timestamp': timestamp,
+    ...     'oauth_callback': "http://www.example.com/oauth/callback",
+    ...     'oauth_signature_method': "HMAC-SHA1",
+    ...     'oauth_signature': "ANT2FEjwDqxg383D",
+    ... })
+    >>> rt = RequestTokenPage(self.portal, request)
+    >>> rt()
+    Traceback (most recent call last):
+    ...
+    BadRequest: could not verify oauth request.
 
 Now we construct a request signed with the key, using python-oauth2.
+The desired request token string should be generated and returned.
 ::
 
     >>> timestamp = str(int(time.time()))
@@ -82,6 +112,105 @@ Now we construct a request signed with the key, using python-oauth2.
     ...     'oauth_callback': 'http://www.example.com/oauth/callback',
     ... }, consumer=consumer1)
     >>> rt = RequestTokenPage(self.portal, request)
-    >>> result = rt()
-    >>> print result
+    >>> tokenstr = rt()
+    >>> print tokenstr
     oauth_token_secret=...&oauth_token=...&oauth_callback_confirmed=true
+    >>> token = oauth.Token.from_string(tokenstr)
+
+
+-------------------
+Token Authorization
+-------------------
+
+Now the consumer can store this token, and redirect the resource owner
+to the authorization page.  Instead of invoking the object directly, we
+use the testbrowser to demonstrate the functionality of the 
+authentication surrounding this.
+
+Before that though, see if the form itself will render the error message
+for an unknown token (we will log our local user back in first).  Also,
+we will treat our page as a subform such that the rest of the Plone
+templates is not rendered.
+::
+
+    >>> class AuthorizeToken(AuthorizeTokenPage):
+    ...     zope.interface.implements(IWrappedForm)
+    ...
+    >>> from Products.PloneTestCase.ptc import portal_owner
+    >>> from Products.PloneTestCase.ptc import default_user
+    >>> from Products.PloneTestCase.ptc import default_password
+    >>> self.login(default_user)
+    >>> request = TestRequest(form={
+    ...     'oauth_token': 'nope',
+    ... })
+    ...
+    >>> rt = AuthorizeToken(self.portal, request)
+    >>> result = rt()
+    >>> 'Invalid Token.' in result
+    True
+    >>> 'type="submit"' in result
+    False
+
+Also that the form is rendered for an authorized token.
+::
+
+    >>> request = TestRequest(form={
+    ...     'oauth_token': token.key,
+    ... })
+    >>> rt = AuthorizeToken(self.portal, request)
+    >>> result = rt()
+    >>> 'Invalid Token.' in result
+    False
+    >>> 'type="submit"' in result
+    True
+
+Now we do the test with the test browser class.  First we see that the
+browser is currently not logged in.
+::
+
+    >>> baseurl = self.portal.absolute_url()
+    >>> browser = Browser()
+    >>> browser.open(baseurl + '/test_current_user')
+    >>> print browser.contents
+    Anonymous User
+
+Trying to view the token authorization page should result in redirection
+to login form in a vanilla site.
+::
+
+    >>> browser.open(baseurl + '/OAuthAuthorizeToken?oauth_token=test')
+    >>> 'credentials_cookie_auth' in browser.url
+    True
+
+So we log in, and try again.  The page should render, but the token
+provided was invalid so we will receive a token invalid page.
+::
+
+    >>> auth_baseurl = baseurl + '/OAuthAuthorizeToken'
+    >>> browser.open(baseurl + '/login')
+    >>> browser.getControl(name='__ac_name').value = default_user
+    >>> browser.getControl(name='__ac_password').value = default_password
+    >>> browser.getControl(name='submit').click()
+    >>> browser.open(baseurl + '/test_current_user')
+    >>> print browser.contents
+    test_user_1_
+    >>> browser.open(auth_baseurl + '?oauth_token=test')
+    >>> 'Invalid Token' in browser.contents
+    True
+    >>> 'Grant access' in browser.contents
+    False
+    >>> 'Deny access' in browser.contents
+    False
+
+Now we use the token string returned by the token request initiated a
+bit earlier.  Two confirmation button should be visible along with the
+name of the consumer.
+::
+
+    >>> browser.open(auth_baseurl + '?oauth_token=' + token.key)
+    >>> 'Grant access' in browser.contents
+    True
+    >>> 'Deny access' in browser.contents
+    True
+    >>> 'The site <strong>' + consumer1.key + '</strong>' in browser.contents
+    True

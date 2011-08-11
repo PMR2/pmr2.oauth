@@ -1,6 +1,14 @@
 import zope.interface
 import zope.schema
 
+from pmr2.oauth import MessageFactory as _
+
+
+class FormValueError(ValueError):
+    """\
+    Value error generated within forms.
+    """
+
 
 class IOAuthUtility(zope.interface.Interface):
     """\

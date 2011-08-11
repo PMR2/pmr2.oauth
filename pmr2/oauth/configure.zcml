@@ -1,8 +1,11 @@
 <configure
     xmlns="http://namespaces.zope.org/zope"
-    xmlns:five="http://namespaces.zope.org/five">
+    xmlns:five="http://namespaces.zope.org/five"
+    i18n_domain="pmr2.oauth"
+    >
 
   <include file="adapter.zcml" />
+  <include file="browser.zcml" />
 
   <utility
       provides=".interfaces.IOAuthUtility"

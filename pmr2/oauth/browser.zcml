@@ -1,0 +1,20 @@
+<configure 
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    i18n_domain="pmr2.oauth">
+
+  <browser:view
+      for="Products.CMFPlone.interfaces.siteroot.IPloneSiteRoot"
+      name="OAuthRequestToken"
+      class=".browser.RequestTokenPage"
+      permission="zope2.View"
+      />
+
+  <browser:view
+      for="Products.CMFPlone.interfaces.siteroot.IPloneSiteRoot"
+      name="OAuthAuthorizeToken"
+      class=".browser.AuthorizeTokenPage"
+      permission="zope2.View"
+      />
+
+</configure>
