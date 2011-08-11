@@ -1,3 +1,4 @@
+import time
 import oauth2 as oauth
 
 from persistent import Persistent
@@ -36,15 +37,45 @@ class TokenManager(Persistent, Contained):
             raise ValueError('token %s already exists', token.key)
         self._tokens[token.key] = token
 
+    def checkCallback(self, callback):
+        """\
+        Verify that the callback is what we accept.
+        """
+
+        # Not implemented yet
+        return callback is not None
+
+    def checkNonce(self, nonce):
+        """\
+        Verify that the nonce is unique.
+        """
+
+        # Not implemented yet
+        return True
+
     def generateRequestToken(self, consumer, request):
+        """\
+        Generate request token from consumer and request.
+        """
+
         key = random_string(24)
         secret = random_string(24)
         token = Token(key, secret)
-        # XXX validate callback?
+
+        if not self.checkNonce(request.get('oauth_nonce')):
+            raise ValueError('nonce has been used recently')
+
+        if not self.checkNonce(request.get('oauth_nonce')):
+            raise ValueError('nonce has been used recently')
+
         callback = request.get('oauth_callback')
-        if not callback:
+        if not self.checkCallback(callback):
             raise ValueError('callback must be specified or set to `oob`')
         token.set_callback(callback)
+
+        token.consumer_key = consumer.key
+        token.timestamp = int(time.time())
+
         # I know I am taking a collision risk with this random string.
         self.add(token)
         return token

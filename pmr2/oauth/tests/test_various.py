@@ -161,6 +161,16 @@ class TestConsumer(unittest.TestCase):
         m.remove(c2)
         self.assertEqual(len(m._consumers), 0)
 
+    def test_102_consumer_manager_check(self):
+        m = ConsumerManager()
+        c1 = Consumer('consumer-key', 'consumer-secret')
+        c2 = Consumer('consumer-key2', 'consumer-secret')
+        m.add(c1)
+        self.assertEqual(m.check(c1), True)
+        self.assertEqual(m.check('consumer-key'), True)
+        self.assertEqual(m.check(c2), False)
+        self.assertEqual(m.check('consumer-key2'), False)
+
 
 class TestToken(unittest.TestCase):
 
@@ -208,6 +218,13 @@ class TestToken(unittest.TestCase):
         token = m.generateRequestToken(c, r)
         self.assertEqual(len(m._tokens), 1)
         self.assertEqual(m.get(token.key), token)
+        self.assertEqual(m.get(token.key).consumer_key, c.key)
+
+    def test_201_token_manager_generate_request_token_no_callback(self):
+        m = TokenManager()
+        c = Consumer('consumer-key', 'consumer-secret')
+        r = oauth.Request.from_consumer_and_token(c, None)
+        self.assertRaises(ValueError, m.generateRequestToken, c, r)
 
 
 def test_suite():

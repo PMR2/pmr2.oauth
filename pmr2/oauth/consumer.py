@@ -34,8 +34,18 @@ class ConsumerManager(Persistent, Contained):
             raise ValueError('consumer %s already exists', consumer.key)
         self._consumers[consumer.key] = consumer
 
+    def check(self, consumer):
+        key = IConsumer.providedBy(consumer) and consumer.key or consumer
+        # a very simple check.
+        return key in self._consumers.keys()
+
     def get(self, consumer_key, default=None):
         return self._consumers.get(consumer_key, default)
+
+    def getValidated(self, consumer_key, default=None):
+        if self.check(consumer_key):
+            return self.get(consumer_key)
+        return default
 
     def remove(self, consumer):
         if IConsumer.providedBy(consumer):

@@ -31,9 +31,6 @@ class IConsumer(zope.interface.Interface):
         required=True,
     )
 
-    # if other attributes are needed to describe a consumer (such as
-    # name and description), mix them in from elsewhere.
-
 
 class IConsumerManager(zope.interface.Interface):
     """\
@@ -45,9 +42,19 @@ class IConsumerManager(zope.interface.Interface):
         Add a consumer.
         """
 
+    def check(consumer):
+        """\
+        Check for validity of input consumer.
+        """
+
     def get(consumer_key, default=None):
         """\
         Return consumer, identified by consumer_key.
+        """
+
+    def getValidated(consumer_key, default=None):
+        """\
+        Return consumer only if it is a validated one.
         """
 
     def remove(consumer):
@@ -97,7 +104,7 @@ class IToken(zope.interface.Interface):
         default=None,
     )
 
-    consumer_key = zope.schema.TextLine(
+    consumer_key = zope.schema.ASCIILine(
         title=u'Consumer Key',
         description=u'The consumer key associated with this token',
         required=False,
@@ -119,3 +126,23 @@ class ITokenManager(zope.interface.Interface):
     """\
     Token manager utility
     """
+
+    def add(token):
+        """\
+        Add a token.
+        """
+
+    def generateRequestToken(consumer, request):
+        """\
+        Generate a request token, using consumer and request.
+        """
+
+    def get(token_key, default=None):
+        """\
+        Return token, identified by token_key.
+        """
+
+    def remove(token):
+        """\
+        Remove token.
+        """
