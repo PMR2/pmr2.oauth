@@ -5,9 +5,9 @@ version = '0.1'
 
 setup(name='pmr2.oauth',
       version=version,
-      description="PMR2 OAuth",
-      long_description=open("README.txt").read() + "\n" +
-                       open(os.path.join("docs", "HISTORY.txt")).read(),
+      description="OAuth PAS Plugin",
+      long_description=open("README.rst").read() + "\n" +
+                       open(os.path.join("docs", "HISTORY.rst")).read(),
       # Get more strings from http://www.python.org/pypi?%3Aaction=list_classifiers
       classifiers=[
         "Programming Language :: Python",
@@ -25,6 +25,8 @@ setup(name='pmr2.oauth',
       install_requires=[
           'setuptools',
           # -*- Extra requirements: -*-
+          'oauth2',
+          'plone.app.z3cform',
       ],
       entry_points="""
       # -*- Entry points: -*-

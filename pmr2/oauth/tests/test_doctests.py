@@ -17,7 +17,7 @@ def test_suite():
     return unittest.TestSuite([
 
         ztc.ZopeDocFileSuite(
-            'README.txt', package='pmr2.oauth',
+            'README.rst', package='pmr2.oauth',
             test_class=ptc.FunctionalTestCase,
             optionflags=doctest.NORMALIZE_WHITESPACE|doctest.ELLIPSIS,
         ),

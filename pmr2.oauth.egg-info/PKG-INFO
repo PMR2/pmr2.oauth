@@ -1,7 +1,7 @@
 Metadata-Version: 1.0
 Name: pmr2.oauth
 Version: 0.1dev
-Summary: PMR2 OAuth
+Summary: OAuth PAS Plugin
 Home-page: UNKNOWN
 Author: Tommy Yu
 Author-email: tommy.yu@auckland.ac.nz
@@ -17,7 +17,8 @@ Description: Introduction
         0.1 - Unreleased
         ----------------
         
-        * Initial release
+        * Provide the core functionality of OAuth into Zope/Plone, through the
+        use of custom forms and the Pluggable Authentication System.
         
         
 Platform: UNKNOWN
