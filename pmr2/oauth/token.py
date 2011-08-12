@@ -13,6 +13,8 @@ from zope.schema import fieldproperty
 
 from pmr2.oauth.interfaces import IToken
 from pmr2.oauth.interfaces import ITokenManager
+from pmr2.oauth.interfaces import CallbackValueError
+from pmr2.oauth.interfaces import TokenInvalidError
 from pmr2.oauth.factory import factory
 from pmr2.oauth.utility import random_string
 
@@ -54,30 +56,40 @@ class TokenManager(Persistent, Contained):
         # Not implemented yet
         return True
 
+    def _generateBaseToken(self, consumer, request):
+        if not self.checkNonce(request.get('oauth_nonce')):
+            raise ValueError('nonce has been used recently')
+
+        key = random_string(24)
+        secret = random_string(24)
+        token = Token(key, secret)
+        token.consumer_key = consumer.key
+        token.timestamp = int(time.time())
+        return token
+
     def generateRequestToken(self, consumer, request):
         """\
         Generate request token from consumer and request.
         """
 
-        key = random_string(24)
-        secret = random_string(24)
-        token = Token(key, secret)
-
-        if not self.checkNonce(request.get('oauth_nonce')):
-            raise ValueError('nonce has been used recently')
-
-        if not self.checkNonce(request.get('oauth_nonce')):
-            raise ValueError('nonce has been used recently')
-
+        token = self._generateBaseToken(consumer, request)
         callback = request.get('oauth_callback')
         if not self.checkCallback(callback):
-            raise ValueError('callback must be specified or set to `oob`')
+            raise CallbackValueError(
+                'callback must be specified or set to `oob`')
         token.set_callback(callback)
-
-        token.consumer_key = consumer.key
-        token.timestamp = int(time.time())
+        token.set_verifier()
 
         # I know I am taking a collision risk with this random string.
+        self.add(token)
+        return token
+
+    def generateAccessToken(self, consumer, request):
+        if not self.tokenRequestVerify(request=request):
+            raise TokenInvalidError('invalid token')
+        token = self._generateBaseToken(consumer, request)
+        old_key = request.get('oauth_token')
+        self.remove(old_key)
         self.add(token)
         return token
 
@@ -88,6 +100,17 @@ class TokenManager(Persistent, Contained):
         if IToken.providedBy(token):
             token = token.key
         self._tokens.pop(token)
+
+    def tokenRequestVerify(self, request=None):
+        """\
+        Verify that the request results in a valid token.
+        """
+
+        token_key = request.get('oauth_token')
+        token = self.get(token_key)
+        if token is None:
+            return False
+        return token.verifier == request.get('oauth_verifier')
 
 TokenManagerFactory = factory(TokenManager)
 

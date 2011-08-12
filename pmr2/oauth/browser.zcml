@@ -17,4 +17,11 @@
       permission="zope2.View"
       />
 
+  <browser:view
+      for="Products.CMFPlone.interfaces.siteroot.IPloneSiteRoot"
+      name="OAuthGetAccessToken"
+      class=".browser.AuthorizeTokenPage"
+      permission="zope2.View"
+      />
+
 </configure>

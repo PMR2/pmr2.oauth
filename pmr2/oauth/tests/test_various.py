@@ -15,6 +15,8 @@ from pmr2.oauth.utility import OAuthUtility
 
 from pmr2.oauth import request
 
+from pmr2.oauth.interfaces import *
+
 from pmr2.oauth.tests.base import TestRequest
 
 
@@ -160,7 +162,7 @@ class TestConsumer(unittest.TestCase):
         m.remove(c2)
         self.assertEqual(len(m._consumers), 0)
 
-    def test_102_consumer_manager_check(self):
+    def test_103_consumer_manager_check(self):
         m = ConsumerManager()
         c1 = Consumer('consumer-key', 'consumer-secret')
         c2 = Consumer('consumer-key2', 'consumer-secret')
@@ -256,7 +258,41 @@ class TestToken(unittest.TestCase):
         m = TokenManager()
         c = Consumer('consumer-key', 'consumer-secret')
         r = oauth.Request.from_consumer_and_token(c, None)
-        self.assertRaises(ValueError, m.generateRequestToken, c, r)
+        self.assertRaises(CallbackValueError, m.generateRequestToken, c, r)
+
+    def test_300_token_manager_generate_access_token(self):
+        m = TokenManager()
+        c = Consumer('consumer-key', 'consumer-secret')
+        r = oauth.Request.from_consumer_and_token(c, None)
+        r['oauth_callback'] = u'oob'
+        server_token = m.generateRequestToken(c, r)
+
+        # simulate passing only the key and secret to consumer
+        request_token = Token(server_token.key, server_token.secret)
+        r = oauth.Request.from_consumer_and_token(c, request_token)
+        r['oauth_verifier'] = server_token.verifier
+        token = m.generateAccessToken(c, r)
+        self.assertEqual(len(m._tokens), 1)
+        self.assertEqual(m.get(token.key), token)
+        self.assertEqual(m.get(token.key).consumer_key, c.key)
+
+    def test_301_token_manager_generate_access_token_no_request_token(self):
+        m = TokenManager()
+        c = Consumer('consumer-key', 'consumer-secret')
+        r = oauth.Request.from_consumer_and_token(c, None)
+        self.assertRaises(TokenInvalidError, m.generateAccessToken, c, r)
+
+    def test_302_token_manager_generate_access_token_no_verifier(self):
+        m = TokenManager()
+        c = Consumer('consumer-key', 'consumer-secret')
+        r = oauth.Request.from_consumer_and_token(c, None)
+        r['oauth_callback'] = u'oob'
+        server_token = m.generateRequestToken(c, r)
+
+        # simulate passing only the key and secret to consumer
+        request_token = Token(server_token.key, server_token.secret)
+        r = oauth.Request.from_consumer_and_token(c, request_token)
+        self.assertRaises(TokenInvalidError, m.generateAccessToken, c, r)
 
 
 def test_suite():

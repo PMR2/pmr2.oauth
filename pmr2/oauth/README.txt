@@ -9,6 +9,7 @@ Firstly import all the modules we need.
 ::
 
     >>> import time
+    >>> import urlparse
     >>> import oauth2 as oauth
     >>> import zope.component
     >>> import zope.interface
@@ -99,7 +100,7 @@ is not signed properly.
     >>> rt()
     Traceback (most recent call last):
     ...
-    BadRequest: could not verify oauth request.
+    BadRequest: Invalid signature...
 
 Now we construct a request signed with the key, using python-oauth2.
 The desired request token string should be generated and returned.
@@ -223,18 +224,74 @@ redirected to the callback URL with the token and verifier specified.
 ::
 
     >>> browser.getControl(name='form.buttons.approve').click()
-    >>> callback_url = baseurl + '/test_oauth_callback?'
-    >>> browser.url.startswith(callback_url)
+    >>> callback_baseurl = baseurl + '/test_oauth_callback?'
+    >>> url = browser.url
+    >>> url.startswith(callback_baseurl)
     True
-    >>> token.key in browser.url
+    >>> qs = urlparse.parse_qs(urlparse.urlparse(url).query)
+    >>> token_verifier = qs['oauth_verifier'][0]
+    >>> token_key = qs['oauth_token'][0]
+    >>> token.key == token_key
     True
+
+At this point the verifier should have been assigned by the consumer to
+their copy of the same token, but we will defer this till a bit later.
+
 
 ----------------------------
 Request the Authorized Token
 ----------------------------
 
-As the consumer had received the verifier, it can then use it to
-construct the final request to acquire the authorized token.
+As the consumer had received the verifier from the resource owner in the
+previous step, construction of the final request to acquire the
+authorized token can proceed.
+
+Trying to request an access token without a supplying a valid token will
+get you this (log back out first).
+::
+
+    >>> self.logout()
+    >>> timestamp = str(int(time.time()))
+    >>> request = SignedTestRequest(oauth_keys={
+    ...     'oauth_version': "1.0",
+    ...     'oauth_nonce': "806052fe5585b22f63fe27cba8b78732",
+    ...     'oauth_timestamp': timestamp,
+    ... }, consumer=consumer1)
+    >>> rt = GetAccessTokenPage(self.portal, request)
+    >>> result = rt()
+    Traceback (most recent call last):
+    ...
+    BadRequest: invalid token
+
+Now for the token, but let's try to request an access token without the
+correct verifier assigned.
+::
+
+    >>> timestamp = str(int(time.time()))
+    >>> request = SignedTestRequest(oauth_keys={
+    ...     'oauth_version': "1.0",
+    ...     'oauth_nonce': "806052fe5585b22f63fe27cba8b78732",
+    ...     'oauth_timestamp': timestamp,
+    ... }, consumer=consumer1, token=token)
+    >>> rt = GetAccessTokenPage(self.portal, request)
+    >>> print rt()
+    Traceback (most recent call last):
+    ...
+    BadRequest: invalid token
+
+Okay, now do this properly with the verifier provided.
+::
+
+    >>> token.verifier = token_verifier
+    >>> timestamp = str(int(time.time()))
+    >>> request = SignedTestRequest(oauth_keys={
+    ...     'oauth_version': "1.0",
+    ...     'oauth_nonce': "806052fe5585b22f63fe27cba8b78732",
+    ...     'oauth_timestamp': timestamp,
+    ... }, consumer=consumer1, token=token)
+    >>> rt = GetAccessTokenPage(self.portal, request)
+    >>> print rt()
+    oauth_token_secret=...&oauth_token=...
 
 
 ------------------

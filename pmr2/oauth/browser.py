@@ -51,8 +51,8 @@ class BaseTokenPage(BrowserPage):
         utility = zope.component.getUtility(IOAuthUtility)
         try:
             params = utility.verify_request(o_request, consumer, token)
-        except oauth.Error:
-            raise RequestInvalidError('could not verify oauth request.')
+        except oauth.Error, e:
+            raise RequestInvalidError(e.message)
         return True
 
 
@@ -65,7 +65,7 @@ class RequestTokenPage(BaseTokenPage):
             consumer_key = o_request.get('oauth_consumer_key', None)
             consumer = self._checkConsumer(consumer_key)
             self._verifyRequest(o_request, consumer, None)
-        except BaseInvalidError, e:
+        except (BaseValueError, BaseInvalidError,), e:
             raise BadRequest(e.args[0])
 
         # create token
@@ -73,6 +73,34 @@ class RequestTokenPage(BaseTokenPage):
         tm = zope.component.getMultiAdapter((self.context, self.request),
             ITokenManager)
         token = tm.generateRequestToken(consumer, o_request)
+
+        # return token
+        return token.to_string()
+
+
+class GetAccessTokenPage(BaseTokenPage):
+
+    def __call__(self):
+        o_request = self._checkRequest(self.request)
+
+        try:
+            o_request = self._checkRequest(self.request)
+
+            consumer_key = o_request.get('oauth_consumer_key', None)
+            consumer = self._checkConsumer(consumer_key)
+
+            token_key = o_request.get('oauth_token', None)
+            token = self._checkToken(token_key)
+
+            self._verifyRequest(o_request, consumer, token)
+
+            # token creation will validate the request for the verifier.
+            tm = zope.component.getMultiAdapter((self.context, self.request),
+                ITokenManager)
+            token = tm.generateAccessToken(consumer, o_request)
+
+        except (BaseValueError, BaseInvalidError,), e:
+            raise BadRequest(e.args[0])
 
         # return token
         return token.to_string()
@@ -93,7 +121,8 @@ class AuthorizeTokenPage(form.Form, BaseTokenPage):
     _errors = False
 
     def _update(self):
-        token = self._checkToken(self.request.form.get('oauth_token', None))
+        token_key = self.request.form.get('oauth_token', None)
+        token = self._checkToken(token_key)
         consumer = self._checkConsumer(token.consumer_key)
         self.token = token
         self.consumer = consumer
@@ -138,7 +167,6 @@ class AuthorizeTokenPage(form.Form, BaseTokenPage):
 
         if self._errors or not self.token:
             return
-        self.token.set_verifier()
         return self.request.response.redirect(self.token.get_callback_url())
 
     @button.buttonAndHandler(_('Deny access'), name='deny')

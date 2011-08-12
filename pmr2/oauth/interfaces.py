@@ -20,6 +20,14 @@ class RequestInvalidError(BaseInvalidError):
     __doc__ = "invalid request."
 
 
+class BaseValueError(ValueError):
+    __doc__ = "basic value error"
+
+
+class CallbackValueError(BaseValueError):
+    __doc__ = "callback value error"
+
+
 class IOAuthUtility(zope.interface.Interface):
     """\
     The OAuth utility.
