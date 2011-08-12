@@ -4,10 +4,20 @@ import zope.schema
 from pmr2.oauth import MessageFactory as _
 
 
-class FormValueError(ValueError):
-    """\
-    Value error generated within forms.
-    """
+class BaseInvalidError(KeyError):
+    __doc__ = "base invalid error."
+
+
+class TokenInvalidError(BaseInvalidError):
+    __doc__ = "invalid token."
+
+
+class ConsumerInvalidError(BaseInvalidError):
+    __doc__ = "invalid consumer."
+
+
+class RequestInvalidError(BaseInvalidError):
+    __doc__ = "invalid request."
 
 
 class IOAuthUtility(zope.interface.Interface):

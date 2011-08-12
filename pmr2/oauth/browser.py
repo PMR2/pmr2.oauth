@@ -18,27 +18,55 @@ from pmr2.oauth import MessageFactory as _
 from pmr2.oauth.interfaces import *
 
 
-class RequestTokenPage(BrowserPage):
+class BaseTokenPage(BrowserPage):
 
-    def __call__(self):
-        o_request = zope.component.getAdapter(self.request, IRequest)
+    def _checkRequest(self, request):
+        o_request = zope.component.getAdapter(request, IRequest)
 
         if not o_request:
-            raise BadRequest('missing oauth parameters')
+            raise RequestInvalidError('missing oauth parameters')
         # XXX check and assemble a list of missing parameters.
 
+        return o_request
+
+    def _checkConsumer(self, key):
         cm = zope.component.getMultiAdapter((self.context, self.request),
             IConsumerManager)
 
-        consumer = cm.get(o_request.get('oauth_consumer_key', None), None)
+        consumer = cm.getValidated(key)
         if not consumer:
-            raise BadRequest('invalid consumer key')
+            raise ConsumerInvalidError('invalid consumer')
+        return consumer
 
+    def _checkToken(self, key):
+        tm = zope.component.getMultiAdapter((self.context, self.request),
+            ITokenManager)
+
+        token = tm.get(key)
+        if not token:
+            raise TokenInvalidError('invalid token')
+        return token
+
+    def _verifyRequest(self, o_request, consumer, token):
         utility = zope.component.getUtility(IOAuthUtility)
         try:
-            params = utility.verify_request(o_request, consumer, None)
+            params = utility.verify_request(o_request, consumer, token)
         except oauth.Error:
-            raise BadRequest('could not verify oauth request.')
+            raise RequestInvalidError('could not verify oauth request.')
+        return True
+
+
+class RequestTokenPage(BaseTokenPage):
+
+    def __call__(self):
+
+        try:
+            o_request = self._checkRequest(self.request)
+            consumer_key = o_request.get('oauth_consumer_key', None)
+            consumer = self._checkConsumer(consumer_key)
+            self._verifyRequest(o_request, consumer, None)
+        except BaseInvalidError, e:
+            raise BadRequest(e.args[0])
 
         # create token
 
@@ -50,11 +78,12 @@ class RequestTokenPage(BrowserPage):
         return token.to_string()
 
 
-class AuthorizeTokenPage(form.Form):
+class AuthorizeTokenPage(form.Form, BaseTokenPage):
 
     ignoreContext = True
-    invalidTokenMessage = _('Invalid Token.')
-    invalidConsumerMessage = _('Consumer associated with this key is invalid.')
+    invalidTokenMessage = _(u'Invalid Token.')
+    invalidConsumerMessage = _(
+        u'Consumer associated with this key is invalid.')
     token = None
     consumer = None
     consumer_key = ''
@@ -62,23 +91,6 @@ class AuthorizeTokenPage(form.Form):
     statusTemplate = ViewPageTemplateFile('authorize_status.pt')
     template = ViewPageTemplateFile('authorize_question.pt')
     _errors = False
-
-    def _checkToken(self, token_key):
-        tokenid = self.request.form.get('oauth_token', None)
-        tm = zope.component.getMultiAdapter((self.context, self.request),
-            ITokenManager)
-        token = tm.get(token_key, None)
-        if token is None:
-            raise FormValueError(self.invalidTokenMessage)
-        return token
-
-    def _checkConsumer(self, consumer_key):
-        cm = zope.component.getMultiAdapter((self.context, self.request),
-            IConsumerManager)
-        consumer = cm.getValidated(consumer_key)
-        if not consumer:
-            raise FormValueError(self.invalidConsumerMessage)
-        return consumer
 
     def _update(self):
         token = self._checkToken(self.request.form.get('oauth_token', None))
@@ -101,8 +113,13 @@ class AuthorizeTokenPage(form.Form):
 
         try:
             self._update()
-        except FormValueError, e:
-            self.status = unicode(e)
+        except TokenInvalidError, e:
+            self._errors = self.invalidTokenMessage
+        except ConsumerInvalidError, e:
+            self._errors = self.invalidConsumerMessage
+
+        if self._errors:
+            self.status = self._errors
             self._errors = True
 
         return super(AuthorizeTokenPage, self).update()
@@ -129,3 +146,5 @@ class AuthorizeTokenPage(form.Form):
         """\
         User denies this token
         """
+
+
