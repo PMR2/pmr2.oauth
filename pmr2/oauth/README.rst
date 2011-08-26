@@ -290,8 +290,27 @@ Okay, now do this properly with the verifier provided.
     ...     'oauth_timestamp': timestamp,
     ... }, consumer=consumer1, token=token)
     >>> rt = GetAccessTokenPage(self.portal, request)
-    >>> print rt()
+    >>> accesstokenstr = rt()
+    >>> print accesstokenstr
     oauth_token_secret=...&oauth_token=...
+    >>> access_token = oauth.Token.from_string(accesstokenstr)
+
+After verification, the old token should have been discarded and cannot
+be used again to request a new token.
+::
+
+    >>> token.verifier = token_verifier
+    >>> timestamp = str(int(time.time()))
+    >>> request = SignedTestRequest(oauth_keys={
+    ...     'oauth_version': "1.0",
+    ...     'oauth_nonce': "806052fe5585b22f63fe27cba8b78732",
+    ...     'oauth_timestamp': timestamp,
+    ... }, consumer=consumer1, token=token)
+    >>> rt = GetAccessTokenPage(self.portal, request)
+    >>> rt()
+    Traceback (most recent call last):
+    ...
+    BadRequest: invalid token
 
 
 ------------------
@@ -302,9 +321,6 @@ This is basic auth, which we want to avoid since consumers would have to
 retain (thus know) the user/password combination.
 ::
 
-    >>> from Products.PloneTestCase.ptc import portal_owner
-    >>> from Products.PloneTestCase.ptc import default_user
-    >>> from Products.PloneTestCase.ptc import default_password
     >>> baseurl = self.portal.absolute_url()
     >>> browser = Browser()
     >>> auth = '%s:%s' % (default_user, default_password)
