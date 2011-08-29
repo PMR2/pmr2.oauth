@@ -135,6 +135,13 @@ class IToken(zope.interface.Interface):
 
     # other requirements
 
+    access = zope.schema.Bool(
+        title=u'Access Permitted',
+        description=u'Determines if this can be used to access content.',
+        default=False,
+        required=True,
+    )
+
     user = zope.schema.TextLine(
         title=u'User ID',
         description=u'The user id associated with this token.',

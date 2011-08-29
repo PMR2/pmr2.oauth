@@ -88,6 +88,7 @@ class TokenManager(Persistent, Contained):
         if not self.tokenRequestVerify(request=request):
             raise TokenInvalidError('invalid token')
         token = self._generateBaseToken(consumer, request)
+        token.access = True
         old_key = request.get('oauth_token')
         self.remove(old_key)
         self.add(token)
@@ -122,8 +123,11 @@ class Token(Persistent, oauth.Token):
     key = fieldproperty.FieldProperty(IToken['key'])
     secret = fieldproperty.FieldProperty(IToken['secret'])
     callback = fieldproperty.FieldProperty(IToken['callback'])
-    callback_confirmed = fieldproperty.FieldProperty(IToken['callback_confirmed'])
+    callback_confirmed = fieldproperty.FieldProperty(
+        IToken['callback_confirmed'])
     verifier = fieldproperty.FieldProperty(IToken['verifier'])
+    access = fieldproperty.FieldProperty(IToken['access'])
+
     user = fieldproperty.FieldProperty(IToken['user'])
     consumer_key = fieldproperty.FieldProperty(IToken['consumer_key'])
     timestamp = fieldproperty.FieldProperty(IToken['timestamp'])

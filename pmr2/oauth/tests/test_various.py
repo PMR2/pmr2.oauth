@@ -253,6 +253,7 @@ class TestToken(unittest.TestCase):
         self.assertEqual(len(m._tokens), 1)
         self.assertEqual(m.get(token.key), token)
         self.assertEqual(m.get(token.key).consumer_key, c.key)
+        self.assertEqual(m.get(token.key).access, False)
 
     def test_201_token_manager_generate_request_token_no_callback(self):
         m = TokenManager()
@@ -275,6 +276,7 @@ class TestToken(unittest.TestCase):
         self.assertEqual(len(m._tokens), 1)
         self.assertEqual(m.get(token.key), token)
         self.assertEqual(m.get(token.key).consumer_key, c.key)
+        self.assertEqual(m.get(token.key).access, True)
 
     def test_301_token_manager_generate_access_token_no_request_token(self):
         m = TokenManager()
