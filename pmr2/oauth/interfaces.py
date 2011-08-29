@@ -34,6 +34,18 @@ class IOAuthUtility(zope.interface.Interface):
     """
 
 
+class IOAuthPlugin(zope.interface.Interface):
+    """\
+    The OAuth plugin.
+    """
+
+    def extractOAuthCredentials(request):
+        """\
+        Extract the OAuth credentials from the request, for processing
+        by Plone PAS.
+        """
+
+
 class IRequest(zope.interface.Interface):
     """\
     Marker interface for the OAuth request.

@@ -11,6 +11,7 @@ import transaction
 import logging
 
 from pmr2.oauth.interfaces import IRequest
+from pmr2.oauth.interfaces import IOAuthPlugin
 
 manage_addOAuthPlugin = PageTemplateFile("../www/oauthAdd", globals(), 
                 __name__="manage_addOAuthPlugin")
@@ -36,6 +37,7 @@ class OAuthPlugin(BasePlugin):
     # to implement IExtractionPlugin, IAuthenticationPlugin
     meta_type = "OAuth plugin"
     security = ClassSecurityInfo()
+    zope.interface.implements(IOAuthPlugin)
 
     def __init__(self, id, title=None):
         self._setId(id)
