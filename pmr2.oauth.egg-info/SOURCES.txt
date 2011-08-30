@@ -2,6 +2,8 @@ MANIFEST.in
 setup.cfg
 setup.py
 docs/HISTORY.rst
+docs/LICENSE.GPL
+docs/LICENSE.txt
 pmr2/__init__.py
 pmr2.oauth.egg-info/PKG-INFO
 pmr2.oauth.egg-info/SOURCES.txt
