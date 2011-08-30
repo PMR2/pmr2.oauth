@@ -1,7 +1,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"
       xmlns:tal="http://xml.zope.org/namespaces/tal"
       lang="en"
-      i18n:domain="pmr2.app.exposure"
+      i18n:domain="pmr2.oauth"
       metal:use-macro="context/@@ploneform-macros/titlelessform" >
   <body>
 
