@@ -1,4 +1,6 @@
 import zope.component
+from zope.app.component.hooks import getSite
+
 from Acquisition import aq_parent
 from AccessControl.SecurityInfo import ClassSecurityInfo
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
@@ -6,12 +8,15 @@ from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
 from Products.PluggableAuthService.utils import classImplements
 from Products.PluggableAuthService.interfaces.plugins \
                 import IAuthenticationPlugin, IExtractionPlugin
-from zExceptions import Redirect
+
+from zExceptions import Forbidden
+from zExceptions import BadRequest
+
 import transaction
 import logging
 
-from pmr2.oauth.interfaces import IRequest
-from pmr2.oauth.interfaces import IOAuthPlugin
+import oauth2 as oauth
+from pmr2.oauth.interfaces import *
 
 manage_addOAuthPlugin = PageTemplateFile("../www/oauthAdd", globals(), 
                 __name__="manage_addOAuthPlugin")
@@ -44,20 +49,52 @@ class OAuthPlugin(BasePlugin):
         self.title = title
         # init storage too
 
-    def getConsumer(self):
-        pass
+    def _getConsumer(self, site, request, o_request):
+        consumerManager = zope.component.getMultiAdapter(
+            (site, request), IConsumerManager)
+        consumer_key = o_request.get('oauth_consumer_key')
+        return consumerManager.get(consumer_key)
+
+    def _getToken(self, site, request, o_request):
+        tokenManager = zope.component.getMultiAdapter(
+            (site, request), ITokenManager)
+        token_key = o_request.get('oauth_token')
+        return tokenManager.get(token_key)
 
     def extractOAuthCredentials(self, request):
         """\
         This method extracts the OAuth credentials from the request.
         """
 
-        result = {}
+        site = getSite()
         o_request = zope.component.getAdapter(request, IRequest)
+
+        token = self._getToken(site, request, o_request)
+        consumer = self._getConsumer(site, request, o_request)
+
+        if token is None or not token.access:
+            raise Forbidden('invalid token')
+
+        if consumer is None or not consumer.key == token.consumer_key:
+            raise Forbidden('invalid consumer key')
+
+        # verify token signature
+        utility = zope.component.getUtility(IOAuthUtility)
+        try:
+            params = utility.verify_request(o_request, consumer, token)
+        except oauth.Error, e:
+            raise BadRequest(e.message)
+
+        result = {}
         fragment = 'oauth_'
         for k, v in o_request.iteritems():
-            if k.startswith(fragment):
-                result[k] = v
+            # as this is passed as keywords into other functions in PAS,
+            # keys need to be strings
+            key = k.encode('utf8')
+            if key.startswith(fragment):
+                result[key] = v
+
+        result['userid'] = token.user
         return result
 
     def extractCredentials(self, request):
@@ -70,13 +107,27 @@ class OAuthPlugin(BasePlugin):
         otherwise empty mapping.
         """
 
+        if not (request._auth and request._auth.startswith('OAuth ')):
+            return {}
         mappings = self.extractOAuthCredentials(request)
-        #
-        return {}
+        return mappings
 
     # IAuthenticationPlugin implementation
     def authenticateCredentials(self, credentials):
-        pass
+        """\
+        Authenticate the generated credentials by above.
+        """
+
+        if not credentials.get('extractor', None) == 'oauth':
+            return None
+
+        userid = credentials['userid']
+        pas = self._getPAS()
+        info = pas._verifyUser(pas.plugins, user_id=userid)
+        if info is None:
+            return None  # should we raise Forbidden instead?
+
+        return (info['id'], info['login'])
 
 
 classImplements(OAuthPlugin,

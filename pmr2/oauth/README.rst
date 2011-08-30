@@ -234,6 +234,15 @@ redirected to the callback URL with the token and verifier specified.
     >>> token.key == token_key
     True
 
+The request token should be updated to include the id of the user that
+authorized it.
+::
+
+    >>> tokenManager = zope.component.getMultiAdapter(
+    ...     (self.portal, request), ITokenManager)
+    >>> tokenManager.get(token_key).user
+    'test_user_1_'
+
 At this point the verifier should have been assigned by the consumer to
 their copy of the same token, but we will defer this till a bit later.
 
@@ -279,7 +288,9 @@ correct verifier assigned.
     ...
     BadRequest: invalid token
 
-Okay, now do this properly with the verifier provided.
+Okay, now do this properly with the verifier provided, as the consumer
+just accessed the callback URL of the consumer to supply it with the
+correct verifier.
 ::
 
     >>> token.verifier = token_verifier
@@ -326,5 +337,29 @@ retain (thus know) the user/password combination.
     >>> auth = '%s:%s' % (default_user, default_password)
     >>> browser.addHeader('Authorization', 'Basic %s' % auth.encode('base64'))
     >>> browser.open(baseurl + '/test_current_user')
+    >>> print browser.contents
+    test_user_1_
+
+For the OAuth testing request, we need to generate the authorization
+header proper, so we instantiate a signed request object and use it to
+build this string.
+::
+
+    >>> url = baseurl + '/test_current_user'
+    >>> timestamp = str(int(time.time()))
+    >>> request = SignedTestRequest(
+    ...     oauth_keys={
+    ...         'oauth_version': "1.0",
+    ...         'oauth_nonce': "806052fe5585b22f63fe27cba8b78732",
+    ...         'oauth_timestamp': timestamp,
+    ...     },
+    ...     consumer=consumer1, 
+    ...     token=access_token, 
+    ...     url=url,
+    ... )
+    >>> auth = request._auth
+    >>> browser = Browser()
+    >>> browser.addHeader('Authorization', 'OAuth %s' % auth)
+    >>> browser.open(url)
     >>> print browser.contents
     test_user_1_

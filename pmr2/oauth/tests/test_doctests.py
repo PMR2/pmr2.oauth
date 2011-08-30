@@ -10,7 +10,7 @@ from Products.PloneTestCase.layer import onsetup
 
 from pmr2.testing.base import DocTestCase
 
-#from pmr2.oauth.tests import base
+from pmr2.oauth.tests import base
 
 
 def test_suite():

@@ -142,7 +142,7 @@ class IToken(zope.interface.Interface):
         required=True,
     )
 
-    user = zope.schema.TextLine(
+    user = zope.schema.ASCIILine(
         title=u'User ID',
         description=u'The user id associated with this token.',
         required=False,

@@ -1,4 +1,10 @@
+from time import time
+from random import randint
+from sys import maxint
+import zope.interface
+
 from Testing import ZopeTestCase as ztc
+from plone.session.tests.sessioncase import PloneSessionTestCase
 from Zope2.App import zcml
 from Products.Five import fiveconfigure
 from Products.PloneTestCase import PloneTestCase as ptc
@@ -8,6 +14,7 @@ from Products.PloneTestCase.layer import onteardown
 
 import z3c.form.testing
 import oauth2 as oauth
+from pmr2.oauth.plugins.oauth import OAuthPlugin
 
 @onsetup
 def setup():
@@ -24,16 +31,36 @@ def teardown():
 
 setup()
 teardown()
-#ptc.setupPloneSite(products=('pmr2.oauth',))
-ptc.setupPloneSite(products=())
+ptc.setupPloneSite(products=('pmr2.oauth',))
+
+
+class OAuthTestCase(PloneSessionTestCase):
+
+    def afterSetUp(self):
+        PloneSessionTestCase.afterSetUp(self)
+        self.app.folder = self.folder
+
+        if self.folder.pas.hasObject("oauth"):
+            self.app.folder.pas._delObject("oauth")
+
+        self.app.folder.pas._setObject("oauth", OAuthPlugin("oauth"))
+
+
+class IOAuthTestLayer(zope.interface.Interface):
+    """\
+    Mock layer
+    """
 
 
 class TestRequest(z3c.form.testing.TestRequest):
 
-    def __init__(self, oauth_keys=None, *a, **kw):
+    zope.interface.implements(IOAuthTestLayer)
+
+    def __init__(self, oauth_keys=None, url=None, *a, **kw):
         super(TestRequest, self).__init__(*a, **kw)
+        url = url or self.getURL()
         if oauth_keys:
-            req = oauth.Request("GET", self.getURL(), oauth_keys)
+            req = oauth.Request("GET", url, oauth_keys)
             headers = req.to_header()
             self._auth = headers['Authorization']
 
@@ -41,19 +68,33 @@ class TestRequest(z3c.form.testing.TestRequest):
 signature_method = oauth.SignatureMethod_HMAC_SHA1()
 
 def SignedTestRequest(form=None, oauth_keys=None, consumer=None, token=None,
-        *a, **kw):
+        url=None, *a, **kw):
     """\
     Creates a signed TestRequest
     """
 
     if not consumer:
-        raise ValueError('Consumer must be provided')
+        raise ValueError('consumer must be provided to build a signed request')
 
     if form is None:
         form = {}
 
+    nonce = str(randint(0, maxint))
+    timestamp = str(int(time()))
+    default_oauth_keys = {
+        'oauth_version': "1.0",
+        'oauth_nonce': nonce,
+        'oauth_timestamp': timestamp,
+    }
+
+    if oauth_keys is None:
+        oauth_keys = default_oauth_keys
+    else:
+        default_oauth_keys.update(oauth_keys)
+        oauth_keys = default_oauth_keys
+
     result = TestRequest(form=form, *a, **kw)
-    url = result.getURL()  # may want to make this an argument
+    url = url or result.getURL()
     req = oauth.Request.from_consumer_and_token(
         consumer, token, http_url=url, parameters=oauth_keys)
     req.update(form)

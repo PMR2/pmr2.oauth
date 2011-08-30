@@ -4,8 +4,11 @@
     i18n_domain="pmr2.oauth"
     >
 
+  <five:registerPackage package="." initialize=".initialize" />
+
   <include file="adapter.zcml" />
   <include file="browser.zcml" />
+  <include file="profiles.zcml" />
 
   <utility
       provides=".interfaces.IOAuthUtility"

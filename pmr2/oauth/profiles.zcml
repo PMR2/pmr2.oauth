@@ -1,0 +1,15 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
+    i18n_domain="pmr2.oauth">
+
+  <genericsetup:registerProfile
+      name="default"
+      title="OAuth Plugin"
+      directory="profiles/default"
+      description="Add support for authenticating with OAuth credentials in a Plone site."
+      provides="Products.GenericSetup.interfaces.EXTENSION"
+      for="Products.CMFPlone.interfaces.IPloneSiteRoot"
+      />
+
+</configure>

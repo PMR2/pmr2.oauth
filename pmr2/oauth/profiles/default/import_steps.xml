@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<import-steps>
+  <import-step id="pmr2_oauth" version="0.0-0000"
+               handler="pmr2.oauth.setuphandlers.importVarious"
+               title="OAuth Plugin">
+  </import-step>
+</import-steps>

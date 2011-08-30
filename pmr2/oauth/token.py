@@ -87,11 +87,17 @@ class TokenManager(Persistent, Contained):
     def generateAccessToken(self, consumer, request):
         if not self.tokenRequestVerify(request=request):
             raise TokenInvalidError('invalid token')
+        old_key = request.get('oauth_token')
+        old_token = self.get(old_key)
+        
         token = self._generateBaseToken(consumer, request)
         token.access = True
-        old_key = request.get('oauth_token')
+        token.user = old_token.user
+
+        # Terminate old token to prevent reuse.
         self.remove(old_key)
         self.add(token)
+
         return token
 
     def get(self, token_key, default=None):
