@@ -22,11 +22,16 @@ pmr2/oauth/configure.zcml
 pmr2/oauth/consumer.py
 pmr2/oauth/factory.py
 pmr2/oauth/interfaces.py
+pmr2/oauth/profiles.zcml
 pmr2/oauth/request.py
+pmr2/oauth/setuphandlers.py
 pmr2/oauth/token.py
 pmr2/oauth/utility.py
+pmr2/oauth/icon/oauth.png
 pmr2/oauth/plugins/__init__.py
 pmr2/oauth/plugins/oauth.py
+pmr2/oauth/profiles/default/import_steps.xml
+pmr2/oauth/profiles/default/oauth-pas.txt
 pmr2/oauth/tests/__init__.py
 pmr2/oauth/tests/base.py
 pmr2/oauth/tests/browser.py
