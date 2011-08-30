@@ -59,6 +59,4 @@ Usage
 -----
 
 For further usage information, please refer to the tests and the 
-associated README files (i.e. `pmr2/oauth/README.rst`_)
-
-.. _pmr2/oauth/README.rst: pmr2/oauth/README.rst
+associated README files (i.e. pmr2/oauth/README.rst)
