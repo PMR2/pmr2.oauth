@@ -1,11 +1,11 @@
-==============
-OAuth for PMR2
-==============
+=================
+OAuth PAS Plug-in
+=================
 
-This module provides OAuth authentication for PMR2.  Could probably be
-used elsewhere in Plone.
+This module provides OAuth authentication for Plone via the Pluggable
+Authentication Service.
 
-Firstly import all the modules we need.
+To run this, we first import all the modules we need.
 ::
 
     >>> import time
