@@ -34,10 +34,10 @@ def mock_factory(cls):
 
 class PermissiveScopeManager(DefaultScopeManager):
     def validate(self, request, token):
-        # a very permissive scope manager as we are not doing this is
-        # not really part of the core OAuth spec.  This is tested
-        # elsewhere (in the default scope manager test cases and the
-        # integration/system tests).
+        # a very permissive scope manager.  Focus of the tests here are
+        # on the core OAuth bits.  There are separate unit tests for the
+        # DefaultScopeManager and integration/system tests that tests
+        # all of this stuff working together.
         return True
 
 
