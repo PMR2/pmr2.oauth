@@ -26,6 +26,7 @@ pmr2/oauth/factory.py
 pmr2/oauth/interfaces.py
 pmr2/oauth/profiles.zcml
 pmr2/oauth/request.py
+pmr2/oauth/scope.py
 pmr2/oauth/setuphandlers.py
 pmr2/oauth/token.py
 pmr2/oauth/utility.py
@@ -42,4 +43,3 @@ pmr2/oauth/tests/test_extraction.py
 pmr2/oauth/tests/test_various.py
 pmr2/oauth/tests/tests.zcml
 pmr2/oauth/tests/utility.py
-pmr2/oauth/tests/fail/test_request.py
