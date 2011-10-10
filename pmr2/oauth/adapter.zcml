@@ -22,4 +22,11 @@
       provides=".interfaces.ITokenManager"
       />
 
+  <adapter
+      for="zope.annotation.interfaces.IAnnotatable
+           *"
+      factory=".scope.DefaultScopeManagerFactory"
+      provides=".interfaces.IScopeManager"
+      />
+
 </configure>

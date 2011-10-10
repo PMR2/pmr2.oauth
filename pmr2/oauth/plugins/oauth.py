@@ -61,6 +61,14 @@ class OAuthPlugin(BasePlugin):
         token_key = o_request.get('oauth_token')
         return tokenManager.get(token_key)
 
+    def _checkScope(self, site, request, token):
+        scopeManager = zope.component.queryMultiAdapter(
+            (site, request), IScopeManager, name=token.scope_id)
+        #if not scopeManager:
+        #    # Assume a failed scope check.
+        #    return False
+        return scopeManager.validate(request, token)
+
     def extractOAuthCredentials(self, request):
         """\
         This method extracts the OAuth credentials from the request.
@@ -84,6 +92,12 @@ class OAuthPlugin(BasePlugin):
             params = utility.verify_request(o_request, consumer, token)
         except oauth.Error, e:
             raise BadRequest(e.message)
+
+        # lastly check whether request fits within the scope this token
+        # is permitted to access.
+        scope = self._checkScope(site, request, token)
+        if not scope:
+            raise Forbidden('invalid scope')
 
         result = {}
         fragment = 'oauth_'

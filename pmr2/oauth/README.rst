@@ -48,6 +48,24 @@ The default consumer manager should also be available via adapter.
     >>> consumerManager
     <pmr2.oauth.consumer.ConsumerManager object at ...>
 
+Ditto for the token manager.
+::
+
+    >>> request = TestRequest()
+    >>> tokenManager = zope.component.getMultiAdapter(
+    ...     (self.portal, request), ITokenManager)
+    >>> tokenManager
+    <pmr2.oauth.token.TokenManager object at ...>
+
+Lastly, the scope manager.
+::
+
+    >>> request = TestRequest()
+    >>> scopeManager = zope.component.getMultiAdapter(
+    ...     (self.portal, request), IScopeManager)
+    >>> scopeManager
+    <pmr2.oauth.scope.DefaultScopeManager object at ...>
+
 
 ---------------------
 Consumer Registration
@@ -238,8 +256,6 @@ The request token should be updated to include the id of the user that
 authorized it.
 ::
 
-    >>> tokenManager = zope.component.getMultiAdapter(
-    ...     (self.portal, request), ITokenManager)
     >>> tokenManager.get(token_key).user
     'test_user_1_'
 
@@ -360,6 +376,19 @@ build this string.
     >>> auth = request._auth
     >>> browser = Browser()
     >>> browser.addHeader('Authorization', 'OAuth %s' % auth)
+    >>> browser.open(url)
+    Traceback (most recent call last):
+    ...
+    HTTPError: HTTP Error 403: Forbidden
+
+
+There is one more security consideration that needs to be satisified
+still - the scope.  The default scope manager only permit GET requests,
+and they must match one of the permit rules that it contains.  Add this
+URL and try again.
+::
+
+    >>> scopeManager.permitted = 'test_current_user$\n'
     >>> browser.open(url)
     >>> print browser.contents
     test_user_1_

@@ -18,6 +18,8 @@ from pmr2.oauth.token import TokenManager
 from pmr2.oauth.consumer import Consumer
 from pmr2.oauth.consumer import ConsumerManager
 
+from pmr2.oauth.scope import DefaultScopeManager
+
 from pmr2.oauth.tests.base import IOAuthTestLayer
 from pmr2.oauth.tests.base import TestRequest
 from pmr2.oauth.tests.base import SignedTestRequest
@@ -30,6 +32,15 @@ def mock_factory(cls):
     return getInstance
 
 
+class PermissiveScopeManager(DefaultScopeManager):
+    def validate(self, request, token):
+        # a very permissive scope manager as we are not doing this is
+        # not really part of the core OAuth spec.  This is tested
+        # elsewhere (in the default scope manager test cases and the
+        # integration/system tests).
+        return True
+
+
 class TestExtraction(unittest.TestCase):
 
     default_consumer_key = 'consumer.example.com'
@@ -38,6 +49,7 @@ class TestExtraction(unittest.TestCase):
     def setUp(self):
         tmf = mock_factory(TokenManager)
         cmf = mock_factory(ConsumerManager)
+        smf = mock_factory(PermissiveScopeManager)
         self.plugin = self.createPlugin()
         zope.component.provideAdapter(
             BrowserRequestAdapter, (IBrowserRequest,), IRequest)
@@ -45,6 +57,8 @@ class TestExtraction(unittest.TestCase):
             cmf, (Interface, IOAuthTestLayer,), IConsumerManager)
         zope.component.provideAdapter(
             tmf, (Interface, IOAuthTestLayer,), ITokenManager)
+        zope.component.provideAdapter(
+            smf, (Interface, IOAuthTestLayer,), IScopeManager)
         zope.component.provideUtility(
             OAuthUtility(), IOAuthUtility)
 
@@ -52,6 +66,8 @@ class TestExtraction(unittest.TestCase):
             (object, TestRequest()), IConsumerManager)
         self.tokenManager = zope.component.getMultiAdapter(
             (object, TestRequest()), ITokenManager)
+        self.scopeManager = zope.component.getMultiAdapter(
+            (object, TestRequest()), IScopeManager)
 
     def createPlugin(self):
         from pmr2.oauth.tests.utility import MockPAS

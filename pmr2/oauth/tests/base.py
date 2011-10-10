@@ -59,6 +59,7 @@ class TestRequest(z3c.form.testing.TestRequest):
     def __init__(self, oauth_keys=None, url=None, *a, **kw):
         super(TestRequest, self).__init__(*a, **kw)
         url = url or self.getURL()
+        self._environ['ACTUAL_URL'] = url
         if oauth_keys:
             req = oauth.Request("GET", url, oauth_keys)
             headers = req.to_header()

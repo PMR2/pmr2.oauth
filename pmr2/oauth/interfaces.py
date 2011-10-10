@@ -101,6 +101,36 @@ class IConsumerManager(zope.interface.Interface):
         """
 
 
+class IScopeManager(zope.interface.Interface):
+    """\
+    Scope Manager
+
+    A manager that simplifies the handling of scopes, which place limits
+    on what an authenticated token can access.
+    """
+
+    # individual scope manager should deal with how/what the meaning of
+    # the scope value within each token.
+
+    def validate(context, request, scope):
+        """\
+        Validate the scope against the given context and request.
+        """
+
+
+class IDefaultScopeManager(zope.interface.Interface):
+    """\
+    Fields for the default scope manager.
+    """
+
+    permitted = zope.schema.ASCII(
+        title=u'Permitted URIs',
+        description=u'List of regular expressions of URIs that are permitted '
+                     'to be accessible via OAuth.',
+        required=True,
+    )
+
+
 class IToken(zope.interface.Interface):
     """\
     An OAuth token.
@@ -161,9 +191,17 @@ class IToken(zope.interface.Interface):
         description=u'Creation timestamp of this token',
     )
 
-    scope = zope.schema.ASCIILine(
-        title=u'Scope',
-        description=u'Scope of this token.',
+    scope_id = zope.schema.ASCIILine(
+        title=u'Scope ID',
+        description=u'The type of this scope.',
+        required=False,
+        default='',
+    )
+
+    scope_value = zope.schema.ASCIILine(
+        title=u'Scope Parameter',
+        description=u'The parameter for the scope used in this token.',
+        required=False,
     )
 
 

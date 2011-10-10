@@ -10,7 +10,6 @@ from zExceptions import Unauthorized
 
 from z3c.form import form
 from z3c.form import button
-from plone.z3cform import layout
 
 from Products.CMFCore.utils import getToolByName
 

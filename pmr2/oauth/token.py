@@ -137,7 +137,8 @@ class Token(Persistent, oauth.Token):
     user = fieldproperty.FieldProperty(IToken['user'])
     consumer_key = fieldproperty.FieldProperty(IToken['consumer_key'])
     timestamp = fieldproperty.FieldProperty(IToken['timestamp'])
-    scope = fieldproperty.FieldProperty(IToken['scope'])
+    scope_id = fieldproperty.FieldProperty(IToken['scope_id'])
+    scope_value = fieldproperty.FieldProperty(IToken['scope_value'])
 
     def set_verifier(self, verifier=None):
         """\
