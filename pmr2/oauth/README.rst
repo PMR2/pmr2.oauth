@@ -387,7 +387,186 @@ and they must match one of the permit rules that it contains.  Add this
 URL and try again.
 ::
 
-    >>> scopeManager.permitted = 'test_current_user$\n'
+    >>> scopeManager.permitted = 'test_current_user$\ntest_current_roles$\n'
     >>> browser.open(url)
     >>> print browser.contents
     test_user_1_
+
+Try the roles view also, since it is also permitted.
+::
+
+    >>> url = baseurl + '/test_current_roles'
+    >>> timestamp = str(int(time.time()))
+    >>> request = SignedTestRequest(
+    ...     oauth_keys={
+    ...         'oauth_version': "1.0",
+    ...         'oauth_nonce': "806052fe5585b22f63fe27cba8b78732",
+    ...         'oauth_timestamp': timestamp,
+    ...     },
+    ...     consumer=consumer1, 
+    ...     token=access_token, 
+    ...     url=url,
+    ... )
+    >>> auth = request._auth
+    >>> browser = Browser()
+    >>> browser.addHeader('Authorization', 'OAuth %s' % auth)
+    >>> browser.open(url)
+    >>> print browser.contents
+    Member
+    Authenticated
+
+
+-----
+Scope
+-----
+
+While the current scope manager already place limits on what consumers
+can access, individual users should be able to place further
+restrictions on the amount of their resources a given consumer may
+access.  Attaching a scope to a token is a method that enables this 
+limitation.  As the implementation is completely extensible, the
+specific parameters used/accepted by the scope is dependent on those 
+details, likewise for the presentation of the scope to the end user
+(e.g. implementation of scope managers can translate raw scope into
+icons of a provided service more easily identifiable to end users).
+
+For our demonstration, we continue our usage of the default scope
+manager by specifying a regular expression matching a URI.  Here we have
+a consumer requesting a token like earlier, but with a scope parameter
+defined.
+::
+
+    >>> url = baseurl + '/OAuthRequestToken?scope=test_current_user%24'
+    >>> timestamp = str(int(time.time()))
+    >>> request = SignedTestRequest(
+    ...     oauth_keys={
+    ...         'oauth_version': "1.0",
+    ...         'oauth_nonce': "109850980381481596938563",
+    ...         'oauth_timestamp': timestamp,
+    ...         'oauth_callback': baseurl + '/test_oauth_callback',
+    ...     },
+    ...     consumer=consumer1,
+    ...     url=url,
+    ... )
+    >>> auth = request._auth
+    >>> consumer_browser = Browser()
+    >>> consumer_browser.addHeader('Authorization', 'OAuth %s' % auth)
+    >>> consumer_browser.open(url)
+    >>> scoped_request_tokenstr = consumer_browser.contents
+    >>> print scoped_request_tokenstr
+    oauth_token_secret=...&oauth_token=...&oauth_callback_confirmed=true
+    >>> scoped_request_token = oauth.Token.from_string(scoped_request_tokenstr)
+
+Verify that our scope value is stored in the request token.
+::
+
+    >>> srt_key = scoped_request_token.key
+    >>> raw_srt = tokenManager.get(srt_key)
+    >>> print raw_srt.scope
+    test_current_user$
+
+Much like before, the user would be directed to the authorization page,
+this time the specific scope this consumer would like to access is
+visible.  We also reuse the original current user's browser (which
+should still be logged in).
+::
+
+    >>> u_browser.open(auth_baseurl + '?oauth_token=' + srt_key)
+    >>> 'The site <strong>' + consumer1.key + '</strong>' in u_browser.contents
+    True
+
+User is nice once more and authorizes this second token.
+::
+
+    >>> u_browser.getControl(name='form.buttons.approve').click()
+    >>> url = u_browser.url
+    >>> qs = urlparse.parse_qs(urlparse.urlparse(url).query)
+    >>> token_verifier = qs['oauth_verifier'][0]
+    >>> scoped_request_token.verifier = token_verifier
+
+Complete the authorization by requesting the access token, and see that
+it retains the scope that was specified in the request token.
+::
+
+    >>> url = baseurl + '/OAuthGetAccessToken'
+    >>> timestamp = str(int(time.time()))
+    >>> request = SignedTestRequest(
+    ...     oauth_keys={
+    ...         'oauth_version': "1.0",
+    ...         'oauth_nonce': "028516734893275926641849",
+    ...         'oauth_timestamp': timestamp,
+    ...     }, 
+    ...     consumer=consumer1, 
+    ...     token=scoped_request_token,
+    ...     url=url,
+    ... )
+    >>> auth = request._auth
+    >>> consumer_browser = Browser()
+    >>> consumer_browser.addHeader('Authorization', 'OAuth %s' % auth)
+    >>> consumer_browser.open(url)
+    >>> scoped_access_tokenstr = consumer_browser.contents
+    >>> print scoped_access_tokenstr
+    oauth_token_secret=...&oauth_token=...
+    >>> scoped_access_token = oauth.Token.from_string(scoped_access_tokenstr)
+    >>> sat_key = scoped_access_token.key
+    >>> raw_sat = tokenManager.get(sat_key)
+    >>> print raw_sat.scope
+    test_current_user$
+
+With this token, consumer only requested the current user and not the
+roles view, so this request should result in a forbidden error (even
+though it is publicly visible).
+::
+
+    >>> url = baseurl + '/test_current_roles'
+    >>> timestamp = str(int(time.time()))
+    >>> request = SignedTestRequest(
+    ...     oauth_keys={
+    ...         'oauth_version': "1.0",
+    ...         'oauth_nonce': "028516734893275926641849",
+    ...         'oauth_timestamp': timestamp,
+    ...     }, 
+    ...     consumer=consumer1, 
+    ...     token=scoped_access_token,
+    ...     url=url,
+    ... )
+    >>> auth = request._auth
+    >>> consumer_browser = Browser()
+    >>> consumer_browser.addHeader('Authorization', 'OAuth %s' % auth)
+    >>> consumer_browser.open(url)
+    Traceback (most recent call last):
+    ...
+    HTTPError: HTTP Error 403: Forbidden
+
+Now attempt to use it to access a permitted resource, in this case it
+would be the test_current_user view.
+::
+
+    >>> url = baseurl + '/test_current_user'
+    >>> timestamp = str(int(time.time()))
+    >>> request = SignedTestRequest(
+    ...     oauth_keys={
+    ...         'oauth_version': "1.0",
+    ...         'oauth_nonce': "028516734893275926641849",
+    ...         'oauth_timestamp': timestamp,
+    ...     }, 
+    ...     consumer=consumer1, 
+    ...     token=scoped_access_token,
+    ...     url=url,
+    ... )
+    >>> auth = request._auth
+    >>> consumer_browser = Browser()
+    >>> consumer_browser.addHeader('Authorization', 'OAuth %s' % auth)
+    >>> consumer_browser.open(url)
+    >>> print consumer_browser.contents
+    test_user_1_
+
+However, if this view is no longer permitted by the default scope
+manager, it should no longer be accessible.
+::
+
+    >>> scopeManager.permitted = 'test_current_roles$\n'
+    >>> consumer_browser.open(url)
+    Traceback (most recent call last):
+    ...
+    HTTPError: HTTP Error 403: Forbidden

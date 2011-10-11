@@ -80,6 +80,10 @@ class TokenManager(Persistent, Contained):
         token.set_callback(callback)
         token.set_verifier()
 
+        # Assuming the scope stored in the token is a unicode string.
+        # Let the TokenManagers deal with these values.
+        token.scope = request.get('scope', u'');
+
         # I know I am taking a collision risk with this random string.
         self.add(token)
         return token
@@ -92,7 +96,10 @@ class TokenManager(Persistent, Contained):
         
         token = self._generateBaseToken(consumer, request)
         token.access = True
+
+        # copy over the vital attributes
         token.user = old_token.user
+        token.scope = old_token.scope
 
         # Terminate old token to prevent reuse.
         self.remove(old_key)
