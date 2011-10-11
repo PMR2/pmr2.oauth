@@ -468,11 +468,14 @@ Verify that our scope value is stored in the request token.
 Much like before, the user would be directed to the authorization page,
 this time the specific scope this consumer would like to access is
 visible.  We also reuse the original current user's browser (which
-should still be logged in).
+should still be logged in).  Also, since this token is limited in scope,
+the user should be informed.
 ::
 
     >>> u_browser.open(auth_baseurl + '?oauth_token=' + srt_key)
     >>> 'The site <strong>' + consumer1.key + '</strong>' in u_browser.contents
+    True
+    >>> 'test_current_user$' in u_browser.contents
     True
 
 User is nice once more and authorizes this second token.

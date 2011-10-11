@@ -82,7 +82,7 @@ class TokenManager(Persistent, Contained):
 
         # Assuming the scope stored in the token is a unicode string.
         # Let the TokenManagers deal with these values.
-        token.scope = request.get('scope', u'');
+        token.scope = request.get('scope', u'')
 
         # I know I am taking a collision risk with this random string.
         self.add(token)

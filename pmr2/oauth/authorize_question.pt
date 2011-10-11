@@ -6,10 +6,30 @@
   <body>
 
     <metal:fill fill-slot="formtop">
+      <tal:if tal:condition="view/scope">
+        <p i18n:translate="">
+          The site <strong tal:content="view/consumer_key"></strong> is 
+          requesting access to URIs on this site matching the following 
+          rules using your credentials:
+        </p>
+
+        <ul>
+          <li tal:content="view/scope"></li>
+        </ul>
+      </tal:if>
+
+      <tal:if tal:condition="not:view/scope">
+        <p i18n:translate="">
+          The site <strong tal:content="view/consumer_key"></strong> is 
+          requesting access to all resources on this site that are
+          permitted by your site manager(s) using your credentials.
+        </p>
+      </tal:if>
+
       <p i18n:translate="">
-        The site <strong tal:content="view/consumer_key"></strong> 
-        is requesting access to your data.
+        Please only grant access if you trust this site.
       </p>
+
       <input type="hidden" name="oauth_token"
           tal:attributes="value request/oauth_token" />
     </metal:fill>

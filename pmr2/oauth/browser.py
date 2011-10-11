@@ -157,6 +157,13 @@ class AuthorizeTokenPage(form.Form, BaseTokenPage):
             return self.statusTemplate()
         return super(AuthorizeTokenPage, self).render()
 
+    def scope(self):
+        # XXX make this hook into the scope manager such that subclasses
+        # can implement more friendly renderings of requested resources
+        # in a more friendly way so that these views don't need to be
+        # customized.
+        return self.token.scope
+
     @button.buttonAndHandler(_('Grant access'), name='approve')
     def handleApprove(self, action):
         """\
