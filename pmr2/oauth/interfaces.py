@@ -191,16 +191,17 @@ class IToken(zope.interface.Interface):
         description=u'Creation timestamp of this token',
     )
 
-    scope_id = zope.schema.ASCIILine(
+    scope_id = zope.schema.Text(
         title=u'Scope ID',
-        description=u'The type of this scope.',
+        description=u'The id of the scope manager that was used.',
         required=False,
-        default='',
+        default=u'',
     )
 
-    scope_value = zope.schema.ASCIILine(
-        title=u'Scope Parameter',
-        description=u'The parameter for the scope used in this token.',
+    scope = zope.schema.Text(
+        title=u'Scope',
+        description=u'The scope associated with this token, specific to the '
+                     'original scope manager that was in use.',
         required=False,
     )
 

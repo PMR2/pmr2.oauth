@@ -331,20 +331,20 @@ class TestDefaultScopeManager(unittest.TestCase):
         self.assertFalse(self.manager.validate(req, self.token))
 
     def test_040_limited_token(self):
-        self.token.scope_value = 'foo$'
+        self.token.scope = u'foo$'
         self.manager.permitted = 'foo$\nbar$\n'
         req = TestRequest(url='http://nohost/test/foo')
         self.assertTrue(self.manager.validate(req, self.token))
 
     def test_041_limited_token_manage_permit_fail(self):
-        self.token.scope_value = 'foo$'
+        self.token.scope = u'foo$'
         self.manager.permitted = 'foo$\nbar$\n'
 
         req = TestRequest(url='http://nohost/test/bar')
         self.assertFalse(self.manager.validate(req, self.token))
 
     def test_042_limited_token_not_in_permit_fail(self):
-        self.token.scope_value = 'bacon$'
+        self.token.scope = u'bacon$'
         self.manager.permitted = 'foo$\nbar$\n'
 
         req = TestRequest(url='http://nohost/test/bacon')

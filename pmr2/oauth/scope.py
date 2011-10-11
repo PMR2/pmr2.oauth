@@ -75,9 +75,9 @@ class DefaultScopeManager(ScopeManager):
         url = request['ACTUAL_URL']
 
         # Check whether the token enforce further restrictions.
-        if token.scope_value:
+        if token.scope:
             try:
-                vs = re.compile(token.scope_value)
+                vs = re.compile(token.scope)
             except:
                 # Be overly paranoid since this value is from the
                 # consumer.
