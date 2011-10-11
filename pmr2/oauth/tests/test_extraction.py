@@ -194,11 +194,18 @@ class TestExtraction(unittest.TestCase):
         token = self.tokenManager.generateRequestToken(consumer, 
             {'oauth_callback': u'http://callback.example.com/'})
         request = SignedTestRequest(consumer=consumer, token=token,)
-        # Since a token is provided, this cannot be a RequestToken 
-        # request.
+
+        # Since a token is provided, and is stored in the token manager,
+        # it could be used for a valid RequestToken request.
+        self.assertEqual(plugin.extractCredentials(request), {})
+
+        # Now if the generated request token was removed from the store,
+        # this same token request would be forbidden.
+        request = SignedTestRequest(consumer=consumer, token=token,)
+        self.tokenManager.remove(token)
         self.assertRaises(Forbidden, plugin.extractCredentials, request)
 
-        # Since atoken isn't saved either, it should have failed too
+        # Since atoken isn't saved either, it should have failed too.
         request = SignedTestRequest(consumer=consumer, token=atoken,)
         self.assertRaises(Forbidden, plugin.extractCredentials, request)
 
@@ -219,12 +226,26 @@ class TestExtraction(unittest.TestCase):
         self.assertEqual(credentials['userid'], self.default_user_id)
 
     def test_1100_missing_token_ignored(self):
-        # Should not fail cases where the oauth_token is missing (it
+        # Should not forbid cases where the oauth_token is missing (it
         # could be a RequestToken, let that page handle it).
         plugin = self.plugin
         consumer, token = self.save_consumer_and_token()
 
         request = SignedTestRequest(consumer=consumer)
+        credentials = plugin.extractCredentials(request)
+        self.assertEqual(credentials, {})
+
+    def test_1101_unauth_token_ignored(self):
+        # Should not forbid cases where the oauth_token is a request
+        # token, as it could be used to request for an access token.
+        # (at least this is a valid token, just has no credentials).
+        plugin = self.plugin
+        consumer, token = self.save_consumer_and_token()
+
+        # forcibily strip that token's access rights.
+        token.access = False
+
+        request = SignedTestRequest(consumer=consumer, token=token,)
         credentials = plugin.extractCredentials(request)
         self.assertEqual(credentials, {})
 

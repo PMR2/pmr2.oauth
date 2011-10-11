@@ -80,11 +80,16 @@ class OAuthPlugin(BasePlugin):
         token_key, token = self._getToken(site, request, o_request)
 
         if not token_key:
-            # This is probably a RequestToken request
+            # This is probably a request for a RequestToken
             return {}
 
-        if token is None or not token.access:
+        if token is None:
+            # Token was not found.
             raise Forbidden('invalid token')
+
+        if not token.access:
+            # This is probably a RequestToken requesting AccessToken
+            return {}
 
         consumer = self._getConsumer(site, request, o_request)
 
