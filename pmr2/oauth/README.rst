@@ -190,17 +190,17 @@ Now we do the test with the test browser class.  First we see that the
 browser is currently not logged in.
 ::
 
-    >>> browser = Browser()
-    >>> browser.open(baseurl + '/test_current_user')
-    >>> print browser.contents
+    >>> u_browser = Browser()
+    >>> u_browser.open(baseurl + '/test_current_user')
+    >>> print u_browser.contents
     Anonymous User
 
 Trying to view the token authorization page should result in redirection
 to login form in a vanilla site.
 ::
 
-    >>> browser.open(baseurl + '/OAuthAuthorizeToken?oauth_token=test')
-    >>> 'credentials_cookie_auth' in browser.url
+    >>> u_browser.open(baseurl + '/OAuthAuthorizeToken?oauth_token=test')
+    >>> 'credentials_cookie_auth' in u_browser.url
     True
 
 So we log in, and try again.  The page should render, but the token
@@ -208,19 +208,19 @@ provided was invalid so we will receive a token invalid page.
 ::
 
     >>> auth_baseurl = baseurl + '/OAuthAuthorizeToken'
-    >>> browser.open(baseurl + '/login')
-    >>> browser.getControl(name='__ac_name').value = default_user
-    >>> browser.getControl(name='__ac_password').value = default_password
-    >>> browser.getControl(name='submit').click()
-    >>> browser.open(baseurl + '/test_current_user')
-    >>> print browser.contents
+    >>> u_browser.open(baseurl + '/login')
+    >>> u_browser.getControl(name='__ac_name').value = default_user
+    >>> u_browser.getControl(name='__ac_password').value = default_password
+    >>> u_browser.getControl(name='submit').click()
+    >>> u_browser.open(baseurl + '/test_current_user')
+    >>> print u_browser.contents
     test_user_1_
-    >>> browser.open(auth_baseurl + '?oauth_token=test')
-    >>> 'Invalid Token' in browser.contents
+    >>> u_browser.open(auth_baseurl + '?oauth_token=test')
+    >>> 'Invalid Token' in u_browser.contents
     True
-    >>> 'Grant access' in browser.contents
+    >>> 'Grant access' in u_browser.contents
     False
-    >>> 'Deny access' in browser.contents
+    >>> 'Deny access' in u_browser.contents
     False
 
 Now we use the token string returned by the token request initiated a
@@ -228,12 +228,12 @@ bit earlier.  Two confirmation button should be visible along with the
 name of the consumer, along with its identity.
 ::
 
-    >>> browser.open(auth_baseurl + '?oauth_token=' + token.key)
-    >>> 'Grant access' in browser.contents
+    >>> u_browser.open(auth_baseurl + '?oauth_token=' + token.key)
+    >>> 'Grant access' in u_browser.contents
     True
-    >>> 'Deny access' in browser.contents
+    >>> 'Deny access' in u_browser.contents
     True
-    >>> 'The site <strong>' + consumer1.key + '</strong>' in browser.contents
+    >>> 'The site <strong>' + consumer1.key + '</strong>' in u_browser.contents
     True
 
 We can approve this token by selecting the 'Grant access' button.  Since
@@ -241,9 +241,9 @@ no `xoauth_displayname` was specified, the browser should have been
 redirected to the callback URL with the token and verifier specified.
 ::
 
-    >>> browser.getControl(name='form.buttons.approve').click()
+    >>> u_browser.getControl(name='form.buttons.approve').click()
     >>> callback_baseurl = baseurl + '/test_oauth_callback?'
-    >>> url = browser.url
+    >>> url = u_browser.url
     >>> url.startswith(callback_baseurl)
     True
     >>> qs = urlparse.parse_qs(urlparse.urlparse(url).query)
@@ -380,7 +380,6 @@ build this string.
     Traceback (most recent call last):
     ...
     HTTPError: HTTP Error 403: Forbidden
-
 
 There is one more security consideration that needs to be satisified
 still - the scope.  The default scope manager only permit GET requests,
