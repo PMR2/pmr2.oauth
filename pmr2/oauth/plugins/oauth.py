@@ -59,7 +59,7 @@ class OAuthPlugin(BasePlugin):
         tokenManager = zope.component.getMultiAdapter(
             (site, request), ITokenManager)
         token_key = o_request.get('oauth_token')
-        return tokenManager.get(token_key)
+        return token_key, tokenManager.get(token_key)
 
     def _checkScope(self, site, request, token):
         scopeManager = zope.component.queryMultiAdapter(
@@ -77,11 +77,16 @@ class OAuthPlugin(BasePlugin):
         site = getSite()
         o_request = zope.component.getAdapter(request, IRequest)
 
-        token = self._getToken(site, request, o_request)
-        consumer = self._getConsumer(site, request, o_request)
+        token_key, token = self._getToken(site, request, o_request)
+
+        if not token_key:
+            # This is probably a RequestToken request
+            return {}
 
         if token is None or not token.access:
             raise Forbidden('invalid token')
+
+        consumer = self._getConsumer(site, request, o_request)
 
         if consumer is None or not consumer.key == token.consumer_key:
             raise Forbidden('invalid consumer key')

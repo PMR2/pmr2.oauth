@@ -194,6 +194,12 @@ class TestExtraction(unittest.TestCase):
         token = self.tokenManager.generateRequestToken(consumer, 
             {'oauth_callback': u'http://callback.example.com/'})
         request = SignedTestRequest(consumer=consumer, token=token,)
+        # Since a token is provided, this cannot be a RequestToken 
+        # request.
+        self.assertRaises(Forbidden, plugin.extractCredentials, request)
+
+        # Since atoken isn't saved either, it should have failed too
+        request = SignedTestRequest(consumer=consumer, token=atoken,)
         self.assertRaises(Forbidden, plugin.extractCredentials, request)
 
     def test_0500_fail_access_token_no_consumer(self):
@@ -211,6 +217,16 @@ class TestExtraction(unittest.TestCase):
         request = SignedTestRequest(consumer=consumer, token=token,)
         credentials = plugin.extractCredentials(request)
         self.assertEqual(credentials['userid'], self.default_user_id)
+
+    def test_1100_missing_token_ignored(self):
+        # Should not fail cases where the oauth_token is missing (it
+        # could be a RequestToken, let that page handle it).
+        plugin = self.plugin
+        consumer, token = self.save_consumer_and_token()
+
+        request = SignedTestRequest(consumer=consumer)
+        credentials = plugin.extractCredentials(request)
+        self.assertEqual(credentials, {})
 
 
 def test_suite():
