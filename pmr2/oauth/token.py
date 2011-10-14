@@ -30,6 +30,9 @@ class TokenManager(Persistent, Contained):
 
     zope.component.adapts(IAttributeAnnotatable, zope.interface.Interface)
     zope.interface.implements(ITokenManager)
+
+    # expiry
+    claim_timeout = 180
     
     def __init__(self):
         self._tokens = OOBTree()
@@ -90,6 +93,15 @@ class TokenManager(Persistent, Contained):
 
         return token
 
+    def claimRequestToken(self, token, user):
+        token = self.get(token)
+        if not token:
+            raise TokenInvalidError('invalid token')
+        if token.access:
+            raise TokenInvalidError('not request token')
+        token.user = user
+        token.expiry = int(time.time()) + self.claim_timeout
+
     def get(self, token_key, default=None):
         if IToken.providedBy(token_key):
             token_key = token_key.key
@@ -108,6 +120,8 @@ class TokenManager(Persistent, Contained):
         token_key = request.get('oauth_token')
         token = self.get(token_key)
         if token is None:
+            return False
+        if int(time.time()) > token.expiry:
             return False
         return token.verifier == request.get('oauth_verifier')
 
@@ -129,6 +143,7 @@ class Token(Persistent, oauth.Token):
     user = fieldproperty.FieldProperty(IToken['user'])
     consumer_key = fieldproperty.FieldProperty(IToken['consumer_key'])
     timestamp = fieldproperty.FieldProperty(IToken['timestamp'])
+    expiry = fieldproperty.FieldProperty(IToken['expiry'])
     scope_id = fieldproperty.FieldProperty(IToken['scope_id'])
     scope = fieldproperty.FieldProperty(IToken['scope'])
 

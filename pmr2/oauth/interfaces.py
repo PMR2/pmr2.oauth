@@ -195,6 +195,11 @@ class IToken(zope.interface.Interface):
         description=u'Creation timestamp of this token',
     )
 
+    expiry = zope.schema.Int(
+        title=u'Expiry',
+        description=u'Expiry timestamp for this token',
+    )
+
     scope_id = zope.schema.Text(
         title=u'Scope ID',
         description=u'The id of the scope manager that was used.',
@@ -228,6 +233,11 @@ class ITokenManager(zope.interface.Interface):
     def generateAccessToken(consumer, request):
         """\
         Generate an access token.
+        """
+
+    def claimRequestToken(token, user):
+        """\
+        Token claimed by user.
         """
 
     def get(token_key, default=None):

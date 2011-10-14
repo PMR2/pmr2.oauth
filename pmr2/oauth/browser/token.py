@@ -212,8 +212,13 @@ class AuthorizeTokenPage(form.Form, BaseTokenPage):
 
         if self._errors or not self.token:
             return
+
         mt = getToolByName(self.context, 'portal_membership')
-        self.token.user = mt.getAuthenticatedMember().id
+        user = mt.getAuthenticatedMember().id
+
+        tm = zope.component.getMultiAdapter((self.context, self.request),
+            ITokenManager)
+        tm.claimRequestToken(self.token, user)
         return self.request.response.redirect(self.token.get_callback_url())
 
     @button.buttonAndHandler(_('Deny access'), name='deny')

@@ -265,7 +265,59 @@ class TestToken(unittest.TestCase):
         r = oauth.Request.from_consumer_and_token(c, None)
         self.assertRaises(CallbackValueError, m.generateRequestToken, c, r)
 
+    def test_250_token_manager_claim(self):
+        m = TokenManager()
+        c = Consumer('consumer-key', 'consumer-secret')
+        r = oauth.Request.from_consumer_and_token(c, None)
+        r['oauth_callback'] = u'oob'
+        token = m.generateRequestToken(c, r)
+        m.claimRequestToken(token, 'user')
+        self.assertEqual(token.user, 'user')
+        self.assertTrue(token.expiry > int(time.time()))
+
+    def test_251_token_manager_claim_fail_access(self):
+        m = TokenManager()
+        c = Consumer('consumer-key', 'consumer-secret')
+        r = oauth.Request.from_consumer_and_token(c, None)
+        r['oauth_callback'] = u'oob'
+        token = m.generateRequestToken(c, r)
+        token.access = True  # hack it to be access token.
+        self.assertRaises(TokenInvalidError, m.claimRequestToken, token, 'u')
+        self.assertNotEqual(token.user, 'user')
+
+    def test_252_token_manager_claim_fail_missing(self):
+        m = TokenManager()
+        c = Consumer('consumer-key', 'consumer-secret')
+        r = oauth.Request.from_consumer_and_token(c, None)
+        r['oauth_callback'] = u'oob'
+        token = m.generateRequestToken(c, r)
+        m.remove(token)  # remove it
+        self.assertRaises(TokenInvalidError, m.claimRequestToken, token, 'u')
+        self.assertNotEqual(token.user, 'user')
+
     def test_300_token_manager_generate_access_token(self):
+        m = TokenManager()
+        c = Consumer('consumer-key', 'consumer-secret')
+        r = oauth.Request.from_consumer_and_token(c, None)
+        r['oauth_callback'] = u'oob'
+        server_token = m.generateRequestToken(c, r)
+
+        # Also simulate user claiming the token
+        m.claimRequestToken(server_token.key, 'user')
+
+        # now simulate passing only the key and secret to consumer
+        request_token = Token(server_token.key, server_token.secret)
+        r = oauth.Request.from_consumer_and_token(c, request_token)
+        r['oauth_verifier'] = server_token.verifier
+        token = m.generateAccessToken(c, r)
+        self.assertEqual(len(m._tokens), 1)
+        self.assertEqual(m.get(token.key), token)
+        self.assertEqual(m.get(token.key).consumer_key, c.key)
+        self.assertEqual(m.get(token.key).access, True)
+        # Also, no user claimed it but okay.
+        self.assertEqual(m.get(token.key).user, 'user')
+
+    def test_310_token_manager_generate_access_token_expired(self):
         m = TokenManager()
         c = Consumer('consumer-key', 'consumer-secret')
         r = oauth.Request.from_consumer_and_token(c, None)
@@ -276,24 +328,26 @@ class TestToken(unittest.TestCase):
         request_token = Token(server_token.key, server_token.secret)
         r = oauth.Request.from_consumer_and_token(c, request_token)
         r['oauth_verifier'] = server_token.verifier
-        token = m.generateAccessToken(c, r)
-        self.assertEqual(len(m._tokens), 1)
-        self.assertEqual(m.get(token.key), token)
-        self.assertEqual(m.get(token.key).consumer_key, c.key)
-        self.assertEqual(m.get(token.key).access, True)
 
-    def test_301_token_manager_generate_access_token_no_request_token(self):
+        # However, it's not claimed by a user yet, so expiry is not set,
+        # thus...
+        self.assertRaises(TokenInvalidError, m.generateAccessToken, c, r)
+
+    def test_311_token_manager_generate_access_token_no_request_token(self):
         m = TokenManager()
         c = Consumer('consumer-key', 'consumer-secret')
         r = oauth.Request.from_consumer_and_token(c, None)
         self.assertRaises(TokenInvalidError, m.generateAccessToken, c, r)
 
-    def test_302_token_manager_generate_access_token_no_verifier(self):
+    def test_312_token_manager_generate_access_token_no_verifier(self):
         m = TokenManager()
         c = Consumer('consumer-key', 'consumer-secret')
         r = oauth.Request.from_consumer_and_token(c, None)
         r['oauth_callback'] = u'oob'
         server_token = m.generateRequestToken(c, r)
+
+        # need to claim it too.
+        m.claimRequestToken(server_token.key, 'user')
 
         # simulate passing only the key and secret to consumer
         request_token = Token(server_token.key, server_token.secret)
