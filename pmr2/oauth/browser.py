@@ -19,12 +19,18 @@ from pmr2.oauth.interfaces import *
 
 class BaseTokenPage(BrowserPage):
 
+    # token to return
+    token = None
+
     def _checkRequest(self, request):
         o_request = zope.component.getAdapter(request, IRequest)
 
         if not o_request:
             raise RequestInvalidError('missing oauth parameters')
         # XXX check and assemble a list of missing parameters.
+
+        # Also verify the nonce here as this is common.
+        self._checkNonce(o_request.get('oauth_nonce'))
 
         return o_request
 
@@ -46,7 +52,28 @@ class BaseTokenPage(BrowserPage):
             raise TokenInvalidError('invalid token')
         return token
 
-    def _verifyRequest(self, o_request, consumer, token):
+    def _checkCallback(self, callback):
+        m = zope.component.queryMultiAdapter((self.context, self.request),
+            ICallbackManager)
+        if m is None:
+            # If this site does not implement any restriction on what
+            # constitutes a valid callback, default is whitelist for
+            # anything.  However, individual token managers can forcibly
+            # enforce some hard values, such as not None or `oob`.
+            return True
+        return m.check(callback)
+
+    def _checkNonce(self, nonce):
+        m = zope.component.queryMultiAdapter((self.context, self.request),
+            INonceManager)
+        if m is None:
+            # if we don't have a way to check nonce, we just have to
+            # assume it is valid.
+            return True
+        return m.check(nonce)
+
+    def _verifyOAuthRequest(self, o_request, consumer, token):
+        # Check that this OAuth request is properly signed.
         utility = zope.component.getUtility(IOAuthUtility)
         try:
             params = utility.verify_request(o_request, consumer, token)
@@ -54,32 +81,43 @@ class BaseTokenPage(BrowserPage):
             raise RequestInvalidError(e.message)
         return True
 
+    def update(self):
+        raise NotImplemented
+
+    def render(self):
+        return self.token.to_string()
+
+    def __call__(self):
+        self.update()
+        return self.render()
+
 
 class RequestTokenPage(BaseTokenPage):
 
-    def __call__(self):
+    def update(self):
 
         try:
             o_request = self._checkRequest(self.request)
+
             consumer_key = o_request.get('oauth_consumer_key', None)
             consumer = self._checkConsumer(consumer_key)
-            self._verifyRequest(o_request, consumer, None)
+
+            callback = o_request.get('oauth_callback')
+            self._checkCallback(callback)
+
+            self._verifyOAuthRequest(o_request, consumer, None)
+
+            # create request token
+            tm = zope.component.getMultiAdapter((self.context, self.request),
+                ITokenManager)
+            self.token = tm.generateRequestToken(consumer, o_request)
         except (BaseValueError, BaseInvalidError,), e:
             raise BadRequest(e.args[0])
-
-        # create token
-
-        tm = zope.component.getMultiAdapter((self.context, self.request),
-            ITokenManager)
-        token = tm.generateRequestToken(consumer, o_request)
-
-        # return token
-        return token.to_string()
 
 
 class GetAccessTokenPage(BaseTokenPage):
 
-    def __call__(self):
+    def update(self):
         o_request = self._checkRequest(self.request)
 
         try:
@@ -91,18 +129,16 @@ class GetAccessTokenPage(BaseTokenPage):
             token_key = o_request.get('oauth_token', None)
             token = self._checkToken(token_key)
 
-            self._verifyRequest(o_request, consumer, token)
+            self._verifyOAuthRequest(o_request, consumer, token)
 
-            # token creation will validate the request for the verifier.
+            # Token creation will validate the request for the verifier,
+            # which can raise error that needs to be caught.
             tm = zope.component.getMultiAdapter((self.context, self.request),
                 ITokenManager)
-            token = tm.generateAccessToken(consumer, o_request)
+            self.token = tm.generateAccessToken(consumer, o_request)
 
         except (BaseValueError, BaseInvalidError,), e:
             raise BadRequest(e.args[0])
-
-        # return token
-        return token.to_string()
 
 
 class AuthorizeTokenPage(form.Form, BaseTokenPage):

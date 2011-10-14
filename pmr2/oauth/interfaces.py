@@ -28,6 +28,10 @@ class CallbackValueError(BaseValueError):
     __doc__ = "callback value error"
 
 
+class NonceValueError(BaseValueError):
+    __doc__ = "nonce value error"
+
+
 class IOAuthUtility(zope.interface.Interface):
     """\
     The OAuth utility.
@@ -229,4 +233,33 @@ class ITokenManager(zope.interface.Interface):
     def remove(token):
         """\
         Remove token.
+        """
+
+
+# Other management interfaces
+
+class ICallbackManager(zope.interface.Interface):
+    """\
+    Callback manager.
+
+    Can be used by token managers to check whether a callback is
+    acceptable.
+    """
+
+    def check(callback):
+        """\
+        Check that this callback is valid.
+        """
+
+
+class INonceManager(zope.interface.Interface):
+    """\
+    Nonce manager.
+
+    If nonce must be checked specifically, implement this manager.
+    """
+
+    def check(callback):
+        """\
+        Check that this nonce can be used.
         """

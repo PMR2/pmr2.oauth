@@ -40,26 +40,7 @@ class TokenManager(Persistent, Contained):
             raise ValueError('token %s already exists', token.key)
         self._tokens[token.key] = token
 
-    def checkCallback(self, callback):
-        """\
-        Verify that the callback is what we accept.
-        """
-
-        # Not implemented yet
-        return callback is not None
-
-    def checkNonce(self, nonce):
-        """\
-        Verify that the nonce is unique.
-        """
-
-        # Not implemented yet
-        return True
-
     def _generateBaseToken(self, consumer, request):
-        if not self.checkNonce(request.get('oauth_nonce')):
-            raise ValueError('nonce has been used recently')
-
         key = random_string(24)
         secret = random_string(24)
         token = Token(key, secret)
@@ -72,11 +53,13 @@ class TokenManager(Persistent, Contained):
         Generate request token from consumer and request.
         """
 
-        token = self._generateBaseToken(consumer, request)
+        # This is our constrain.
         callback = request.get('oauth_callback')
-        if not self.checkCallback(callback):
+        if callback is None:
             raise CallbackValueError(
                 'callback must be specified or set to `oob`')
+
+        token = self._generateBaseToken(consumer, request)
         token.set_callback(callback)
         token.set_verifier()
 
