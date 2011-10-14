@@ -6,21 +6,21 @@
   <browser:view
       for="Products.CMFPlone.interfaces.siteroot.IPloneSiteRoot"
       name="OAuthRequestToken"
-      class=".browser.RequestTokenPage"
+      class=".token.RequestTokenPage"
       permission="zope2.View"
       />
 
   <browser:view
       for="Products.CMFPlone.interfaces.siteroot.IPloneSiteRoot"
       name="OAuthAuthorizeToken"
-      class=".browser.AuthorizeTokenPage"
+      class=".token.AuthorizeTokenPage"
       permission="zope2.View"
       />
 
   <browser:view
       for="Products.CMFPlone.interfaces.siteroot.IPloneSiteRoot"
       name="OAuthGetAccessToken"
-      class=".browser.GetAccessTokenPage"
+      class=".token.GetAccessTokenPage"
       permission="zope2.View"
       />
 

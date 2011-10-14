@@ -16,7 +16,7 @@ To run this, we first import all the modules we need.
     >>> from Testing.testbrowser import Browser
     >>> from plone.z3cform.interfaces import IWrappedForm
     >>> from pmr2.oauth.interfaces import *
-    >>> from pmr2.oauth.browser import *
+    >>> from pmr2.oauth.browser.token import *
     >>> from pmr2.oauth.consumer import *
     >>> from pmr2.oauth.tests.base import TestRequest
     >>> from pmr2.oauth.tests.base import SignedTestRequest

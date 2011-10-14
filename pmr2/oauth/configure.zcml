@@ -6,8 +6,9 @@
 
   <five:registerPackage package="." initialize=".initialize" />
 
+  <include package=".browser" />
+
   <include file="adapter.zcml" />
-  <include file="browser.zcml" />
   <include file="profiles.zcml" />
 
   <utility

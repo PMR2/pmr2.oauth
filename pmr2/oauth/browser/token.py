@@ -2,7 +2,6 @@ import oauth2 as oauth
 
 import zope.component
 from zope.publisher.browser import BrowserPage
-from zope.app.pagetemplate.viewpagetemplatefile import ViewPageTemplateFile
 
 from zExceptions import BadRequest
 from zExceptions import Forbidden
@@ -15,6 +14,8 @@ from Products.CMFCore.utils import getToolByName
 
 from pmr2.oauth import MessageFactory as _
 from pmr2.oauth.interfaces import *
+from pmr2.oauth.browser.template import ViewPageTemplateFile
+from pmr2.oauth.browser.template import path
 
 
 class BaseTokenPage(BrowserPage):
@@ -151,8 +152,8 @@ class AuthorizeTokenPage(form.Form, BaseTokenPage):
     consumer = None
     consumer_key = ''
     description = ''
-    statusTemplate = ViewPageTemplateFile('authorize_status.pt')
-    template = ViewPageTemplateFile('authorize_question.pt')
+    statusTemplate = ViewPageTemplateFile(path('authorize_status.pt'))
+    template = ViewPageTemplateFile(path('authorize_question.pt'))
     _errors = False
 
     def _update(self):
