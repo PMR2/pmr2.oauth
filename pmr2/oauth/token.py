@@ -72,7 +72,7 @@ class TokenManager(Persistent, Contained):
         return token
 
     def generateAccessToken(self, consumer, request):
-        if not self.tokenRequestVerify(request=request):
+        if not self._tokenRequestVerify(request=request):
             raise TokenInvalidError('invalid token')
         old_key = request.get('oauth_token')
         old_token = self.get(old_key)
@@ -98,7 +98,7 @@ class TokenManager(Persistent, Contained):
             token = token.key
         self._tokens.pop(token)
 
-    def tokenRequestVerify(self, request=None):
+    def _tokenRequestVerify(self, request=None):
         """\
         Verify that the request results in a valid token.
         """

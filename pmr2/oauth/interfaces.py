@@ -225,6 +225,11 @@ class ITokenManager(zope.interface.Interface):
         Generate a request token, using consumer and request.
         """
 
+    def generateAccessToken(consumer, request):
+        """\
+        Generate an access token.
+        """
+
     def get(token_key, default=None):
         """\
         Return token, identified by token_key.
