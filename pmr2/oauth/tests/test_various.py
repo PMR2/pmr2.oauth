@@ -229,6 +229,8 @@ class TestToken(unittest.TestCase):
         m.add(c)
         result = m.get('token-key')
         self.assertEqual(result, c)
+        result = m.get(c)
+        self.assertEqual(result, c)
 
     def test_102_token_manager_doubleadd(self):
         m = TokenManager()

@@ -91,6 +91,8 @@ class TokenManager(Persistent, Contained):
         return token
 
     def get(self, token_key, default=None):
+        if IToken.providedBy(token_key):
+            token_key = token_key.key
         return self._tokens.get(token_key, default)
 
     def remove(self, token):
