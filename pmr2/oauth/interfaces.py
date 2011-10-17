@@ -240,9 +240,17 @@ class ITokenManager(zope.interface.Interface):
         Token claimed by user.
         """
 
-    def get(token_key, default=None):
+    def get(token, default=None):
         """\
-        Return token, identified by token_key.
+        Get a token by token.
+
+        Input could be a token, or a key.  Returns the same token 
+        identified by the key of the input token or the input key.
+        """
+
+    def getTokensForUser(user):
+        """\
+        Return a list of token keys for a user.
         """
 
     def remove(token):

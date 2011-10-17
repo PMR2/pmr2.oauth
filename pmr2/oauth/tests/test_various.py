@@ -195,6 +195,13 @@ class TestToken(unittest.TestCase):
         token.set_verifier(True)
         self.assertNotEqual(verifier, token.verifier)
 
+    def test_011_token_set_verifier_specific(self):
+        token = Token('token-key', 'token-secret')
+        token.set_verifier('verify')
+        self.assertEqual('verify', token.verifier)
+        token.set_verifier()
+        self.assertEqual('verify', token.verifier)
+
     def test_020_token_get_callback_url(self):
         token = Token('token-key', 'token-secret')
         token.set_callback(u'http://example.com/')
@@ -211,13 +218,6 @@ class TestToken(unittest.TestCase):
         a = 'http://example.com/;bar;?bus=4&oauth_verifier=foo&' \
             'oauth_token=token-key'
         self.assertEqual(url, a)
-
-    def test_011_token_set_verifier(self):
-        token = Token('token-key', 'token-secret')
-        token.set_verifier('verify')
-        self.assertEqual('verify', token.verifier)
-        token.set_verifier()
-        self.assertEqual('verify', token.verifier)
 
     def test_100_token_manager_empty(self):
         m = TokenManager()
@@ -238,7 +238,7 @@ class TestToken(unittest.TestCase):
         m.add(c)
         self.assertRaises(ValueError, m.add, c)
 
-    def test_102_token_manager_remove(self):
+    def test_103_token_manager_remove(self):
         m = TokenManager()
         t1 = Token('token-key', 'token-secret')
         t2 = Token('token-key2', 'token-secret')
@@ -247,6 +247,66 @@ class TestToken(unittest.TestCase):
         m.remove(t1.key)
         m.remove(t2)
         self.assertEqual(len(m._tokens), 0)
+
+    def test_111_token_manager_addget_user(self):
+        m = TokenManager()
+        t = Token('token-key', 'token-secret')
+        t.user = 'user'
+        m.add(t)
+        result = m.getTokensForUser('user')
+        # only access tokens are tracked.
+        self.assertEqual(result, [])
+
+    def test_111_token_manager_addget_user(self):
+        m = TokenManager()
+        t = Token('token-key', 'token-secret')
+        t.user = 'user'
+        t.access = True
+        m.add(t)
+        result = m.getTokensForUser('user')
+        self.assertEqual(result, [t])
+
+    def test_113_token_manager_doubleadd_user(self):
+        m = TokenManager()
+        t = Token('token-key', 'token-secret')
+        t.user = 'user'
+        t.access = True
+        m.add(t)
+        self.assertRaises(ValueError, m.add, t)
+        result = m.getTokensForUser('user')
+        # should not result in double entry.
+        self.assertEqual(result, [t])
+
+    def test_114_token_manager_addremove_user(self):
+        m = TokenManager()
+        t1 = Token('token-key', 'token-secret')
+        t1.user = 't1user'
+        t1.access = True
+        t2 = Token('token-key2', 'token-secret')
+        t2.user = 't2user'
+        t2.access = True
+        m.add(t1)
+        m.add(t2)
+        self.assertEqual(m.getTokensForUser('user'), [])
+        self.assertEqual(m.getTokensForUser('t1user'), [t1])
+        self.assertEqual(m.getTokensForUser('t2user'), [t2])
+        m.remove(t1.key)
+        m.remove(t2)
+        self.assertEqual(m.getTokensForUser('t1user'), [])
+        self.assertEqual(m.getTokensForUser('t2user'), [])
+
+    def test_115_token_manager_user_inconsistency(self):
+        m = TokenManager()
+        t1 = Token('token-key', 'token-secret')
+        t1.user = 't1user'
+        t1.access = True
+        t2 = Token('token-key2', 'token-secret')
+        t2.user = 't2user'
+        t2.access = True
+        m.add(t1)
+        m.add(t2)
+        m._del_user_map(t2)
+        self.assertEqual(m.getTokensForUser('t2user'), [])
 
     def test_200_token_manager_generate_request_token(self):
         m = TokenManager()
@@ -316,6 +376,9 @@ class TestToken(unittest.TestCase):
         self.assertEqual(m.get(token.key).access, True)
         # Also, no user claimed it but okay.
         self.assertEqual(m.get(token.key).user, 'user')
+        # Also, assert that this token key is available in the method
+        # that returns these keys by user id.
+        self.assertEqual(m.getTokensForUser('user'), [token])
 
     def test_310_token_manager_generate_access_token_expired(self):
         m = TokenManager()

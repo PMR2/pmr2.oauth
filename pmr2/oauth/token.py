@@ -3,6 +3,7 @@ import urlparse
 import oauth2 as oauth
 
 from persistent import Persistent
+from persistent.list import PersistentList
 from BTrees.OOBTree import OOBTree
 
 from zope.app.container.contained import Contained
@@ -36,12 +37,40 @@ class TokenManager(Persistent, Contained):
     
     def __init__(self):
         self._tokens = OOBTree()
+        self._user_token_map = OOBTree()
+
+    def _add_user_map(self, token):
+        if not token.access or token.user is None:
+            return
+
+        # only tracking access tokens with user defined.
+        user_tokens = self._user_token_map.get(token.user, None)
+        if user_tokens is None:
+            user_tokens = PersistentList()
+            self._user_token_map[token.user] = user_tokens
+
+        user_tokens.append(token.key)
+
+    def _del_user_map(self, token):
+        if token.user is None:
+            return
+
+        # only tracking access tokens with user defined.
+        user_tokens = self._user_token_map.get(token.user, None)
+        if user_tokens is None:
+            # guess this user didn't have any tokens tracked before.
+            return
+
+        if token.key in user_tokens:
+            # Well this key may not have been mapped.
+            user_tokens.remove(token.key)
 
     def add(self, token):
         assert IToken.providedBy(token)
         if self.get(token.key):
             raise ValueError('token %s already exists', token.key)
         self._tokens[token.key] = token
+        self._add_user_map(token)
 
     def _generateBaseToken(self, consumer, request):
         key = random_string(24)
@@ -70,7 +99,6 @@ class TokenManager(Persistent, Contained):
         # Let the TokenManagers deal with these values.
         token.scope = request.get('scope', u'')
 
-        # I know I am taking a collision risk with this random string.
         self.add(token)
         return token
 
@@ -102,15 +130,21 @@ class TokenManager(Persistent, Contained):
         token.user = user
         token.expiry = int(time.time()) + self.claim_timeout
 
-    def get(self, token_key, default=None):
-        if IToken.providedBy(token_key):
-            token_key = token_key.key
+    def get(self, token, default=None):
+        token_key = IToken.providedBy(token) and token.key or token
         return self._tokens.get(token_key, default)
+
+    def getTokensForUser(self, user):
+        raw_keys = self._user_token_map.get(user, [])
+        result = [self.get(t) for t in raw_keys]
+        return result
 
     def remove(self, token):
         if IToken.providedBy(token):
             token = token.key
-        self._tokens.pop(token)
+        token = self._tokens.pop(token)
+        self._del_user_map(token)
+        return token
 
     def _tokenRequestVerify(self, request=None):
         """\
