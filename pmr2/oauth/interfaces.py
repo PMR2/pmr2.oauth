@@ -24,6 +24,10 @@ class BaseValueError(ValueError):
     __doc__ = "basic value error"
 
 
+class NotAccessTokenError(BaseValueError):
+    __doc__ = "Not access token"
+
+
 class CallbackValueError(BaseValueError):
     __doc__ = "callback value error"
 
@@ -246,6 +250,17 @@ class ITokenManager(zope.interface.Interface):
 
         Input could be a token, or a key.  Returns the same token 
         identified by the key of the input token or the input key.
+        """
+
+    def getAccess(token, default=False):
+        """\
+        Return access token identified by token.
+
+        Raises NotAccessTokenError when token is not an access token.
+        Raises InvalidTokenError if internal consistency (invariants)
+        are violated.
+        If token is not found and default value is false, 
+        InvalidTokenError should be raised also.
         """
 
     def getTokensForUser(user):

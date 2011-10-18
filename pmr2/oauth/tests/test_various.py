@@ -306,7 +306,50 @@ class TestToken(unittest.TestCase):
         m.add(t1)
         m.add(t2)
         m._del_user_map(t2)
+        # User must know about the token for the getter to work.
         self.assertEqual(m.getTokensForUser('t2user'), [])
+
+    def test_120_token_manager_access_token_tm_empty(self):
+        m = TokenManager()
+        self.assertRaises(TokenInvalidError, m.getAccess, 'token-key')
+        self.assertEqual(m.getAccess('token-key', None), None)
+
+    def test_121_token_manager_access_token_get_not_access(self):
+        m = TokenManager()
+        t = Token('token-key', 'token-secret')
+        m.add(t)
+        self.assertRaises(NotAccessTokenError, m.getAccess, 'token-key')
+
+    def test_122_token_manager_access_token_get_user_no_access(self):
+        m = TokenManager()
+        t = Token('token-key', 'token-secret')
+        t.user = 'user'
+        m.add(t)
+        self.assertRaises(NotAccessTokenError, m.getAccess, 'token-key')
+
+    def test_123_token_manager_access_token_get_access_no_user(self):
+        m = TokenManager()
+        t = Token('token-key', 'token-secret')
+        t.access = True
+        m.add(t)
+        self.assertRaises(TokenInvalidError, m.getAccess, 'token-key')
+
+    def test_124_token_manager_access_token_get_access(self):
+        m = TokenManager()
+        t = Token('token-key', 'token-secret')
+        t.access = True
+        t.user = 'user'
+        m.add(t)
+        self.assertEqual(m.getAccess('token-key'), t)
+
+    def test_125_token_manager_access_token_inconsistent_fail(self):
+        m = TokenManager()
+        t = Token('token-key', 'token-secret')
+        t.access = True
+        m.add(t)
+        # this would result in the token not being indexed.
+        t.user = 'user'
+        self.assertRaises(TokenInvalidError, m.getAccess, 'token-key')
 
     def test_200_token_manager_generate_request_token(self):
         m = TokenManager()

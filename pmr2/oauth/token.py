@@ -16,6 +16,7 @@ from pmr2.oauth.interfaces import IToken
 from pmr2.oauth.interfaces import ITokenManager
 from pmr2.oauth.interfaces import CallbackValueError
 from pmr2.oauth.interfaces import TokenInvalidError
+from pmr2.oauth.interfaces import NotAccessTokenError
 from pmr2.oauth.factory import factory
 from pmr2.oauth.utility import random_string
 
@@ -133,6 +134,26 @@ class TokenManager(Persistent, Contained):
     def get(self, token, default=None):
         token_key = IToken.providedBy(token) and token.key or token
         return self._tokens.get(token_key, default)
+
+    def getAccess(self, token, default=False):
+        token = self.get(token, default)
+        if token is default:
+            if default is False:
+                raise TokenInvalidError('no such access token.')
+            return default
+
+        if not token.access:
+            raise NotAccessTokenError('not an access token.')
+
+        # must be identified
+        if not token.user:
+            raise TokenInvalidError('token has no user')
+        raw_keys = self._user_token_map.get(token.user, [])
+        if token.key not in raw_keys:
+            raise TokenInvalidError('user `%s` does not own this key' 
+                % token.user)
+
+        return token
 
     def getTokensForUser(self, user):
         raw_keys = self._user_token_map.get(user, [])

@@ -18,6 +18,7 @@ import logging
 import oauth2 as oauth
 from pmr2.oauth.interfaces import *
 
+
 manage_addOAuthPlugin = PageTemplateFile("../www/oauthAdd", globals(), 
                 __name__="manage_addOAuthPlugin")
 
@@ -55,12 +56,6 @@ class OAuthPlugin(BasePlugin):
         consumer_key = o_request.get('oauth_consumer_key')
         return consumerManager.get(consumer_key)
 
-    def _getToken(self, site, request, o_request):
-        tokenManager = zope.component.getMultiAdapter(
-            (site, request), ITokenManager)
-        token_key = o_request.get('oauth_token')
-        return token_key, tokenManager.get(token_key)
-
     def _checkScope(self, site, request, token):
         scopeManager = zope.component.queryMultiAdapter(
             (site, request), IScopeManager, name=token.scope_id)
@@ -77,20 +72,24 @@ class OAuthPlugin(BasePlugin):
         site = getSite()
         o_request = zope.component.getAdapter(request, IRequest)
 
-        token_key, token = self._getToken(site, request, o_request)
-
+        token_key = o_request.get('oauth_token')
         if not token_key:
-            # This is probably a request for a RequestToken
+            # This is likely a new request for a request token
             return {}
 
-        if token is None:
-            # Token was not found.
+        tokenManager = zope.component.getMultiAdapter(
+            (site, request), ITokenManager)
+
+        try:
+            token = tokenManager.getAccess(token_key)
+        except NotAccessTokenError:
+            # This is likely a request for an access token using this
+            # request token.
+            return {}
+        except TokenInvalidError:
             raise Forbidden('invalid token')
 
-        if not token.access:
-            # This is probably a RequestToken requesting AccessToken
-            return {}
-
+        # consumer
         consumer = self._getConsumer(site, request, o_request)
 
         if consumer is None or not consumer.key == token.consumer_key:
