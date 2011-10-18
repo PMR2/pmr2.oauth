@@ -1,0 +1,33 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      lang="en"
+      i18n:domain="pmr2.oauth"
+      metal:use-macro="context/@@ploneform-macros/titlelessform" >
+  <body>
+
+    <metal:fill fill-slot="fields">
+      <h1>
+        Authorized Access to your content.
+      </h1>
+      <p>
+        To remove access for the following sites, please check the
+        checkboxes for each site you desire to remove, then activate the
+        revoke button to revoke access for the selected sites.
+      </p>
+      <ul>
+        <tal:loop repeat="t view/tokens">
+          <li>
+            <input name="form.widgets.key" type="checkbox" 
+                tal:attributes="
+                    value t/key;
+                    id string:form-widgets-key-${repeat/t/number};
+                "
+            /> <span tal:content="t/consumer_key">example.com</span> - <span 
+              tal:content="t/scope">scope</span>
+          </li>
+        </tal:loop>
+      </ul>
+    </metal:fill>
+
+  </body>
+</html>

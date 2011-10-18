@@ -573,3 +573,42 @@ manager, it should no longer be accessible.
     Traceback (most recent call last):
     ...
     HTTPError: HTTP Error 403: Forbidden
+
+
+----------
+Management
+----------
+
+Finally, the user (and site managers) would need to know what tokens are
+stored for who and also the ability to revoke tokens when they no longer
+wish to retain access for the consumer.  This is where the management
+form comes in.
+
+As our test user have granted access to two tokens already, they both
+should show up if the listing page is viewed.
+::
+
+    >>> from pmr2.oauth.browser import manage
+    >>> self.login(default_user)
+    >>> request = TestRequest()
+    >>> view = manage.UserTokenForm(self.portal, request)
+    >>> result = view()
+    >>> access_token.key in result
+    True
+    >>> scoped_access_token.key in result
+    True
+    >>> 'consumer1.example.com' in result
+    True
+
+All the required data are present in the form.  Let's try to remove one
+of the tokens using the test browser.
+::
+
+    >>> u_browser.open(baseurl + '/issued_oauth_tokens')
+    >>> u_browser.getControl(name="form.widgets.key").controls[0].click()
+    >>> u_browser.getControl(name='form.buttons.revoke').click()
+    >>> len(tokenManager.getTokensForUser(default_user))
+    1
+    >>> result = u_browser.contents
+    >>> 'Access successfully removed' in result
+    True

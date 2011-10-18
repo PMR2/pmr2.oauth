@@ -1,6 +1,7 @@
 import oauth2 as oauth
 
 import zope.component
+import zope.interface
 from zope.publisher.browser import BrowserPage
 
 from zExceptions import BadRequest
@@ -9,6 +10,8 @@ from zExceptions import Unauthorized
 
 from z3c.form import form
 from z3c.form import button
+
+from plone.z3cform.layout import wrap_form
 
 from Products.CMFCore.utils import getToolByName
 
@@ -231,3 +234,5 @@ class AuthorizeTokenPage(form.Form, BaseTokenPage):
         tm = zope.component.getMultiAdapter((self.context, self.request),
             ITokenManager)
         tm.remove(token_key)
+
+AuthorizeTokenPageView = wrap_form(AuthorizeTokenPage)

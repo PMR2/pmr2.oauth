@@ -13,7 +13,7 @@
   <browser:view
       for="Products.CMFPlone.interfaces.siteroot.IPloneSiteRoot"
       name="OAuthAuthorizeToken"
-      class=".token.AuthorizeTokenPage"
+      class=".token.AuthorizeTokenPageView"
       permission="zope2.View"
       />
 
@@ -22,6 +22,13 @@
       name="OAuthGetAccessToken"
       class=".token.GetAccessTokenPage"
       permission="zope2.View"
+      />
+
+  <browser:page
+      for="Products.CMFPlone.interfaces.siteroot.IPloneSiteRoot"
+      name="issued_oauth_tokens"
+      class=".manage.UserTokenFormView"
+      permission="cmf.SetOwnProperties"
       />
 
 </configure>
