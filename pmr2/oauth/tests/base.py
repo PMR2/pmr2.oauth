@@ -2,6 +2,7 @@ from time import time
 from random import randint
 from sys import maxint
 import zope.interface
+from zope.annotation.interfaces import IAttributeAnnotatable
 
 from Testing import ZopeTestCase as ztc
 from plone.session.tests.sessioncase import PloneSessionTestCase
@@ -54,7 +55,7 @@ class IOAuthTestLayer(zope.interface.Interface):
 
 class TestRequest(z3c.form.testing.TestRequest):
 
-    zope.interface.implements(IOAuthTestLayer)
+    zope.interface.implements(IOAuthTestLayer, IAttributeAnnotatable)
 
     def __init__(self, oauth_keys=None, url=None, *a, **kw):
         super(TestRequest, self).__init__(*a, **kw)

@@ -575,14 +575,18 @@ manager, it should no longer be accessible.
     HTTPError: HTTP Error 403: Forbidden
 
 
-----------
-Management
-----------
+---------------------
+Management Interfaces
+---------------------
 
 Finally, the user (and site managers) would need to know what tokens are
 stored for who and also the ability to revoke tokens when they no longer
 wish to retain access for the consumer.  This is where the management
 form comes in.
+
+Do note that as of this release, the URIs to the following management
+interfaces are not linked.  Site administrators may wish to add them
+manually if they wish to make these functions more visible.
 
 As our test user have granted access to two tokens already, they both
 should show up if the listing page is viewed.
@@ -612,3 +616,59 @@ of the tokens using the test browser.
     >>> result = u_browser.contents
     >>> 'Access successfully removed' in result
     True
+
+Same deal for consumers, we can open the consumer management form and
+we should see the single consumer that had been added earlier.  Site
+managers can access this page at `${portal_url}/manage-oauth-consumers`.
+::
+
+    >>> from pmr2.oauth.browser import consumer
+    >>> request = TestRequest()
+    >>> view = consumer.ConsumerManageForm(self.portal, request)
+    >>> zope.interface.directlyProvides(view, IWrappedForm)
+    >>> result = view()
+    >>> 'consumer1.example.com' in result
+    True
+
+We can try to add a few consumers using the form also.
+::
+
+    >>> request = TestRequest(form={
+    ...     'form.widgets.key': 'consumer2.example.com',
+    ...     'form.buttons.add': 1,
+    ... })
+    >>> view = consumer.ConsumerAddForm(self.portal, request)
+    >>> view.update()
+
+    >>> request = TestRequest(form={
+    ...     'form.widgets.key': 'consumer3.example.com',
+    ...     'form.buttons.add': 1,
+    ... })
+    >>> view = consumer.ConsumerAddForm(self.portal, request)
+    >>> view.update()
+
+Now the management form should show these couple new consumers.
+::
+
+    >>> request = TestRequest()
+    >>> view = consumer.ConsumerManageForm(self.portal, request)
+    >>> result = view()
+    >>> 'consumer2.example.com' in result
+    True
+    >>> 'consumer3.example.com' in result
+    True
+
+Should have no problems removing them either.
+::
+
+    >>> request = TestRequest(form={
+    ...     'form.widgets.key': [
+    ...         'consumer2.example.com', 'consumer3.example.com'],
+    ...     'form.buttons.remove': 1,
+    ... })
+    >>> view = consumer.ConsumerManageForm(self.portal, request)
+    >>> result = view()
+    >>> 'consumer2.example.com' in result
+    False
+    >>> 'consumer3.example.com' in result
+    False

@@ -66,13 +66,14 @@ class IConsumer(zope.interface.Interface):
     """
 
     key = zope.schema.ASCIILine(
-        title=u'Key',
-        description=u'Consumer key',
+        title=u'Consumer Key',
+        description=u'The key that identifies this consumer.  This usually '
+                     'is the domain name of the consumer',
         required=True,
     )
 
     secret = zope.schema.ASCIILine(
-        title=u'Secret',
+        title=u'Consumer Secret',
         description=u'Consumer secret',
         required=True,
     )
@@ -96,6 +97,11 @@ class IConsumerManager(zope.interface.Interface):
     def get(consumer_key, default=None):
         """\
         Return consumer, identified by consumer_key.
+        """
+
+    def getAllKeys():
+        """\
+        Return all consumer keys tracked by this consumer.
         """
 
     def getValidated(consumer_key, default=None):

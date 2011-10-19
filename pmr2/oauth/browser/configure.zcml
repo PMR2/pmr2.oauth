@@ -3,6 +3,8 @@
     xmlns:browser="http://namespaces.zope.org/browser"
     i18n_domain="pmr2.oauth">
 
+  <!-- consumer views -->
+
   <browser:view
       for="Products.CMFPlone.interfaces.siteroot.IPloneSiteRoot"
       name="OAuthRequestToken"
@@ -24,11 +26,29 @@
       permission="zope2.View"
       />
 
+  <!-- user views to manage own tokens -->
+
   <browser:page
       for="Products.CMFPlone.interfaces.siteroot.IPloneSiteRoot"
       name="issued_oauth_tokens"
       class=".manage.UserTokenFormView"
       permission="cmf.SetOwnProperties"
+      />
+
+  <!-- site manager views to manage consumers -->
+
+  <browser:page
+      for="Products.CMFPlone.interfaces.siteroot.IPloneSiteRoot"
+      name="add-oauth-consumer"
+      class=".consumer.ConsumerAddFormView"
+      permission="cmf.ManagePortal"
+      />
+
+  <browser:page
+      for="Products.CMFPlone.interfaces.siteroot.IPloneSiteRoot"
+      name="manage-oauth-consumers"
+      class=".consumer.ConsumerManageFormView"
+      permission="cmf.ManagePortal"
       />
 
 </configure>

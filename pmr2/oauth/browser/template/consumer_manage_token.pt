@@ -1,0 +1,37 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      lang="en"
+      i18n:domain="pmr2.oauth"
+      metal:use-macro="context/@@ploneform-macros/titlelessform" >
+  <body>
+
+    <metal:fill fill-slot="fields">
+      <h1>
+        Consumer management
+      </h1>
+      <p>
+        To remove access from the following consumer, select the 
+        checkboxes associated with each consumer you would like removed,
+        then activate the remove button.
+      </p>
+      <ul>
+        <tal:loop repeat="t view/consumers">
+          <li>
+            <input name="form.widgets.key" type="checkbox" 
+                tal:attributes="
+                    value t/key;
+                    id string:form-widgets-key-${repeat/t/number};
+                "
+            /> <span tal:content="t/key">example.com</span> - <span 
+              tal:content="t/secret">secret</span>
+          </li>
+        </tal:loop>
+      </ul>
+      <p>
+        <a tal:attributes="
+            href string:${view/context/absolute_url}/add-oauth-consumer"
+          >Add OAuth Consumer</a>
+    </metal:fill>
+
+  </body>
+</html>
