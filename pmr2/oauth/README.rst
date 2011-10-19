@@ -592,10 +592,10 @@ As our test user have granted access to two tokens already, they both
 should show up if the listing page is viewed.
 ::
 
-    >>> from pmr2.oauth.browser import manage
+    >>> from pmr2.oauth.browser import user
     >>> self.login(default_user)
     >>> request = TestRequest()
-    >>> view = manage.UserTokenForm(self.portal, request)
+    >>> view = user.UserTokenForm(self.portal, request)
     >>> result = view()
     >>> access_token.key in result
     True

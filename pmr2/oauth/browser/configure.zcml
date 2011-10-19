@@ -31,7 +31,7 @@
   <browser:page
       for="Products.CMFPlone.interfaces.siteroot.IPloneSiteRoot"
       name="issued_oauth_tokens"
-      class=".manage.UserTokenFormView"
+      class=".user.UserTokenFormView"
       permission="cmf.SetOwnProperties"
       />
 
