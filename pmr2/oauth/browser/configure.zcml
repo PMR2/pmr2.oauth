@@ -51,4 +51,13 @@
       permission="cmf.ManagePortal"
       />
 
+  <!-- site manager views to manage scope -->
+
+  <browser:page
+      for="Products.CMFPlone.interfaces.siteroot.IPloneSiteRoot"
+      name="manage-oauth-scope"
+      class=".scope.ScopeEditFormView"
+      permission="cmf.ManagePortal"
+      />
+
 </configure>

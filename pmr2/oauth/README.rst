@@ -672,3 +672,31 @@ Should have no problems removing them either.
     False
     >>> 'consumer3.example.com' in result
     False
+
+Lastly, scope manager also has a simple form that allow basic editing of
+global scope parameters for the current active scope manager.  The URI
+to this is `${portal_url}/manage-oauth-consumers`.
+::
+
+    >>> from pmr2.oauth.browser import scope
+    >>> request = TestRequest()
+    >>> view = scope.ScopeEditForm(self.portal, request)
+    >>> zope.interface.directlyProvides(view, IWrappedForm)
+    >>> result = view()
+    >>> 'test_current_roles$' in result
+    True
+
+That value can be edited.
+::
+
+    >>> request = TestRequest(form={
+    ...     'form.widgets.permitted': 'test_current_user$',
+    ...     'form.buttons.apply': 1,
+    ... })
+    >>> view = scope.ScopeEditForm(self.portal, request)
+    >>> zope.interface.directlyProvides(view, IWrappedForm)
+    >>> result = view()
+    >>> 'test_current_roles$' in result
+    False
+    >>> 'test_current_user$' in result
+    True

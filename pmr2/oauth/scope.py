@@ -40,6 +40,7 @@ class DefaultScopeManager(ScopeManager):
     in this manager.
     """
 
+    zope.interface.implements(IDefaultScopeManager)
     permitted = fieldproperty.FieldProperty(IDefaultScopeManager['permitted'])
 
     def __init__(self):
