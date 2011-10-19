@@ -5,9 +5,9 @@
 
   <genericsetup:registerProfile
       name="default"
-      title="OAuth Plugin"
+      title="OAuth Provider Support"
       directory="profiles/default"
-      description="Add support for authenticating with OAuth credentials in a Plone site."
+      description="Add support for authenticating with OAuth credentials by acting as an OAuth provider."
       provides="Products.GenericSetup.interfaces.EXTENSION"
       for="Products.CMFPlone.interfaces.IPloneSiteRoot"
       />
