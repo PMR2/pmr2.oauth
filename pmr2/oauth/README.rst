@@ -139,6 +139,30 @@ sake.
     oauth_token_secret=...&oauth_token=...&oauth_callback_confirmed=true
     >>> token = oauth.Token.from_string(tokenstr)
 
+Try again using a browser, but try an oob callback.
+::
+
+    >>> url = baseurl + '/OAuthRequestToken'
+    >>> timestamp = str(int(time.time()))
+    >>> request = SignedTestRequest(
+    ...     oauth_keys={
+    ...         'oauth_version': "1.0",
+    ...         'oauth_nonce': "4572616e48616d6d65724c61686176",
+    ...         'oauth_timestamp': timestamp,
+    ...         'oauth_callback': 'oob',
+    ...     },
+    ...     consumer=consumer1, 
+    ...     url=url,
+    ... )
+    >>> auth = request._auth
+    >>> browser = Browser()
+    >>> browser.addHeader('Authorization', 'OAuth %s' % auth)
+    >>> browser.open(url)
+    >>> btokenstr = browser.contents
+    >>> print btokenstr
+    oauth_token_secret=...&oauth_token=...&oauth_callback_confirmed=true
+    >>> btoken = oauth.Token.from_string(btokenstr)
+
 
 -------------------
 Token Authorization
@@ -238,7 +262,9 @@ name of the consumer, along with its identity.
 
 We can approve this token by selecting the 'Grant access' button.  Since
 no `xoauth_displayname` was specified, the browser should have been
-redirected to the callback URL with the token and verifier specified.
+redirected to the callback URL with the token and verifier specified by
+the consumer, such that the consumer can request the access token with 
+it.
 ::
 
     >>> u_browser.getControl(name='form.buttons.approve').click()
@@ -252,15 +278,67 @@ redirected to the callback URL with the token and verifier specified.
     >>> token.key == token_key
     True
 
-The request token should be updated to include the id of the user that
-authorized it.
+Assuming the redirection was successful, the consumer will now know the
+verifier associated with this token, but since we control the consumer
+here, we can defer this till a bit later.
+
+On the provider side, the request token should be updated to include the 
+id of the user that performed the authorization.
 ::
 
     >>> tokenManager.get(token_key).user
     'test_user_1_'
 
-At this point the verifier should have been assigned by the consumer to
-their copy of the same token, but we will defer this till a bit later.
+Going to do the same to the second request token with an oob callback.
+The difference is, the user will be shown the verification code and will
+be asked to supply it to the consumer manually.
+::
+
+    >>> u_browser.open(auth_baseurl + '?oauth_token=' + btoken.key)
+    >>> u_browser.getControl(name='form.buttons.approve').click()
+    >>> u_browser.url.startswith(baseurl)
+    True
+
+We are going to extract the token verifier from the token manager and
+see that it's in the contents.
+::
+
+    >>> tmpToken = tokenManager.get(btoken.key)
+    >>> btoken_verifier = tmpToken.verifier
+    >>> btoken_verifier in u_browser.contents
+    True
+
+Of course the user should have the opportunity to deny the token.  We
+can create tokens manually and let the user deny it.  The token would
+then be purged, and user will be redirected back to the callback,
+which the consumer will then handle this denial.
+::
+
+    >>> testtok = tokenManager._generateBaseToken(consumer1, None)
+    >>> testtok.callback = baseurl + u'/test_oauth_callback?'
+    >>> testtok.set_verifier()
+    >>> tokenManager.add(testtok)
+    >>> u_browser.open(auth_baseurl + '?oauth_token=' + testtok.key)
+    >>> u_browser.getControl(name='form.buttons.deny').click()
+    >>> u_browser.url == testtok.get_callback_url()
+    True
+    >>> tokenManager.get(testtok) is None
+    True
+
+In the case of a rejected oob token, a message will be displayed.
+::
+
+    >>> testtok = tokenManager._generateBaseToken(consumer1, None)
+    >>> testtok.callback = u'oob'
+    >>> tokenManager.add(testtok)
+    >>> u_browser.open(auth_baseurl + '?oauth_token=' + testtok.key)
+    >>> u_browser.getControl(name='form.buttons.deny').click()
+    >>> u_browser.url.startswith(baseurl)
+    True
+    >>> 'Token has been denied.' in u_browser.contents
+    True
+    >>> tokenManager.get(testtok) is None
+    True
 
 
 ----------------------------
@@ -338,6 +416,21 @@ be used again to request a new token.
     Traceback (most recent call last):
     ...
     BadRequest: invalid token
+
+Now try again using the browser.
+::
+
+    >>> url = baseurl + '/OAuthGetAccessToken'
+    >>> btoken.verifier = btoken_verifier
+    >>> request = SignedTestRequest(consumer=consumer1, token=btoken, url=url)
+    >>> auth = request._auth
+    >>> browser = Browser()
+    >>> browser.addHeader('Authorization', 'OAuth %s' % auth)
+    >>> browser.open(url)
+    >>> baccesstokenstr = browser.contents
+    >>> print baccesstokenstr
+    oauth_token_secret=...&oauth_token=...
+    >>> bacctoken = oauth.Token.from_string(baccesstokenstr)
 
 
 ------------------
@@ -612,7 +705,7 @@ of the tokens using the test browser.
     >>> u_browser.getControl(name="form.widgets.key").controls[0].click()
     >>> u_browser.getControl(name='form.buttons.revoke').click()
     >>> len(tokenManager.getTokensForUser(default_user))
-    1
+    2
     >>> result = u_browser.contents
     >>> 'Access successfully removed' in result
     True

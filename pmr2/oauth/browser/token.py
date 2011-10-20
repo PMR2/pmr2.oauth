@@ -151,11 +151,15 @@ class AuthorizeTokenPage(form.Form, BaseTokenPage):
     invalidTokenMessage = _(u'Invalid Token.')
     invalidConsumerMessage = _(
         u'Consumer associated with this key is invalid.')
+    deniedMessage = _(
+        u'Token has been denied.')
     token = None
     consumer = None
     consumer_key = ''
     description = ''
+    verifier = ''
     statusTemplate = ViewPageTemplateFile(path('authorize_status.pt'))
+    verifierTemplate = ViewPageTemplateFile(path('authorize_verifier.pt'))
     template = ViewPageTemplateFile(path('authorize_question.pt'))
     _errors = False
 
@@ -190,11 +194,13 @@ class AuthorizeTokenPage(form.Form, BaseTokenPage):
             self.status = self._errors
             self._errors = True
 
-        return super(AuthorizeTokenPage, self).update()
+        return super(AuthorizeTokenPage, self).update() 
 
     def render(self):
         if self._errors:
             return self.statusTemplate()
+        if self.verifier:
+            return self.verifierTemplate()
         return super(AuthorizeTokenPage, self).render()
 
     def scope(self):
@@ -222,7 +228,11 @@ class AuthorizeTokenPage(form.Form, BaseTokenPage):
         tm = zope.component.getMultiAdapter((self.context, self.request),
             ITokenManager)
         tm.claimRequestToken(self.token, user)
-        return self.request.response.redirect(self.token.get_callback_url())
+        if not self.token.callback == 'oob':
+            callback_url = self.token.get_callback_url()
+            return self.request.response.redirect(callback_url)
+        # handle oob
+        self.verifier = self.token.verifier
 
     @button.buttonAndHandler(_('Deny access'), name='deny')
     def handleDeny(self, action):
@@ -234,5 +244,10 @@ class AuthorizeTokenPage(form.Form, BaseTokenPage):
         tm = zope.component.getMultiAdapter((self.context, self.request),
             ITokenManager)
         tm.remove(token_key)
+        if not self.token.callback == 'oob':
+            callback_url = self.token.get_callback_url()
+            return self.request.response.redirect(callback_url)
+        self.status = self.deniedMessage
+        self._errors = True
 
 AuthorizeTokenPageView = wrap_form(AuthorizeTokenPage)
