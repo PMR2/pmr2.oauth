@@ -1,6 +1,6 @@
 Metadata-Version: 1.0
 Name: pmr2.oauth
-Version: 0.1dev
+Version: 0.1
 Summary: OAuth PAS Plugin
 Home-page: https://github.com/PMR2/pmr2.oauth
 Author: Tommy Yu
