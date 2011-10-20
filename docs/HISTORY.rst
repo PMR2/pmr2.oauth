@@ -3,6 +3,12 @@ Changelog
 =========
 
 ----------------
+0.2 - Unreleased
+----------------
+
+* Completing i18n coverage and added Italian support.  [giacomos]
+
+----------------
 0.1 - 2011-10-20
 ----------------
 
