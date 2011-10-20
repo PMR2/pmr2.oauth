@@ -1,8 +1,0 @@
-setuptools
-oauth2
-zope.testing
-zope.component
-zope.interface
-zope.schema
-zope.annotation
-plone.app.z3cform
