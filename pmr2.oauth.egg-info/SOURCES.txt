@@ -21,6 +21,7 @@ pmr2/oauth/adapter.zcml
 pmr2/oauth/configure.zcml
 pmr2/oauth/consumer.py
 pmr2/oauth/factory.py
+pmr2/oauth/i18n.sh
 pmr2/oauth/interfaces.py
 pmr2/oauth/profiles.zcml
 pmr2/oauth/request.py
@@ -41,9 +42,15 @@ pmr2/oauth/browser/template/authorize_verifier.pt
 pmr2/oauth/browser/template/consumer_manage_token.pt
 pmr2/oauth/browser/template/user_manage_token.pt
 pmr2/oauth/icon/oauth.png
+pmr2/oauth/locales/pmr2.oauth.pot
+pmr2/oauth/locales/en/LC_MESSAGES/pmr2.oauth.mo
+pmr2/oauth/locales/en/LC_MESSAGES/pmr2.oauth.po
+pmr2/oauth/locales/it/LC_MESSAGES/pmr2.oauth.mo
+pmr2/oauth/locales/it/LC_MESSAGES/pmr2.oauth.po
 pmr2/oauth/plugins/__init__.py
 pmr2/oauth/plugins/oauth.py
 pmr2/oauth/profiles/default/import_steps.xml
+pmr2/oauth/profiles/default/metadata.xml
 pmr2/oauth/profiles/default/oauth-pas.txt
 pmr2/oauth/tests/__init__.py
 pmr2/oauth/tests/base.py
