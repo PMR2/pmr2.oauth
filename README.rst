@@ -24,12 +24,8 @@ but it has not been tested on that yet.
 Installing with buildout
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can install pmr2.oauth using `buildout`_.  As this is still under
-initial development no releases have been made on pypi, you will need to
-put this source tree within some directory within the one buildout 
-resides in in (such as in ${buildout_dir}/src/pmr2.oauth) and add a
-develop flag to include this package as a development package.  Also in
-both eggs and zcml section, this package name requires an entry.
+You can install pmr2.oauth using `buildout`_ by adding an entry for this
+package in both eggs and zcml sections.
 
 .. _buildout: http://pypi.python.org/pypi/zc.buildout
 
@@ -37,10 +33,6 @@ Example::
 
     [buildout]
     ...
-
-    develop =
-        src/pmr2.oauth
-
 
     [instance]
     ...
