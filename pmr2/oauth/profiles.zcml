@@ -9,7 +9,6 @@
       directory="profiles/default"
       description="Add support for authenticating with OAuth credentials by acting as an OAuth provider."
       provides="Products.GenericSetup.interfaces.EXTENSION"
-      for="Products.CMFPlone.interfaces.IPloneSiteRoot"
       />
 
 </configure>
