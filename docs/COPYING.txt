@@ -1,0 +1,10 @@
+pmr2.oauth is copyright Auckland Bioengineering Institute.
+
+pmr2.oauth is released under the following licenses:
+
+ 1) The GNU General Public License, Version 2 (GPLv2), or at your 
+    option, any later version.
+
+You may only use pmr2.oauth in compliance with one or more of these
+licenses.  Please read the text of each of the above licenses carefully
+as they all apply to this software.
