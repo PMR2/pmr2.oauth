@@ -1,6 +1,8 @@
 MANIFEST.in
+README.rst
 setup.cfg
 setup.py
+zopeskel.txt
 docs/HISTORY.rst
 docs/LICENSE.GPL
 docs/LICENSE.txt

@@ -2,3 +2,5 @@ recursive-include pmr2 *
 recursive-include docs *
 global-exclude *pyc
 global-exclude .*swp
+include *rst
+include *txt
