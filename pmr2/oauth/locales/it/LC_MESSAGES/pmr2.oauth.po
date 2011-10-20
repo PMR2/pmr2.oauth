@@ -1,0 +1,205 @@
+# Translation of atcontenttypes.pot to Italian
+# Giacomo Spettoli <giacomo.spettoli@gmail.com>, 2011
+# 
+msgid ""
+msgstr ""
+"Project-Id-Version: ATContentTypes\n"
+"POT-Creation-Date: 2011-10-20 22:07+0000\n"
+"PO-Revision-Date: 2011-10-20 22:00+0200\n"
+"Last-Translator: Giacomo Spettoli <giacomo.spettoli@gmail.com>\n"
+"Language-Team: Plone i18n <plone-i18n@lists.sourceforge.net>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n!=1\n"
+"Language-Code: it\n"
+"Language-Name: Italiano\n"
+"Preferred-Encodings: utf-8 latin1\n"
+"Domain: pmr2.oauth\n"
+"X-Is-Fallback-For: it-ch it-it\n"
+
+#: ./interfaces.py:183
+msgid "Access Permitted"
+msgstr "Accesso consentito"
+
+#: ./browser/user.py:75
+msgid "Access successfully removed"
+msgstr "Accesso rimosso con successo"
+
+#: ./browser/template/authorize_question.pt:9
+msgid "Access token approval"
+msgstr "Approvazione del token di accesso"
+
+#: ./browser/template/consumer_manage_token.pt:31
+msgid "Add OAuth Consumer"
+msgstr "Aggiungi un utente OAuth"
+
+#: ./interfaces.py:166
+msgid "Callback"
+msgstr ""
+
+#: ./interfaces.py:171
+msgid "Callback Confirmed"
+msgstr ""
+
+#: ./interfaces.py:69
+msgid "Consumer Key"
+msgstr "Chiave dell'utente"
+
+#: ./interfaces.py:76
+msgid "Consumer Secret"
+msgstr "Codice segreto dell'utente"
+
+#: ./browser/token.py:152
+msgid "Consumer associated with this key is invalid."
+msgstr "L'utente associato a questa chiave non è valido."
+
+#: ./interfaces.py:155
+msgid "Consumer key"
+msgstr "Chiave dell'utente"
+
+#: ./browser/template/consumer_manage_token.pt:9
+msgid "Consumer management"
+msgstr "Gestione degli utenti"
+
+#: ./interfaces.py:77
+msgid "Consumer secret"
+msgstr "Codice segreto dell'utente"
+
+#: ./browser/consumer.py:108
+msgid "Consumers successfully removed"
+msgstr "Consumer rimosso con successo"
+
+#: ./interfaces.py:205
+msgid "Creation timestamp of this token"
+msgstr "Timestampe di creazione di questo token"
+
+#: ./browser/token.py:237
+msgid "Deny access"
+msgstr "Impedisci l'accesso"
+
+#: ./interfaces.py:184
+msgid "Determines if this can be used to access content."
+msgstr "Determina se questo può essere usato per l'accesso al contenuto."
+
+#: ./browser/consumer.py:104
+#: ./browser/user.py:71
+msgid "Errors encountered during key removal"
+msgstr "Sono stati riscontrati degli errori durante la rimozione della chiave"
+
+#: ./interfaces.py:209
+msgid "Expiry"
+msgstr "Scadenza"
+
+#: ./interfaces.py:210
+msgid "Expiry timestamp for this token"
+msgstr "Timestamp di scadenza per questo token"
+
+#: ./browser/token.py:213
+msgid "Grant access"
+msgstr "Consenti l'accesso"
+
+#: ./browser/token.py:151
+msgid "Invalid Token."
+msgstr "Token non valido."
+
+#: ./interfaces.py:154
+msgid "Key"
+msgstr "Chiave"
+
+#: ./interfaces.py:142
+msgid "List of regular expressions of URIs that are permitted to be accessible via OAuth."
+msgstr "Lista di espressioni regolari di URI che ai quali è consentito accedere via OAuth."
+
+#: ./browser/template/user_manage_token.pt:9
+msgid "Manage third-party access to your content"
+msgstr "Gestisci l'accesso a terze parti al contenuto"
+
+#: ./interfaces.py:141
+msgid "Permitted URIs"
+msgstr "URI permessi"
+
+#: ./browser/template/authorize_question.pt:32
+msgid "Please only grant access if you trust this site."
+msgstr "Consenti l'accesso solo se questo sito è fidato"
+
+#: ./browser/consumer.py:73
+msgid "Remove"
+msgstr "Rimuovi"
+
+#: ./browser/user.py:43
+msgid "Revoke"
+msgstr "Revoca"
+
+#: ./interfaces.py:221
+msgid "Scope"
+msgstr ""
+
+#: ./interfaces.py:214
+msgid "Scope ID"
+msgstr ""
+
+#: ./interfaces.py:160
+msgid "Secret"
+msgstr "Codice segreto"
+
+#: ./interfaces.py:198
+msgid "The consumer key associated with this token"
+msgstr "La chiave utente associata a questo token"
+
+#: ./interfaces.py:215
+msgid "The id of the scope manager that was used."
+msgstr ""
+
+#: ./interfaces.py:70
+msgid "The key that identifies this consumer.  This usually is the domain name of the consumer"
+msgstr "La chiave che identifica questo utente. Solitamente corrisponde al nome di dominio del utente"
+
+#: ./interfaces.py:222
+msgid "The scope associated with this token, specific to the original scope manager that was in use."
+msgstr ""
+
+#: ./browser/template/authorize_question.pt:14
+msgid "The site <strong>${DYNAMIC_CONTENT}</strong> is requesting access to URIs on this site matching the following rules using your credentials:"
+msgstr "Il sito <strong>${DYNAMIC_CONTENT}</strong> richiede l'accesso agli URI su questo sito che corrispondono alle seguenti regole utilizzando queste credenziali:"
+
+#: ./browser/template/authorize_question.pt:26
+msgid "The site <strong>${DYNAMIC_CONTENT}</strong> is requesting access to all resources on this site that are permitted by your site manager(s) using your credentials."
+msgstr "Il sito <strong>${DYNAMIC_CONTENT}</strong> richiede l'accesso a tutte le risorse su questo sito che sono permesse dal tuo gestore(i) del sito utilizzando le tue credenziali:"
+
+#: ./interfaces.py:191
+msgid "The user id associated with this token."
+msgstr "L'id utent associato a questo token."
+
+#: ./interfaces.py:204
+msgid "Timestamp"
+msgstr ""
+
+#: ./browser/template/user_manage_token.pt:12
+msgid "To remove access for the following sites, please check the checkboxes for each site you desire to remove, then activate the revoke button to revoke access for the selected sites."
+msgstr "Per rimuovere l'accesso ai seguenti siti, seleziona i checkbox per ogni sito che desideri rimuovere, poi clicca sul bottone Revoca per revocare l'accesso."
+
+#: ./browser/template/consumer_manage_token.pt:12
+msgid "To remove access from the following consumer, select the checkboxes associated with each consumer you would like removed, then activate the remove button."
+msgstr "Per rimuovere l'accesso ai seguenti utenti, seleziona i checkbox corrispondenti e poi premi il bottone Rimuovi"
+
+#: ./browser/template/authorize_verifier.pt:6
+msgid "Token authorized"
+msgstr "Toke autorizzato"
+
+#: ./browser/template/authorize_verifier.pt:9
+msgid "Token authorized. Please enter the following verification code into the application you are granting access to:"
+msgstr "Token autorizzato. Inserisci il seguente codice di verifica nell'applicazione a cui stai consentendo l'accesso a:"
+
+#: ./browser/token.py:154
+msgid "Token has been denied."
+msgstr "Il token è stato rifiutato."
+
+#: ./interfaces.py:190
+msgid "User ID"
+msgstr ""
+
+#: ./interfaces.py:176
+msgid "Verifier"
+msgstr "Verificatore"
+

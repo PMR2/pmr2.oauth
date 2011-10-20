@@ -66,15 +66,15 @@ class IConsumer(zope.interface.Interface):
     """
 
     key = zope.schema.ASCIILine(
-        title=u'Consumer Key',
-        description=u'The key that identifies this consumer.  This usually '
-                     'is the domain name of the consumer',
+        title=_(u'Consumer Key'),
+        description=_(u'The key that identifies this consumer.  This usually '
+                     'is the domain name of the consumer'),
         required=True,
     )
 
     secret = zope.schema.ASCIILine(
-        title=u'Consumer Secret',
-        description=u'Consumer secret',
+        title=_(u'Consumer Secret'),
+        description=_(u'Consumer secret'),
         required=True,
     )
 
@@ -138,9 +138,9 @@ class IDefaultScopeManager(zope.interface.Interface):
     """
 
     permitted = zope.schema.ASCII(
-        title=u'Permitted URIs',
-        description=u'List of regular expressions of URIs that are permitted '
-                     'to be accessible via OAuth.',
+        title=_(u'Permitted URIs'),
+        description=_(u'List of regular expressions of URIs that are permitted '
+                     'to be accessible via OAuth.'),
         required=True,
     )
 
@@ -151,76 +151,76 @@ class IToken(zope.interface.Interface):
     """
 
     key = zope.schema.ASCIILine(
-        title=u'Key',
-        description=u'Consumer key',
+        title=_(u'Key'),
+        description=_(u'Consumer key'),
         required=True,
     )
 
     secret = zope.schema.ASCIILine(
-        title=u'Secret',
-        description=u'Consumer secret',
+        title=_(u'Secret'),
+        description=_(u'Consumer secret'),
         required=True,
     )
 
     callback = zope.schema.TextLine(
-        title=u'Callback',
+        title=_(u'Callback'),
         required=True,
     )
 
     callback_confirmed = zope.schema.ASCIILine(
-        title=u'Callback Confirmed',
+        title=_(u'Callback Confirmed'),
         required=True,
     )
 
     verifier = zope.schema.ASCIILine(
-        title=u'Verifier',
+        title=_(u'Verifier'),
         required=True,
     )
 
     # other requirements
 
     access = zope.schema.Bool(
-        title=u'Access Permitted',
-        description=u'Determines if this can be used to access content.',
+        title=_(u'Access Permitted'),
+        description=_(u'Determines if this can be used to access content.'),
         default=False,
         required=True,
     )
 
     user = zope.schema.ASCIILine(
-        title=u'User ID',
-        description=u'The user id associated with this token.',
+        title=_(u'User ID'),
+        description=_(u'The user id associated with this token.'),
         required=False,
         default=None,
     )
 
     consumer_key = zope.schema.ASCIILine(
-        title=u'Consumer Key',
-        description=u'The consumer key associated with this token',
+        title=_(u'Consumer Key'),
+        description=_(u'The consumer key associated with this token'),
         required=False,
         default=None,
     )
 
     timestamp = zope.schema.Int(
-        title=u'Timestamp',
-        description=u'Creation timestamp of this token',
+        title=_(u'Timestamp'),
+        description=_(u'Creation timestamp of this token'),
     )
 
     expiry = zope.schema.Int(
-        title=u'Expiry',
-        description=u'Expiry timestamp for this token',
+        title=_(u'Expiry'),
+        description=_(u'Expiry timestamp for this token'),
     )
 
     scope_id = zope.schema.Text(
-        title=u'Scope ID',
-        description=u'The id of the scope manager that was used.',
+        title=_(u'Scope ID'),
+        description=_(u'The id of the scope manager that was used.'),
         required=False,
         default=u'',
     )
 
     scope = zope.schema.Text(
-        title=u'Scope',
-        description=u'The scope associated with this token, specific to the '
-                     'original scope manager that was in use.',
+        title=_(u'Scope'),
+        description=_(u'The scope associated with this token, specific to the '
+                     'original scope manager that was in use.'),
         required=False,
     )
 

@@ -3,10 +3,10 @@
       lang="en"
       i18n:domain="pmr2.oauth">
   <body>
-    <h1>
+    <h1 i18n:translate="">
       Token authorized
     </h1>
-    <p>
+    <p i18n:translate="">
       Token authorized.  Please enter the following verification code
       into the application you are granting access to:
     </p>

@@ -6,10 +6,10 @@
   <body>
 
     <metal:fill fill-slot="fields">
-      <h1>
+      <h1 i18n:translate="">
         Manage third-party access to your content
       </h1>
-      <p>
+      <p i18n:translate="">
         To remove access for the following sites, please check the
         checkboxes for each site you desire to remove, then activate the
         revoke button to revoke access for the selected sites.
