@@ -6,6 +6,9 @@
   <body>
 
     <metal:fill fill-slot="formtop">
+      <h1 i18n:translate="">
+        Access token approval
+      </h1>
       <tal:if tal:condition="view/scope">
         <p i18n:translate="">
           The site <strong tal:content="view/consumer_key"></strong> is 

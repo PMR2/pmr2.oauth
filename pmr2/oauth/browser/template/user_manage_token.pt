@@ -7,7 +7,7 @@
 
     <metal:fill fill-slot="fields">
       <h1>
-        Authorized Access to your content.
+        Manage third-party access to your content
       </h1>
       <p>
         To remove access for the following sites, please check the

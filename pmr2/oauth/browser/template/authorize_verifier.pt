@@ -4,7 +4,7 @@
       i18n:domain="pmr2.oauth">
   <body>
     <h1>
-      Token authorized.
+      Token authorized
     </h1>
     <p>
       Token authorized.  Please enter the following verification code
