@@ -8,8 +8,11 @@ demanding features can be slotted in.  Basic features will be provided,
 such as simple management of consumers and their keys, and local users
 will be able to approve consumer requests and revoke the keys later.
 
-Currently this package should be treated as a proof of concept, thus
-completely unsuitable for production use.
+While the test coverage is fairly complete and demonstrates that access
+restriction seem to function as intented, this package is still a
+proof of concept at this point in time.  Production usage of this
+package should be avoided without a full understanding of how this
+package is constructed.
 
 
 ------------
