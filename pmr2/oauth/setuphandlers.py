@@ -1,9 +1,6 @@
 from logging import getLogger
 
-from zope.component import queryUtility
-from zope.component import getMultiAdapter
 from Products.CMFCore.utils import getToolByName
-from Products.PlonePAS.browser.info import PASInfoView
 
 
 def createPlugin(site, id_):

@@ -1,5 +1,4 @@
 import zope.interface
-from zope.publisher.interfaces.browser import IBrowserRequest
 
 import oauth2 as oauth
 from pmr2.oauth import interfaces

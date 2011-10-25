@@ -1,5 +1,4 @@
 import re
-import oauth2 as oauth
 
 from persistent import Persistent
 

@@ -1,7 +1,6 @@
 import zope.component
 from zope.app.component.hooks import getSite
 
-from Acquisition import aq_parent
 from AccessControl.SecurityInfo import ClassSecurityInfo
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
@@ -12,7 +11,6 @@ from Products.PluggableAuthService.interfaces.plugins \
 from zExceptions import Forbidden
 from zExceptions import BadRequest
 
-import transaction
 import logging
 
 import oauth2 as oauth
