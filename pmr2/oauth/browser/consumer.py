@@ -30,6 +30,10 @@ class ConsumerAddForm(form.AddForm):
         # secret should be generated.
     )
 
+    def update(self):
+        super(ConsumerAddForm, self).update()
+        self.request['disable_border'] = True
+
     def create(self, data):
         # I don't think we need a consumer factory for this... just
         # inherit/redefine this form for your consumers.
@@ -69,6 +73,7 @@ class ConsumerManageForm(form.Form):
     def update(self):
         super(ConsumerManageForm, self).update()
         self.consumers = self.getConsumers()
+        self.request['disable_border'] = True
 
     @button.buttonAndHandler(_('Remove'), name='remove')
     def handleRemove(self, action):

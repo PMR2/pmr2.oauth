@@ -23,6 +23,10 @@ class ScopeEditForm(form.EditForm):
         inf = zope.component.providedBy(sm).interfaces().next()
         return field.Fields(inf)
 
+    def update(self):
+        super(ScopeEditForm, self).update()
+        self.request['disable_border'] = True
+
     def getContent(self):
         sm = zope.component.getMultiAdapter(
             (self.context, self.request), IScopeManager)

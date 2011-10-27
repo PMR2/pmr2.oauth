@@ -39,6 +39,7 @@ class BaseUserTokenForm(form.Form):
     def update(self):
         super(BaseUserTokenForm, self).update()
         self.tokens = self.getTokens()
+        self.request['disable_border'] = True
 
     @button.buttonAndHandler(_('Revoke'), name='revoke')
     def handleRevoke(self, action):

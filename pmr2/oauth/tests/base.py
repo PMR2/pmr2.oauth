@@ -57,6 +57,15 @@ class TestRequest(z3c.form.testing.TestRequest):
 
     zope.interface.implements(IOAuthTestLayer, IAttributeAnnotatable)
 
+    def __setitem__(self, key, value):
+        self.form[key] = value
+
+    def __getitem__(self, key):
+        try:
+            return super(TestRequest, self).__getitem__(key)
+        except KeyError:
+            return self.form[key]
+
     def __init__(self, oauth_keys=None, url=None, *a, **kw):
         super(TestRequest, self).__init__(*a, **kw)
         url = url or self.getURL()

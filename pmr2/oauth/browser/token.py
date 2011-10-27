@@ -178,6 +178,7 @@ class AuthorizeTokenPage(form.Form, BaseTokenPage):
         manually check.
         """
 
+        self.request['disable_border'] = True
         mt = getToolByName(self.context, 'portal_membership')
         if mt.isAnonymousUser():
             # should trigger a redirect to some login mechanism.
