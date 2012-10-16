@@ -4,7 +4,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2011-10-20 22:07+0000\n"
+"POT-Creation-Date: 2012-10-16 04:16+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI +ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,10 +25,12 @@ msgstr ""
 msgid "Access successfully removed"
 msgstr ""
 
+#. Default: "Access token approval"
 #: ./browser/template/authorize_question.pt:9
 msgid "Access token approval"
 msgstr ""
 
+#. Default: "Add OAuth Consumer"
 #: ./browser/template/consumer_manage_token.pt:31
 msgid "Add OAuth Consumer"
 msgstr ""
@@ -49,7 +51,7 @@ msgstr ""
 msgid "Consumer Secret"
 msgstr ""
 
-#: ./browser/token.py:152
+#: ./browser/token.py:151
 msgid "Consumer associated with this key is invalid."
 msgstr ""
 
@@ -57,6 +59,7 @@ msgstr ""
 msgid "Consumer key"
 msgstr ""
 
+#. Default: "Consumer management"
 #: ./browser/template/consumer_manage_token.pt:9
 msgid "Consumer management"
 msgstr ""
@@ -65,7 +68,7 @@ msgstr ""
 msgid "Consumer secret"
 msgstr ""
 
-#: ./browser/consumer.py:108
+#: ./browser/consumer.py:110
 msgid "Consumers successfully removed"
 msgstr ""
 
@@ -81,7 +84,7 @@ msgstr ""
 msgid "Determines if this can be used to access content."
 msgstr ""
 
-#: ./browser/consumer.py:104
+#: ./browser/consumer.py:106
 #: ./browser/user.py:71
 msgid "Errors encountered during key removal"
 msgstr ""
@@ -98,7 +101,7 @@ msgstr ""
 msgid "Grant access"
 msgstr ""
 
-#: ./browser/token.py:151
+#: ./browser/token.py:150
 msgid "Invalid Token."
 msgstr ""
 
@@ -110,6 +113,7 @@ msgstr ""
 msgid "List of regular expressions of URIs that are permitted to be accessible via OAuth."
 msgstr ""
 
+#. Default: "Manage third-party access to your content"
 #: ./browser/template/user_manage_token.pt:9
 msgid "Manage third-party access to your content"
 msgstr ""
@@ -118,11 +122,12 @@ msgstr ""
 msgid "Permitted URIs"
 msgstr ""
 
+#. Default: "Please only grant access if you trust this site."
 #: ./browser/template/authorize_question.pt:32
 msgid "Please only grant access if you trust this site."
 msgstr ""
 
-#: ./browser/consumer.py:73
+#: ./browser/consumer.py:75
 msgid "Remove"
 msgstr ""
 
@@ -174,23 +179,27 @@ msgstr ""
 msgid "Timestamp"
 msgstr ""
 
+#. Default: "To remove access for the following sites, please check the checkboxes for each site you desire to remove, then activate the revoke button to revoke access for the selected sites."
 #: ./browser/template/user_manage_token.pt:12
 msgid "To remove access for the following sites, please check the checkboxes for each site you desire to remove, then activate the revoke button to revoke access for the selected sites."
 msgstr ""
 
+#. Default: "To remove access from the following consumer, select the checkboxes associated with each consumer you would like removed, then activate the remove button."
 #: ./browser/template/consumer_manage_token.pt:12
 msgid "To remove access from the following consumer, select the checkboxes associated with each consumer you would like removed, then activate the remove button."
 msgstr ""
 
+#. Default: "Token authorized"
 #: ./browser/template/authorize_verifier.pt:6
 msgid "Token authorized"
 msgstr ""
 
+#. Default: "Token authorized. Please enter the following verification code into the application you are granting access to:"
 #: ./browser/template/authorize_verifier.pt:9
 msgid "Token authorized. Please enter the following verification code into the application you are granting access to:"
 msgstr ""
 
-#: ./browser/token.py:154
+#: ./browser/token.py:153
 msgid "Token has been denied."
 msgstr ""
 

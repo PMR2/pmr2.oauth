@@ -4,7 +4,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2011-10-20 22:07+0000\n"
+"POT-Creation-Date: 2012-10-16 04:16+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI +ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -49,7 +49,7 @@ msgstr ""
 msgid "Consumer Secret"
 msgstr ""
 
-#: ./browser/token.py:152
+#: ./browser/token.py:151
 msgid "Consumer associated with this key is invalid."
 msgstr ""
 
@@ -65,7 +65,7 @@ msgstr ""
 msgid "Consumer secret"
 msgstr ""
 
-#: ./browser/consumer.py:108
+#: ./browser/consumer.py:110
 msgid "Consumers successfully removed"
 msgstr ""
 
@@ -81,7 +81,7 @@ msgstr ""
 msgid "Determines if this can be used to access content."
 msgstr ""
 
-#: ./browser/consumer.py:104
+#: ./browser/consumer.py:106
 #: ./browser/user.py:71
 msgid "Errors encountered during key removal"
 msgstr ""
@@ -98,7 +98,7 @@ msgstr ""
 msgid "Grant access"
 msgstr ""
 
-#: ./browser/token.py:151
+#: ./browser/token.py:150
 msgid "Invalid Token."
 msgstr ""
 
@@ -122,7 +122,7 @@ msgstr ""
 msgid "Please only grant access if you trust this site."
 msgstr ""
 
-#: ./browser/consumer.py:73
+#: ./browser/consumer.py:75
 msgid "Remove"
 msgstr ""
 
@@ -190,7 +190,7 @@ msgstr ""
 msgid "Token authorized. Please enter the following verification code into the application you are granting access to:"
 msgstr ""
 
-#: ./browser/token.py:154
+#: ./browser/token.py:153
 msgid "Token has been denied."
 msgstr ""
 
