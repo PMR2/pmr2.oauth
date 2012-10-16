@@ -8,6 +8,8 @@
   <five:registerPackage package="." initialize=".initialize" />
   <i18n:registerTranslations directory="locales" />
 
+  <include package="plone.app.z3cform" />
+
   <include package=".browser" />
 
   <include file="adapter.zcml" />

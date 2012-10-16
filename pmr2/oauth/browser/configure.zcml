@@ -15,7 +15,7 @@
   <browser:view
       for="Products.CMFPlone.interfaces.siteroot.IPloneSiteRoot"
       name="OAuthAuthorizeToken"
-      class=".token.AuthorizeTokenPageView"
+      class=".token.AuthorizeTokenPage"
       permission="zope2.View"
       />
 
@@ -31,7 +31,7 @@
   <browser:page
       for="Products.CMFPlone.interfaces.siteroot.IPloneSiteRoot"
       name="issued_oauth_tokens"
-      class=".user.UserTokenFormView"
+      class=".user.UserTokenForm"
       permission="cmf.SetOwnProperties"
       />
 
@@ -40,14 +40,14 @@
   <browser:page
       for="Products.CMFPlone.interfaces.siteroot.IPloneSiteRoot"
       name="add-oauth-consumer"
-      class=".consumer.ConsumerAddFormView"
+      class=".consumer.ConsumerAddForm"
       permission="cmf.ManagePortal"
       />
 
   <browser:page
       for="Products.CMFPlone.interfaces.siteroot.IPloneSiteRoot"
       name="manage-oauth-consumers"
-      class=".consumer.ConsumerManageFormView"
+      class=".consumer.ConsumerManageForm"
       permission="cmf.ManagePortal"
       />
 
@@ -56,7 +56,7 @@
   <browser:page
       for="Products.CMFPlone.interfaces.siteroot.IPloneSiteRoot"
       name="manage-oauth-scope"
-      class=".scope.ScopeEditFormView"
+      class=".scope.ScopeEditForm"
       permission="cmf.ManagePortal"
       />
 

@@ -6,8 +6,6 @@ from z3c.form import form
 from z3c.form import field
 from z3c.form import button
 
-from plone.z3cform.layout import wrap_form
-
 from Products.CMFCore.utils import getToolByName
 from Products.statusmessages.interfaces import IStatusMessage
 
@@ -15,6 +13,7 @@ from pmr2.oauth import MessageFactory as _
 from pmr2.oauth.interfaces import *
 from pmr2.oauth.browser.template import ViewPageTemplateFile
 from pmr2.oauth.browser.template import path
+from pmr2.oauth.browser.form import Form
 from pmr2.oauth.utility import random_string
 
 from pmr2.oauth.consumer import Consumer
@@ -47,10 +46,8 @@ class ConsumerAddForm(form.AddForm):
     def nextURL(self):
         return self.context.absolute_url() + '/manage-oauth-consumers'
 
-ConsumerAddFormView = wrap_form(ConsumerAddForm)
 
-
-class ConsumerManageForm(form.Form):
+class ConsumerManageForm(Form):
     """\
     For user to manage their authorized tokens.
     """
@@ -112,5 +109,3 @@ class ConsumerManageForm(form.Form):
             status.addStatusMessage(
                 _(u'Consumers successfully removed'),
                 type="info")
-
-ConsumerManageFormView = wrap_form(ConsumerManageForm)

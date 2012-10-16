@@ -25,6 +25,13 @@ To run this, we first import all the modules we need.
     ...     (self.portal, request), name='test_current_user')
     >>> baseurl = self.portal.absolute_url()
 
+Some of the forms need to be have the IWrappedForm interface applied to
+get the correct inner template adapted.
+::
+
+    >>> from pmr2.oauth.browser import scope
+    >>> zope.interface.classImplements(scope.ScopeEditForm, IWrappedForm)
+
 The default OAuth utility should have been registered.
 ::
 
@@ -718,7 +725,6 @@ managers can access this page at `${portal_url}/manage-oauth-consumers`.
     >>> from pmr2.oauth.browser import consumer
     >>> request = TestRequest()
     >>> view = consumer.ConsumerManageForm(self.portal, request)
-    >>> zope.interface.directlyProvides(view, IWrappedForm)
     >>> result = view()
     >>> 'consumer1.example.com' in result
     True
@@ -771,10 +777,8 @@ global scope parameters for the current active scope manager.  The URI
 to this is `${portal_url}/manage-oauth-consumers`.
 ::
 
-    >>> from pmr2.oauth.browser import scope
     >>> request = TestRequest()
     >>> view = scope.ScopeEditForm(self.portal, request)
-    >>> zope.interface.directlyProvides(view, IWrappedForm)
     >>> result = view()
     >>> 'test_current_roles$' in result
     True
@@ -787,7 +791,6 @@ That value can be edited.
     ...     'form.buttons.apply': 1,
     ... })
     >>> view = scope.ScopeEditForm(self.portal, request)
-    >>> zope.interface.directlyProvides(view, IWrappedForm)
     >>> result = view()
     >>> 'test_current_roles$' in result
     False

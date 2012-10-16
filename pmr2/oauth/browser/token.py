@@ -11,14 +11,13 @@ from zExceptions import Unauthorized
 from z3c.form import form
 from z3c.form import button
 
-from plone.z3cform.layout import wrap_form
-
 from Products.CMFCore.utils import getToolByName
 
 from pmr2.oauth import MessageFactory as _
 from pmr2.oauth.interfaces import *
 from pmr2.oauth.browser.template import ViewPageTemplateFile
 from pmr2.oauth.browser.template import path
+from pmr2.oauth.browser.form import Form
 
 
 class BaseTokenPage(BrowserPage):
@@ -145,7 +144,7 @@ class GetAccessTokenPage(BaseTokenPage):
             raise BadRequest(e.args[0])
 
 
-class AuthorizeTokenPage(form.Form, BaseTokenPage):
+class AuthorizeTokenPage(Form, BaseTokenPage):
 
     ignoreContext = True
     invalidTokenMessage = _(u'Invalid Token.')
@@ -197,12 +196,12 @@ class AuthorizeTokenPage(form.Form, BaseTokenPage):
 
         return super(AuthorizeTokenPage, self).update() 
 
-    def render(self):
+    def renderContents(self):
         if self._errors:
             return self.statusTemplate()
         if self.verifier:
             return self.verifierTemplate()
-        return super(AuthorizeTokenPage, self).render()
+        return super(AuthorizeTokenPage, self).renderContents()
 
     def scope(self):
         # XXX make this hook into the scope manager such that subclasses
@@ -250,5 +249,3 @@ class AuthorizeTokenPage(form.Form, BaseTokenPage):
             return self.request.response.redirect(callback_url)
         self.status = self.deniedMessage
         self._errors = True
-
-AuthorizeTokenPageView = wrap_form(AuthorizeTokenPage)

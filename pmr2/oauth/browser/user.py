@@ -5,8 +5,6 @@ from zope.publisher.browser import BrowserPage
 from z3c.form import form
 from z3c.form import button
 
-from plone.z3cform.layout import wrap_form
-
 from Products.CMFCore.utils import getToolByName
 from Products.statusmessages.interfaces import IStatusMessage
 
@@ -14,9 +12,10 @@ from pmr2.oauth import MessageFactory as _
 from pmr2.oauth.interfaces import *
 from pmr2.oauth.browser.template import ViewPageTemplateFile
 from pmr2.oauth.browser.template import path
+from pmr2.oauth.browser.form import Form
 
 
-class BaseUserTokenForm(form.Form):
+class BaseUserTokenForm(Form):
     """\
     For user to manage their authorized tokens.
     """
@@ -82,5 +81,3 @@ class UserTokenForm(BaseUserTokenForm):
     def getUser(self):
         mt = getToolByName(self.context, 'portal_membership')
         return mt.getAuthenticatedMember().id
-
-UserTokenFormView = wrap_form(UserTokenForm)
