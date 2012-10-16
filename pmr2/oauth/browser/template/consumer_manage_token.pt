@@ -30,6 +30,7 @@
       <p>
         <a tal:attributes="href string:${view/context/absolute_url}/add-oauth-consumer"
              i18n:translate="">Add OAuth Consumer</a>
+      </p>
     </metal:fill>
 
   </body>
