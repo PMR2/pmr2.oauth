@@ -2,39 +2,45 @@
       xmlns:tal="http://xml.zope.org/namespaces/tal"
       lang="en"
       i18n:domain="pmr2.oauth"
-      metal:use-macro="context/@@ploneform-macros/titlelessform" >
+      metal:use-macro="context/@@pmr2-z3cform-macros/main">
   <body>
 
-    <metal:fill fill-slot="formtop">
-      <h1 i18n:translate="">
-        Access token approval
-      </h1>
-      <tal:if tal:condition="view/scope">
+    <metal:fill fill-slot="main">
+    <metal:use metal:use-macro="context/@@ploneform-macros/titlelessform">
+
+      <metal:fill fill-slot="formtop">
+        <h1 i18n:translate="">
+          Access token approval
+        </h1>
+        <tal:if tal:condition="view/scope">
+          <p i18n:translate="">
+            The site <strong tal:content="view/consumer_key"></strong> is 
+            requesting access to URIs on this site matching the following 
+            rules using your credentials:
+          </p>
+
+          <ul>
+            <li tal:content="view/scope"></li>
+          </ul>
+        </tal:if>
+
+        <tal:if tal:condition="not:view/scope">
+          <p i18n:translate="">
+            The site <strong tal:content="view/consumer_key"></strong> is 
+            requesting access to all resources on this site that are
+            permitted by your site manager(s) using your credentials.
+          </p>
+        </tal:if>
+
         <p i18n:translate="">
-          The site <strong tal:content="view/consumer_key"></strong> is 
-          requesting access to URIs on this site matching the following 
-          rules using your credentials:
+          Please only grant access if you trust this site.
         </p>
 
-        <ul>
-          <li tal:content="view/scope"></li>
-        </ul>
-      </tal:if>
+        <input type="hidden" name="oauth_token"
+            tal:attributes="value request/oauth_token" />
+      </metal:fill>
 
-      <tal:if tal:condition="not:view/scope">
-        <p i18n:translate="">
-          The site <strong tal:content="view/consumer_key"></strong> is 
-          requesting access to all resources on this site that are
-          permitted by your site manager(s) using your credentials.
-        </p>
-      </tal:if>
-
-      <p i18n:translate="">
-        Please only grant access if you trust this site.
-      </p>
-
-      <input type="hidden" name="oauth_token"
-          tal:attributes="value request/oauth_token" />
+    </metal:use>
     </metal:fill>
 
   </body>

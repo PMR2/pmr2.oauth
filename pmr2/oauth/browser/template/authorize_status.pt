@@ -2,11 +2,15 @@
       xmlns:tal="http://xml.zope.org/namespaces/tal"
       lang="en"
       i18n:domain="pmr2.oauth"
-      metal:use-macro="context/@@ploneform-macros/titlelessform" >
+      metal:use-macro="context/@@pmr2-z3cform-macros/main">
   <body>
 
-    <metal:fill fill-slot="fields" />
-    <metal:fill fill-slot="actions" />
+    <metal:fill fill-slot="main">
+      <metal:use metal:use-macro="context/@@ploneform-macros/titlelessform">
+        <metal:fill fill-slot="fields" />
+        <metal:fill fill-slot="actions" />
+      </metal:use>
+    </metal:fill>
 
   </body>
 </html>

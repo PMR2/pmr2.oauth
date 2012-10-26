@@ -14,9 +14,7 @@ To run this, we first import all the modules we need.
     >>> import zope.component
     >>> import zope.interface
     >>> from Testing.testbrowser import Browser
-    >>> from plone.z3cform.interfaces import IWrappedForm
     >>> from pmr2.oauth.interfaces import *
-    >>> from pmr2.oauth.browser.token import *
     >>> from pmr2.oauth.consumer import *
     >>> from pmr2.oauth.tests.base import TestRequest
     >>> from pmr2.oauth.tests.base import SignedTestRequest
@@ -24,13 +22,6 @@ To run this, we first import all the modules we need.
     >>> o_logged_view = zope.component.getMultiAdapter(
     ...     (self.portal, request), name='test_current_user')
     >>> baseurl = self.portal.absolute_url()
-
-Some of the forms need to be have the IWrappedForm interface applied to
-get the correct inner template adapted.
-::
-
-    >>> from pmr2.oauth.browser import scope
-    >>> zope.interface.classImplements(scope.ScopeEditForm, IWrappedForm)
 
 The default OAuth utility should have been registered.
 ::
@@ -99,9 +90,10 @@ use it to request token.  We can try a standard request without any
 authorization, however we should log out here first.
 ::
 
+    >>> from pmr2.oauth.browser import token
     >>> self.logout()
     >>> request = TestRequest()
-    >>> rt = RequestTokenPage(self.portal, request)
+    >>> rt = token.RequestTokenPage(self.portal, request)
     >>> rt()
     Traceback (most recent call last):
     ...
@@ -121,7 +113,7 @@ is not signed properly.
     ...     'oauth_signature_method': "HMAC-SHA1",
     ...     'oauth_signature': "ANT2FEjwDqxg383D",
     ... })
-    >>> rt = RequestTokenPage(self.portal, request)
+    >>> rt = token.RequestTokenPage(self.portal, request)
     >>> rt()
     Traceback (most recent call last):
     ...
@@ -140,11 +132,11 @@ sake.
     ...     'oauth_timestamp': timestamp,
     ...     'oauth_callback': baseurl + '/test_oauth_callback',
     ... }, consumer=consumer1)
-    >>> rt = RequestTokenPage(self.portal, request)
-    >>> tokenstr = rt()
-    >>> print tokenstr
+    >>> rt = token.RequestTokenPage(self.portal, request)
+    >>> atokenstr = rt()
+    >>> print atokenstr
     oauth_token_secret=...&oauth_token=...&oauth_callback_confirmed=true
-    >>> token = oauth.Token.from_string(tokenstr)
+    >>> atoken = oauth.Token.from_string(atokenstr)
 
 Try again using a browser, but try an oob callback.
 ::
@@ -186,9 +178,6 @@ we will treat our page as a subform such that the rest of the Plone
 templates is not rendered.
 ::
 
-    >>> class AuthorizeToken(AuthorizeTokenPage):
-    ...     zope.interface.implements(IWrappedForm)
-    ...
     >>> from Products.PloneTestCase.ptc import portal_owner
     >>> from Products.PloneTestCase.ptc import default_user
     >>> from Products.PloneTestCase.ptc import default_password
@@ -197,7 +186,7 @@ templates is not rendered.
     ...     'oauth_token': 'nope',
     ... })
     ...
-    >>> rt = AuthorizeToken(self.portal, request)
+    >>> rt = token.AuthorizeTokenPage(self.portal, request)
     >>> result = rt()
     >>> 'Invalid Token.' in result
     True
@@ -208,9 +197,9 @@ Also that the form is rendered for an authorized token.
 ::
 
     >>> request = TestRequest(form={
-    ...     'oauth_token': token.key,
+    ...     'oauth_token': atoken.key,
     ... })
-    >>> rt = AuthorizeToken(self.portal, request)
+    >>> rt = token.AuthorizeTokenPage(self.portal, request)
     >>> result = rt()
     >>> 'Invalid Token.' in result
     False
@@ -259,7 +248,7 @@ bit earlier.  Two confirmation button should be visible along with the
 name of the consumer, along with its identity.
 ::
 
-    >>> u_browser.open(auth_baseurl + '?oauth_token=' + token.key)
+    >>> u_browser.open(auth_baseurl + '?oauth_token=' + atoken.key)
     >>> 'Grant access' in u_browser.contents
     True
     >>> 'Deny access' in u_browser.contents
@@ -280,9 +269,9 @@ it.
     >>> url.startswith(callback_baseurl)
     True
     >>> qs = urlparse.parse_qs(urlparse.urlparse(url).query)
-    >>> token_verifier = qs['oauth_verifier'][0]
-    >>> token_key = qs['oauth_token'][0]
-    >>> token.key == token_key
+    >>> atoken_verifier = qs['oauth_verifier'][0]
+    >>> atoken_key = qs['oauth_token'][0]
+    >>> atoken.key == atoken_key
     True
 
 Assuming the redirection was successful, the consumer will now know the
@@ -293,7 +282,7 @@ On the provider side, the request token should be updated to include the
 id of the user that performed the authorization.
 ::
 
-    >>> tokenManager.get(token_key).user
+    >>> tokenManager.get(atoken_key).user
     'test_user_1_'
 
 Going to do the same to the second request token with an oob callback.
@@ -367,7 +356,7 @@ get you this (log back out first).
     ...     'oauth_nonce': "806052fe5585b22f63fe27cba8b78732",
     ...     'oauth_timestamp': timestamp,
     ... }, consumer=consumer1)
-    >>> rt = GetAccessTokenPage(self.portal, request)
+    >>> rt = token.GetAccessTokenPage(self.portal, request)
     >>> result = rt()
     Traceback (most recent call last):
     ...
@@ -382,8 +371,8 @@ correct verifier assigned.
     ...     'oauth_version': "1.0",
     ...     'oauth_nonce': "806052fe5585b22f63fe27cba8b78732",
     ...     'oauth_timestamp': timestamp,
-    ... }, consumer=consumer1, token=token)
-    >>> rt = GetAccessTokenPage(self.portal, request)
+    ... }, consumer=consumer1, token=atoken)
+    >>> rt = token.GetAccessTokenPage(self.portal, request)
     >>> print rt()
     Traceback (most recent call last):
     ...
@@ -394,14 +383,14 @@ just accessed the callback URL of the consumer to supply it with the
 correct verifier.
 ::
 
-    >>> token.verifier = token_verifier
+    >>> atoken.verifier = atoken_verifier
     >>> timestamp = str(int(time.time()))
     >>> request = SignedTestRequest(oauth_keys={
     ...     'oauth_version': "1.0",
     ...     'oauth_nonce': "806052fe5585b22f63fe27cba8b78732",
     ...     'oauth_timestamp': timestamp,
-    ... }, consumer=consumer1, token=token)
-    >>> rt = GetAccessTokenPage(self.portal, request)
+    ... }, consumer=consumer1, token=atoken)
+    >>> rt = token.GetAccessTokenPage(self.portal, request)
     >>> accesstokenstr = rt()
     >>> print accesstokenstr
     oauth_token_secret=...&oauth_token=...
@@ -411,14 +400,14 @@ After verification, the old token should have been discarded and cannot
 be used again to request a new token.
 ::
 
-    >>> token.verifier = token_verifier
+    >>> atoken.verifier = atoken_verifier
     >>> timestamp = str(int(time.time()))
     >>> request = SignedTestRequest(oauth_keys={
     ...     'oauth_version': "1.0",
     ...     'oauth_nonce': "806052fe5585b22f63fe27cba8b78732",
     ...     'oauth_timestamp': timestamp,
-    ... }, consumer=consumer1, token=token)
-    >>> rt = GetAccessTokenPage(self.portal, request)
+    ... }, consumer=consumer1, token=atoken)
+    >>> rt = token.GetAccessTokenPage(self.portal, request)
     >>> rt()
     Traceback (most recent call last):
     ...
@@ -729,17 +718,20 @@ managers can access this page at `${portal_url}/manage-oauth-consumers`.
     >>> 'consumer1.example.com' in result
     True
 
-We can try to add a few consumers using the form also.
+We can try to add a few consumers using the form also.  Since the client
+in this case should be a browser, we will use the authenticated test
+request class.
 ::
 
-    >>> request = TestRequest(form={
+    >>> from pmr2.testing.base import TestRequest as TestRequestAuthed
+    >>> request = TestRequestAuthed(form={
     ...     'form.widgets.key': 'consumer2.example.com',
     ...     'form.buttons.add': 1,
     ... })
     >>> view = consumer.ConsumerAddForm(self.portal, request)
     >>> view.update()
 
-    >>> request = TestRequest(form={
+    >>> request = TestRequestAuthed(form={
     ...     'form.widgets.key': 'consumer3.example.com',
     ...     'form.buttons.add': 1,
     ... })
@@ -749,7 +741,7 @@ We can try to add a few consumers using the form also.
 Now the management form should show these couple new consumers.
 ::
 
-    >>> request = TestRequest()
+    >>> request = TestRequestAuthed()
     >>> view = consumer.ConsumerManageForm(self.portal, request)
     >>> result = view()
     >>> 'consumer2.example.com' in result
@@ -760,7 +752,7 @@ Now the management form should show these couple new consumers.
 Should have no problems removing them either.
 ::
 
-    >>> request = TestRequest(form={
+    >>> request = TestRequestAuthed(form={
     ...     'form.widgets.key': [
     ...         'consumer2.example.com', 'consumer3.example.com'],
     ...     'form.buttons.remove': 1,
@@ -777,7 +769,8 @@ global scope parameters for the current active scope manager.  The URI
 to this is `${portal_url}/manage-oauth-consumers`.
 ::
 
-    >>> request = TestRequest()
+    >>> from pmr2.oauth.browser import scope
+    >>> request = TestRequestAuthed()
     >>> view = scope.ScopeEditForm(self.portal, request)
     >>> result = view()
     >>> 'test_current_roles$' in result
@@ -786,7 +779,7 @@ to this is `${portal_url}/manage-oauth-consumers`.
 That value can be edited.
 ::
 
-    >>> request = TestRequest(form={
+    >>> request = TestRequestAuthed(form={
     ...     'form.widgets.permitted': 'test_current_user$',
     ...     'form.buttons.apply': 1,
     ... })

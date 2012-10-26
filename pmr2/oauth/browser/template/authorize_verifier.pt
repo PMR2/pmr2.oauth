@@ -1,15 +1,21 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"
       xmlns:tal="http://xml.zope.org/namespaces/tal"
       lang="en"
-      i18n:domain="pmr2.oauth">
+      i18n:domain="pmr2.oauth"
+      metal:use-macro="context/@@pmr2-z3cform-macros/main">
   <body>
-    <h1 i18n:translate="">
-      Token authorized
-    </h1>
-    <p i18n:translate="">
-      Token authorized.  Please enter the following verification code
-      into the application you are granting access to:
-    </p>
-    <h3 style="text-align: center;" tal:content="view/verifier">verifier</h3>
+
+    <metal:fill fill-slot="main">
+      <h1 i18n:translate="">
+        Token authorized
+      </h1>
+      <p i18n:translate="">
+        Token authorized.  Please enter the following verification code
+        into the application you are granting access to:
+      </p>
+      <h3 style="text-align: center;" 
+          tal:content="view/verifier">verifier</h3>
+    </metal:fill>
+
   </body>
 </html>

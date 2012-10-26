@@ -32,7 +32,7 @@ setup(name='pmr2.oauth',
           'zope.interface',
           'zope.schema',
           'zope.annotation',
-          'plone.app.z3cform',
+          'pmr2.z3cform',
       ],
       entry_points="""
       # -*- Entry points: -*-

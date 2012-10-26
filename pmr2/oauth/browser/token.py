@@ -8,16 +8,16 @@ from zExceptions import BadRequest
 from zExceptions import Forbidden
 from zExceptions import Unauthorized
 
-from z3c.form import form
 from z3c.form import button
 
 from Products.CMFCore.utils import getToolByName
+
+from pmr2.z3cform import form
 
 from pmr2.oauth import MessageFactory as _
 from pmr2.oauth.interfaces import *
 from pmr2.oauth.browser.template import ViewPageTemplateFile
 from pmr2.oauth.browser.template import path
-from pmr2.oauth.browser.form import Form
 
 
 class BaseTokenPage(BrowserPage):
@@ -144,7 +144,7 @@ class GetAccessTokenPage(BaseTokenPage):
             raise BadRequest(e.args[0])
 
 
-class AuthorizeTokenPage(Form, BaseTokenPage):
+class AuthorizeTokenPage(form.Form, BaseTokenPage):
 
     ignoreContext = True
     invalidTokenMessage = _(u'Invalid Token.')
@@ -196,12 +196,12 @@ class AuthorizeTokenPage(Form, BaseTokenPage):
 
         return super(AuthorizeTokenPage, self).update() 
 
-    def renderContents(self):
+    def render(self):
         if self._errors:
             return self.statusTemplate()
         if self.verifier:
             return self.verifierTemplate()
-        return super(AuthorizeTokenPage, self).renderContents()
+        return super(AuthorizeTokenPage, self).render()
 
     def scope(self):
         # XXX make this hook into the scope manager such that subclasses

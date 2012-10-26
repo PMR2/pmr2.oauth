@@ -2,18 +2,18 @@ import zope.component
 import zope.interface
 from zope.publisher.browser import BrowserPage
 
-from z3c.form import form
 from z3c.form import field
 from z3c.form import button
 
 from Products.CMFCore.utils import getToolByName
 from Products.statusmessages.interfaces import IStatusMessage
 
+from pmr2.z3cform import form
+
 from pmr2.oauth import MessageFactory as _
 from pmr2.oauth.interfaces import *
 from pmr2.oauth.browser.template import ViewPageTemplateFile
 from pmr2.oauth.browser.template import path
-from pmr2.oauth.browser.form import Form
 from pmr2.oauth.utility import random_string
 
 from pmr2.oauth.consumer import Consumer
@@ -47,7 +47,7 @@ class ConsumerAddForm(form.AddForm):
         return self.context.absolute_url() + '/manage-oauth-consumers'
 
 
-class ConsumerManageForm(Form):
+class ConsumerManageForm(form.Form):
     """\
     For user to manage their authorized tokens.
     """

@@ -1,11 +1,12 @@
 import zope.component
 import zope.interface
 
-from z3c.form import form
 from z3c.form import field
 
+from pmr2.z3cform import form
+
 from pmr2.oauth import MessageFactory as _
-from pmr2.oauth.interfaces import *
+from pmr2.oauth.interfaces import IScopeManager
 
 
 class ScopeEditForm(form.EditForm):
