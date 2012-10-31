@@ -1,6 +1,6 @@
+import doctest
 import unittest
 
-from zope.testing import doctestunit, doctest
 from zope.component import testing
 from Testing import ZopeTestCase as ztc
 
