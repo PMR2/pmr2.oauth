@@ -186,7 +186,7 @@ templates is not rendered.
     ...     'oauth_token': 'nope',
     ... })
     ...
-    >>> rt = token.AuthorizeTokenPage(self.portal, request)
+    >>> rt = token.AuthorizeTokenForm(self.portal, request)
     >>> result = rt()
     >>> 'Invalid Token.' in result
     True
@@ -199,7 +199,7 @@ Also that the form is rendered for an authorized token.
     >>> request = TestRequest(form={
     ...     'oauth_token': atoken.key,
     ... })
-    >>> rt = token.AuthorizeTokenPage(self.portal, request)
+    >>> rt = token.AuthorizeTokenForm(self.portal, request)
     >>> result = rt()
     >>> 'Invalid Token.' in result
     False

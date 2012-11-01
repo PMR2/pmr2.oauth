@@ -15,7 +15,7 @@
   <browser:view
       for="Products.CMFPlone.interfaces.siteroot.IPloneSiteRoot"
       name="OAuthAuthorizeToken"
-      class=".token.AuthorizeTokenPage"
+      class=".token.AuthorizeTokenForm"
       permission="zope2.View"
       />
 

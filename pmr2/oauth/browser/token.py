@@ -144,7 +144,7 @@ class GetAccessTokenPage(BaseTokenPage):
             raise BadRequest(e.args[0])
 
 
-class AuthorizeTokenPage(form.PostForm, BaseTokenPage):
+class AuthorizeTokenForm(form.PostForm, BaseTokenPage):
 
     ignoreContext = True
     invalidTokenMessage = _(u'Invalid Token.')
@@ -194,14 +194,14 @@ class AuthorizeTokenPage(form.PostForm, BaseTokenPage):
             self.status = self._errors
             self._errors = True
 
-        return super(AuthorizeTokenPage, self).update() 
+        return super(AuthorizeTokenForm, self).update() 
 
     def render(self):
         if self._errors:
             return self.statusTemplate()
         if self.verifier:
             return self.verifierTemplate()
-        return super(AuthorizeTokenPage, self).render()
+        return super(AuthorizeTokenForm, self).render()
 
     def scope(self):
         # XXX make this hook into the scope manager such that subclasses
