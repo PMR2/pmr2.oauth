@@ -32,6 +32,7 @@ setup(name='pmr2.oauth',
           'zope.interface',
           'zope.schema',
           'zope.annotation',
+          'pmr2.testing',
           'pmr2.z3cform',
       ],
       entry_points="""
