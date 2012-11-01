@@ -15,7 +15,7 @@ from pmr2.oauth.browser.template import ViewPageTemplateFile
 from pmr2.oauth.browser.template import path
 
 
-class BaseUserTokenForm(form.Form):
+class BaseUserTokenForm(form.PostForm):
     """\
     For user to manage their authorized tokens.
     """

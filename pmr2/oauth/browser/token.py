@@ -144,7 +144,7 @@ class GetAccessTokenPage(BaseTokenPage):
             raise BadRequest(e.args[0])
 
 
-class AuthorizeTokenPage(form.Form, BaseTokenPage):
+class AuthorizeTokenPage(form.PostForm, BaseTokenPage):
 
     ignoreContext = True
     invalidTokenMessage = _(u'Invalid Token.')

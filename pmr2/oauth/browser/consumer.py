@@ -47,7 +47,7 @@ class ConsumerAddForm(form.AddForm):
         return self.context.absolute_url() + '/manage-oauth-consumers'
 
 
-class ConsumerManageForm(form.Form):
+class ConsumerManageForm(form.PostForm):
     """\
     For user to manage their authorized tokens.
     """
