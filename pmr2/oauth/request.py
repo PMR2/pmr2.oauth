@@ -13,14 +13,20 @@ def BrowserRequestAdapter(request):
     if request._auth:
         auth = request._auth
 
-    result = oauth.Request.from_request(
-        request.method,
-        request.getURL(),
-        # ZPublisher.HTTPRequest by default has the raw Authentication
-        # header as a string separated out in request._auth.
-        headers={'Authorization': auth},
-        parameters=request.form,
-    )
+    try:
+        result = oauth.Request.from_request(
+            request.method,
+            request.getURL(),
+            # ZPublisher.HTTPRequest by default has the raw Authentication
+            # header as a string separated out in request._auth.
+            headers={'Authorization': auth},
+            parameters=request.form,
+        )
+    except oauth.Error:
+        # Argh.  Its constructor throws exception when bad user input
+        # shows up?  Just return a standard request...
+        return oauth.Request(request.method, request.getURL())
+
     if result:
         return result
 

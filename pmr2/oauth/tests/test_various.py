@@ -99,6 +99,17 @@ class TestRequestAdapter(unittest.TestCase):
         answer.update(form)
         self.assertEqual(req, answer)
 
+    def test_011_request_malformed(self):
+        form = {}
+        req = TestRequest()
+        # forcibly malform the OAuth header
+        req._auth = 'OAuth derp'
+        req = request.BrowserRequestAdapter(req)
+        # It should really just left with no arguments.
+        answer = {}
+        answer.update(form)
+        self.assertEqual(req, answer)
+
 
 class TestUtility(unittest.TestCase):
 
