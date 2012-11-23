@@ -2,6 +2,21 @@
 Changelog
 =========
 
+-----------------
+0.3a - 2012-11-23
+-----------------
+
+* Scope manager now permit POST requests.
+* Corrected the scope verification to be based on the resolved internal
+  script URL.
+* Corrected the signature verification method to use the actual URL, not
+  the internal script URL.
+* Workaround the adherence to legacy part of the spec in python-oauth2.
+
+Note: This is a special release for development of PMR2-0.7 (or Release 
+7), as this package now depends on some packages not yet released.  This
+release is made regardless as it is needed for demonstration purposes.
+
 ----------------
 0.2 - 2012-10-16
 ----------------
