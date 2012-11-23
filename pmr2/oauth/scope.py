@@ -69,10 +69,7 @@ class DefaultScopeManager(ScopeManager):
         return results
 
     def validate(self, request, token):
-        # only permit GET
-        if not request.method == 'GET':
-            return False
-        url = request['ACTUAL_URL']
+        url = request.getURL()
 
         # Check whether the token enforce further restrictions.
         if token.scope:

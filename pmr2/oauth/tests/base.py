@@ -68,8 +68,18 @@ class TestRequest(z3c.form.testing.TestRequest):
 
     def __init__(self, oauth_keys=None, url=None, *a, **kw):
         super(TestRequest, self).__init__(*a, **kw)
-        url = url or self.getURL()
+        if url:
+            parts = url.split('/')
+            self._app_server = '/'.join(parts[:3])
+            self._app_names = parts[3:]
+
+        url = self.getURL()
+        self.other = {}
+        # Actual classes look for this
+        self.other['ACTUAL_URL'] = url
+        # Some other way of accessing this...
         self._environ['ACTUAL_URL'] = url
+
         if oauth_keys:
             req = oauth.Request("GET", url, oauth_keys)
             headers = req.to_header()

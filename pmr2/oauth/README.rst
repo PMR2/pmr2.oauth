@@ -663,6 +663,34 @@ manager, it should no longer be accessible.
     ...
     HTTPError: HTTP Error 403: Forbidden
 
+The default scope manager should evaluate by the actual view/object that
+is being requested with a URI, even though it may be partial.  Example
+includes the site root, where a default page is selected which in turn
+provides a default view.
+::
+
+    >>> scopeManager.permitted = 'document_view$\ntest_current_roles$\n'
+    >>> url = baseurl
+    >>> timestamp = str(int(time.time()))
+    >>> request = SignedTestRequest(
+    ...     oauth_keys={
+    ...         'oauth_version': "1.0",
+    ...         'oauth_nonce': "028516734893275926641849",
+    ...         'oauth_timestamp': timestamp,
+    ...     }, 
+    ...     consumer=consumer1, 
+    ...     token=access_token, 
+    ...     url=url,
+    ... )
+    >>> auth = request._auth
+    >>> consumer_browser = Browser()
+    >>> consumer_browser.addHeader('Authorization', 'OAuth %s' % auth)
+    >>> consumer_browser.open(url)
+    >>> consumer_browser.url
+    'http://nohost/plone'
+    >>> 'Welcome to Plone' in consumer_browser.contents
+    True
+
 
 ---------------------
 Management Interfaces
