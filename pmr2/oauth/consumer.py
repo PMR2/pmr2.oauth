@@ -71,3 +71,6 @@ class Consumer(Persistent):
         same_type = isinstance(other, self.__class__)
         return (same_type and 
             self.key == other.key and self.secret == other.secret)
+
+    def validate(self):
+        return True

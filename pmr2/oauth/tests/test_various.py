@@ -147,6 +147,8 @@ class TestConsumer(unittest.TestCase):
         c = Consumer('consumer-key', 'consumer-secret')
         self.assertEqual(c.key, 'consumer-key')
         self.assertEqual(c.secret, 'consumer-secret')
+        # Default should be no problem.
+        self.assertTrue(c.validate())
 
     def test_001_consumer_equality(self):
         c = Consumer('consumer-key', 'consumer-secret')

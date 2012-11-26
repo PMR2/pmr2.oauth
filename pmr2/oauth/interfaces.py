@@ -78,6 +78,11 @@ class IConsumer(zope.interface.Interface):
         required=True,
     )
 
+    def validate():
+        """
+        Self validation.
+        """
+
 
 class IConsumerManager(zope.interface.Interface):
     """\
