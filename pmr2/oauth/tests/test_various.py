@@ -140,16 +140,23 @@ class TestUtility(unittest.TestCase):
 class TestConsumer(unittest.TestCase):
 
     def setUp(self):
-        pass
+        self.dummy = Consumer(ConsumerManager.DUMMY_KEY,
+            ConsumerManager.DUMMY_SECRET)
 
     def test_000_consumer(self):
         c = Consumer('consumer-key', 'consumer-secret')
         self.assertEqual(c.key, 'consumer-key')
         self.assertEqual(c.secret, 'consumer-secret')
 
+    def test_001_consumer_equality(self):
+        c = Consumer('consumer-key', 'consumer-secret')
+        d = Consumer('consumer-key', 'consumer-secret')
+        self.assertEqual(c, d)
+
     def test_100_consumer_manager_empty(self):
         m = ConsumerManager()
         self.assertEqual(m.get('consumer-key'), None)
+        self.assertEqual(m.get(ConsumerManager.DUMMY_KEY), self.dummy)
 
     def test_101_consumer_manager_addget(self):
         m = ConsumerManager()
@@ -164,7 +171,7 @@ class TestConsumer(unittest.TestCase):
         m.add(c)
         self.assertRaises(ValueError, m.add, c)
 
-    def test_102_consumer_manager_remove(self):
+    def test_103_consumer_manager_remove(self):
         m = ConsumerManager()
         c1 = Consumer('consumer-key', 'consumer-secret')
         c2 = Consumer('consumer-key2', 'consumer-secret')
@@ -172,17 +179,14 @@ class TestConsumer(unittest.TestCase):
         m.add(c2)
         m.remove(c1.key)
         m.remove(c2)
-        self.assertEqual(len(m._consumers), 0)
+        self.assertEqual(len(m._consumers), 1)
 
-    def test_103_consumer_manager_check(self):
+    def test_104_consumer_manager_remove_dummy(self):
+        # Dummy cannot be removed normally.
         m = ConsumerManager()
-        c1 = Consumer('consumer-key', 'consumer-secret')
-        c2 = Consumer('consumer-key2', 'consumer-secret')
-        m.add(c1)
-        self.assertEqual(m.check(c1), True)
-        self.assertEqual(m.check('consumer-key'), True)
-        self.assertEqual(m.check(c2), False)
-        self.assertEqual(m.check('consumer-key2'), False)
+        m.remove(self.dummy)
+        self.assertEqual(len(m._consumers), 1)
+        self.assertEqual(m.get(ConsumerManager.DUMMY_KEY), self.dummy)
 
 
 class TestToken(unittest.TestCase):
