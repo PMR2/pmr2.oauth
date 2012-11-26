@@ -1,6 +1,5 @@
 import os
 import base64
-import oauth2 as oauth
 import zope.interface
 
 from pmr2.oauth.interfaces import IOAuthUtility
@@ -14,16 +13,14 @@ class OAuthUtility(object):
     zope.interface.implements(IOAuthUtility)
 
     def __init__(self):
-        self.server = oauth.Server()
-        self.server.add_signature_method(oauth.SignatureMethod_HMAC_SHA1())
-        self.server.add_signature_method(oauth.SignatureMethod_PLAINTEXT())
+        pass
 
     def verify_request(self, request, consumer, token):
         """\
         Verify an OAuth request with the given consumer and token.
         """
 
-        return self.server.verify_request(request, consumer, token)
+        raise NotImplementedError
 
 
 def random_string(length):

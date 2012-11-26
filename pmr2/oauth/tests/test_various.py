@@ -3,8 +3,6 @@ import unittest
 
 import zope.component
 
-import oauth2 as oauth
-
 from pmr2.oauth.consumer import ConsumerManager
 from pmr2.oauth.consumer import Consumer
 
@@ -53,8 +51,8 @@ class TestRequestAdapter(unittest.TestCase):
             'bar': 'blerg',
             'multi': ['FOO','BAR'],
         }
-        consumer = oauth.Consumer('consumer-key', 'consumer-secret')
-        token = oauth.Token('token-key', 'token-secret')
+        consumer = Consumer('consumer-key', 'consumer-secret')
+        token = Token('token-key', 'token-secret')
         req = TestRequest(form=form, oauth_keys=params)
         req = request.BrowserRequestAdapter(req)
         answer = {}
@@ -67,8 +65,8 @@ class TestRequestAdapter(unittest.TestCase):
             'bar': 'blerg',
             'multi': ['FOO','BAR'],
         }
-        consumer = oauth.Consumer('consumer-key', 'consumer-secret')
-        token = oauth.Token('token-key', 'token-secret')
+        consumer = Consumer('consumer-key', 'consumer-secret')
+        token = Token('token-key', 'token-secret')
         req = TestRequest(form=form)
         req._auth = 'Basic ' + 'test:test'.encode('base64')
         req = request.BrowserRequestAdapter(req)
@@ -81,8 +79,8 @@ class TestRequestAdapter(unittest.TestCase):
             'bar': 'blerg',
             'multi': ['FOO','BAR'],
         }
-        consumer = oauth.Consumer('consumer-key', 'consumer-secret')
-        token = oauth.Token('token-key', 'token-secret')
+        consumer = Consumer('consumer-key', 'consumer-secret')
+        token = Token('token-key', 'token-secret')
         req = TestRequest(form=form)
         req = request.BrowserRequestAdapter(req)
         answer = {}
@@ -91,8 +89,8 @@ class TestRequestAdapter(unittest.TestCase):
 
     def test_010_request_noform(self):
         form = {}
-        consumer = oauth.Consumer('consumer-key', 'consumer-secret')
-        token = oauth.Token('token-key', 'token-secret')
+        consumer = Consumer('consumer-key', 'consumer-secret')
+        token = Token('token-key', 'token-secret')
         req = TestRequest(form=form)
         req = request.BrowserRequestAdapter(req)
         answer = {}
@@ -126,13 +124,14 @@ class TestUtility(unittest.TestCase):
             'multi': ['FOO','BAR'],
         }
 
-        consumer = oauth.Consumer(params['oauth_consumer_key'],
+        consumer = Consumer(params['oauth_consumer_key'],
             'consumer-secret')
-        token = oauth.Token(params['oauth_token'], 'token-secret')
+        token = Token(params['oauth_token'], 'token-secret')
 
         req = TestRequest(oauth_keys=params)
         req = request.BrowserRequestAdapter(req)
         utility = OAuthUtility()
+        self.assertTrue(False)  # Not implemented
         # just testing so we are not signing anything...
         self.assertRaises(oauth.MissingSignature,
             utility.verify_request, req, consumer, token)
@@ -365,7 +364,7 @@ class TestToken(unittest.TestCase):
     def test_200_token_manager_generate_request_token(self):
         m = TokenManager()
         c = Consumer('consumer-key', 'consumer-secret')
-        r = oauth.Request.from_consumer_and_token(c, None)
+        #r = oauth.Request.from_consumer_and_token(c, None)
         r['oauth_callback'] = u'oob'
         token = m.generateRequestToken(c, r)
         self.assertEqual(len(m._tokens), 1)
@@ -376,13 +375,13 @@ class TestToken(unittest.TestCase):
     def test_201_token_manager_generate_request_token_no_callback(self):
         m = TokenManager()
         c = Consumer('consumer-key', 'consumer-secret')
-        r = oauth.Request.from_consumer_and_token(c, None)
+        #r = oauth.Request.from_consumer_and_token(c, None)
         self.assertRaises(CallbackValueError, m.generateRequestToken, c, r)
 
     def test_250_token_manager_claim(self):
         m = TokenManager()
         c = Consumer('consumer-key', 'consumer-secret')
-        r = oauth.Request.from_consumer_and_token(c, None)
+        #r = oauth.Request.from_consumer_and_token(c, None)
         r['oauth_callback'] = u'oob'
         token = m.generateRequestToken(c, r)
         m.claimRequestToken(token, 'user')
@@ -392,7 +391,7 @@ class TestToken(unittest.TestCase):
     def test_251_token_manager_claim_fail_access(self):
         m = TokenManager()
         c = Consumer('consumer-key', 'consumer-secret')
-        r = oauth.Request.from_consumer_and_token(c, None)
+        #r = oauth.Request.from_consumer_and_token(c, None)
         r['oauth_callback'] = u'oob'
         token = m.generateRequestToken(c, r)
         token.access = True  # hack it to be access token.
@@ -402,7 +401,7 @@ class TestToken(unittest.TestCase):
     def test_252_token_manager_claim_fail_missing(self):
         m = TokenManager()
         c = Consumer('consumer-key', 'consumer-secret')
-        r = oauth.Request.from_consumer_and_token(c, None)
+        #r = oauth.Request.from_consumer_and_token(c, None)
         r['oauth_callback'] = u'oob'
         token = m.generateRequestToken(c, r)
         m.remove(token)  # remove it
@@ -412,7 +411,7 @@ class TestToken(unittest.TestCase):
     def test_300_token_manager_generate_access_token(self):
         m = TokenManager()
         c = Consumer('consumer-key', 'consumer-secret')
-        r = oauth.Request.from_consumer_and_token(c, None)
+        #r = oauth.Request.from_consumer_and_token(c, None)
         r['oauth_callback'] = u'oob'
         server_token = m.generateRequestToken(c, r)
 
@@ -421,7 +420,7 @@ class TestToken(unittest.TestCase):
 
         # now simulate passing only the key and secret to consumer
         request_token = Token(server_token.key, server_token.secret)
-        r = oauth.Request.from_consumer_and_token(c, request_token)
+        #r = oauth.Request.from_consumer_and_token(c, request_token)
         r['oauth_verifier'] = server_token.verifier
         token = m.generateAccessToken(c, r)
         self.assertEqual(len(m._tokens), 1)
@@ -437,13 +436,13 @@ class TestToken(unittest.TestCase):
     def test_310_token_manager_generate_access_token_expired(self):
         m = TokenManager()
         c = Consumer('consumer-key', 'consumer-secret')
-        r = oauth.Request.from_consumer_and_token(c, None)
+        #r = oauth.Request.from_consumer_and_token(c, None)
         r['oauth_callback'] = u'oob'
         server_token = m.generateRequestToken(c, r)
 
         # simulate passing only the key and secret to consumer
         request_token = Token(server_token.key, server_token.secret)
-        r = oauth.Request.from_consumer_and_token(c, request_token)
+        #r = oauth.Request.from_consumer_and_token(c, request_token)
         r['oauth_verifier'] = server_token.verifier
 
         # However, it's not claimed by a user yet, so expiry is not set,
@@ -453,13 +452,13 @@ class TestToken(unittest.TestCase):
     def test_311_token_manager_generate_access_token_no_request_token(self):
         m = TokenManager()
         c = Consumer('consumer-key', 'consumer-secret')
-        r = oauth.Request.from_consumer_and_token(c, None)
+        #r = oauth.Request.from_consumer_and_token(c, None)
         self.assertRaises(TokenInvalidError, m.generateAccessToken, c, r)
 
     def test_312_token_manager_generate_access_token_no_verifier(self):
         m = TokenManager()
         c = Consumer('consumer-key', 'consumer-secret')
-        r = oauth.Request.from_consumer_and_token(c, None)
+        #r = oauth.Request.from_consumer_and_token(c, None)
         r['oauth_callback'] = u'oob'
         server_token = m.generateRequestToken(c, r)
 
@@ -468,7 +467,7 @@ class TestToken(unittest.TestCase):
 
         # simulate passing only the key and secret to consumer
         request_token = Token(server_token.key, server_token.secret)
-        r = oauth.Request.from_consumer_and_token(c, request_token)
+        #r = oauth.Request.from_consumer_and_token(c, request_token)
         self.assertRaises(TokenInvalidError, m.generateAccessToken, c, r)
 
 

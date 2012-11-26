@@ -13,7 +13,6 @@ from zExceptions import BadRequest
 
 import logging
 
-import oauth2 as oauth
 from pmr2.oauth.interfaces import *
 
 
@@ -97,7 +96,7 @@ class OAuthPlugin(BasePlugin):
         utility = zope.component.getUtility(IOAuthUtility)
         try:
             params = utility.verify_request(o_request, consumer, token)
-        except oauth.Error, e:
+        except Exception, e:  # XXX exception type
             raise BadRequest(e.message)
 
         # lastly check whether request fits within the scope this token

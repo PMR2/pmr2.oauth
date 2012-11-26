@@ -1,14 +1,14 @@
 import zope.interface
 
-import oauth2 as oauth
 from pmr2.oauth import interfaces
 
 
-class Request(oauth.Request):
+class Request(object):
     zope.interface.implements(interfaces.IRequest)
 
 
 def BrowserRequestAdapter(request):
+    raise NotImplementedError
     auth = ''
     if request._auth:
         auth = request._auth

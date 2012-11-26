@@ -1,5 +1,3 @@
-import oauth2 as oauth
-
 import zope.component
 import zope.interface
 from zope.publisher.browser import BrowserPage
@@ -77,12 +75,9 @@ class BaseTokenPage(BrowserPage):
 
     def _verifyOAuthRequest(self, o_request, consumer, token):
         # Check that this OAuth request is properly signed.
+        raise NotImplementedError
         utility = zope.component.getUtility(IOAuthUtility)
-        try:
-            params = utility.verify_request(o_request, consumer, token)
-        except oauth.Error, e:
-            raise RequestInvalidError(e.message)
-        return True
+        params = utility.verify_request(o_request, consumer, token)
 
     def update(self):
         raise NotImplemented

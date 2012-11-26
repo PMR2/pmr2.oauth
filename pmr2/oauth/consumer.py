@@ -1,5 +1,3 @@
-import oauth2 as oauth
-
 from persistent import Persistent
 from BTrees.OOBTree import OOBTree
 
@@ -58,7 +56,7 @@ class ConsumerManager(Persistent, Contained):
 ConsumerManagerFactory = factory(ConsumerManager)
 
 
-class Consumer(Persistent, oauth.Consumer):
+class Consumer(Persistent):
     """\
     Basic persistent consumer class.
     """
@@ -67,3 +65,8 @@ class Consumer(Persistent, oauth.Consumer):
 
     key = fieldproperty.FieldProperty(IConsumer['key'])
     secret = fieldproperty.FieldProperty(IConsumer['secret'])
+
+    def __init__(self, key, secret):
+        assert not ((key is None) or (secret is None))
+        self.key = key
+        self.secret = secret

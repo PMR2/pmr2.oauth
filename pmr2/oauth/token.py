@@ -1,6 +1,5 @@
 import time
 import urlparse
-import oauth2 as oauth
 
 from persistent import Persistent
 from persistent.list import PersistentList
@@ -183,7 +182,7 @@ class TokenManager(Persistent, Contained):
 TokenManagerFactory = factory(TokenManager)
 
 
-class Token(Persistent, oauth.Token):
+class Token(Persistent):
 
     zope.interface.implements(IToken)
 
@@ -201,6 +200,15 @@ class Token(Persistent, oauth.Token):
     expiry = fieldproperty.FieldProperty(IToken['expiry'])
     scope_id = fieldproperty.FieldProperty(IToken['scope_id'])
     scope = fieldproperty.FieldProperty(IToken['scope'])
+
+    def __init__(self, key, secret):
+        assert not ((key is None) or (secret is None))
+        self.key = key
+        self.secret = secret
+
+    def set_callback(self, callback):
+        self.callback = callback
+        self.callback_confirmed = 'true'
 
     def set_verifier(self, verifier=None):
         """\

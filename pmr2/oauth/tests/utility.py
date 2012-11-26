@@ -1,4 +1,3 @@
-import oauth2 as oauth
 import zope.interface
 
 import Acquisition

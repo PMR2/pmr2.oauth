@@ -14,7 +14,6 @@ from Products.PloneTestCase.layer import onsetup
 from Products.PloneTestCase.layer import onteardown
 
 import z3c.form.testing
-import oauth2 as oauth
 from pmr2.oauth.plugins.oauth import OAuthPlugin
 
 @onsetup
@@ -80,13 +79,6 @@ class TestRequest(z3c.form.testing.TestRequest):
         # Some other way of accessing this...
         self._environ['ACTUAL_URL'] = url
 
-        if oauth_keys:
-            req = oauth.Request("GET", url, oauth_keys)
-            headers = req.to_header()
-            self._auth = headers['Authorization']
-
-
-signature_method = oauth.SignatureMethod_HMAC_SHA1()
 
 def SignedTestRequest(form=None, oauth_keys=None, consumer=None, token=None,
         url=None, *a, **kw):
@@ -115,11 +107,5 @@ def SignedTestRequest(form=None, oauth_keys=None, consumer=None, token=None,
         oauth_keys = default_oauth_keys
 
     result = TestRequest(form=form, *a, **kw)
-    url = url or result.getURL()
-    req = oauth.Request.from_consumer_and_token(
-        consumer, token, http_url=url, parameters=oauth_keys)
-    req.update(form)
-    req.sign_request(signature_method, consumer, token)
-    headers = req.to_header()
-    result._auth = headers['Authorization']
+    #result._auth = headers['Authorization']
     return result
