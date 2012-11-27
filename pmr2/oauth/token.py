@@ -14,7 +14,7 @@ from zope.schema import fieldproperty
 from pmr2.oauth.interfaces import IToken
 from pmr2.oauth.interfaces import ITokenManager
 from pmr2.oauth.interfaces import CallbackValueError
-from pmr2.oauth.interfaces import TokenInvalidError
+from pmr2.oauth.interfaces import TokenInvalidError, ExpiredTokenError
 from pmr2.oauth.interfaces import NotAccessTokenError, NotRequestTokenError
 from pmr2.oauth.factory import factory
 from pmr2.oauth.utility import random_string
@@ -106,7 +106,8 @@ class TokenManager(Persistent, Contained):
         return token
 
     def generateAccessToken(self, consumer_key, request_token, verifier):
-        verification = self._tokenRequestVerify(request_token, verifier)
+        verification = self.requestTokenVerify(
+            consumer_key, request_token, verifier)
 
         if not verification:
             raise TokenInvalidError('invalid token')
@@ -187,17 +188,18 @@ class TokenManager(Persistent, Contained):
         self._del_user_map(token)
         return token
 
-    def _tokenRequestVerify(self, token, verifier):
+    def requestTokenVerify(self, consumer_key, token, verifier):
         """\
         Verify that the request results in a valid token.
         """
 
-        token = self.get(token)
-        if token is None:
-            return False
+        token = self.getRequestToken(token)
+
         if int(time.time()) > token.expiry:
-            return False
-        return token.verifier == verifier
+            raise ExpiredTokenError('expired token')
+
+        return (token.consumer_key == consumer_key and 
+                token.verifier == verifier)
 
 TokenManagerFactory = factory(TokenManager)
 

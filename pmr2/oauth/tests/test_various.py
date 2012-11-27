@@ -474,6 +474,16 @@ class TestToken(unittest.TestCase):
         self.assertRaises(TokenInvalidError, m.generateAccessToken, 
             consumer.key, request_token, None)
 
+    def test_313_token_manager_generate_access_token_consumer_mismatch(self):
+        m = TokenManager()
+        consumer = Consumer('consumer-key', 'consumer-secret')
+        callback = u'oob'
+        request_token = m.generateRequestToken(consumer.key, callback)
+        verifier = request_token.verifier
+        m.claimRequestToken(request_token, 'user')
+        self.assertRaises(TokenInvalidError, m.generateAccessToken, 
+            'consumer-2', request_token, verifier)
+
 
 class TestDefaultScopeManager(unittest.TestCase):
 
