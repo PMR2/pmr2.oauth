@@ -32,12 +32,17 @@ class TokenManager(Persistent, Contained):
     zope.component.adapts(IAttributeAnnotatable, zope.interface.Interface)
     zope.interface.implements(ITokenManager)
 
+    DUMMY_KEY = 'dummy'
+    DUMMY_SECRET = 'dummy'
+
     # expiry
     claim_timeout = 180
     
     def __init__(self):
         self._tokens = OOBTree()
         self._user_token_map = OOBTree()
+        dummy = Token(self.DUMMY_KEY, self.DUMMY_SECRET)
+        self.add(dummy)
 
     def _add_user_map(self, token):
         if not token.access or token.user is None:
