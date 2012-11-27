@@ -15,7 +15,7 @@ from pmr2.oauth.interfaces import IToken
 from pmr2.oauth.interfaces import ITokenManager
 from pmr2.oauth.interfaces import CallbackValueError
 from pmr2.oauth.interfaces import TokenInvalidError
-from pmr2.oauth.interfaces import NotAccessTokenError
+from pmr2.oauth.interfaces import NotAccessTokenError, NotRequestTokenError
 from pmr2.oauth.factory import factory
 from pmr2.oauth.utility import random_string
 
@@ -72,53 +72,57 @@ class TokenManager(Persistent, Contained):
         self._tokens[token.key] = token
         self._add_user_map(token)
 
-    def _generateBaseToken(self, consumer, request):
+    def _generateBaseToken(self, consumer_key):
         key = random_string(24)
         secret = random_string(24)
         token = Token(key, secret)
-        token.consumer_key = consumer.key
+        token.consumer_key = consumer_key
         token.timestamp = int(time.time())
         return token
 
-    def generateRequestToken(self, consumer, request):
+    def generateRequestToken(self, consumer_key, callback, scope=None):
         """\
         Generate request token from consumer and request.
         """
 
         # This is our constrain.
-        callback = request.get('oauth_callback')
         if callback is None:
             raise CallbackValueError(
                 'callback must be specified or set to `oob`')
 
-        token = self._generateBaseToken(consumer, request)
+        token = self._generateBaseToken(consumer_key)
         token.set_callback(callback)
         token.set_verifier()
 
-        # Assuming the scope stored in the token is a unicode string.
         # Let the TokenManagers deal with these values.
-        token.scope = request.get('scope', u'')
+        token.scope = scope
 
         self.add(token)
         return token
 
-    def generateAccessToken(self, consumer, request):
-        if not self._tokenRequestVerify(request=request):
+    def generateAccessToken(self, consumer_key, request_token, verifier):
+        verification = self._tokenRequestVerify(request_token, verifier)
+
+        if not verification:
             raise TokenInvalidError('invalid token')
-        old_key = request.get('oauth_token')
-        old_token = self.get(old_key)
-        
-        token = self._generateBaseToken(consumer, request)
+
+        # Get the copy that is being tracked here.
+        old_token = self.get(request_token)
+        old_key = old_token.key
+
+        token = self._generateBaseToken(consumer_key)
         token.access = True
 
         # copy over the vital attributes
         token.user = old_token.user
         token.scope = old_token.scope
 
-        # Terminate old token to prevent reuse.
-        self.remove(old_key)
-        self.add(token)
+        if old_token:
+            # Terminate old token to prevent reuse.
+            self.remove(old_key)
 
+        # Now add token.
+        self.add(token)
         return token
 
     def claimRequestToken(self, token, user):
@@ -134,7 +138,19 @@ class TokenManager(Persistent, Contained):
         token_key = IToken.providedBy(token) and token.key or token
         return self._tokens.get(token_key, default)
 
-    def getAccess(self, token, default=False):
+    def getRequestToken(self, token, default=False):
+        token = self.get(token, default)
+        if token is default:
+            if default is False:
+                raise TokenInvalidError('no such access token.')
+            return default
+
+        if token.access:
+            raise NotRequestTokenError('not a request token.')
+
+        return token
+
+    def getAccessToken(self, token, default=False):
         token = self.get(token, default)
         if token is default:
             if default is False:
@@ -166,18 +182,17 @@ class TokenManager(Persistent, Contained):
         self._del_user_map(token)
         return token
 
-    def _tokenRequestVerify(self, request=None):
+    def _tokenRequestVerify(self, token, verifier):
         """\
         Verify that the request results in a valid token.
         """
 
-        token_key = request.get('oauth_token')
-        token = self.get(token_key)
+        token = self.get(token)
         if token is None:
             return False
         if int(time.time()) > token.expiry:
             return False
-        return token.verifier == request.get('oauth_verifier')
+        return token.verifier == verifier
 
 TokenManagerFactory = factory(TokenManager)
 
@@ -207,6 +222,10 @@ class Token(Persistent):
         self.secret = secret
 
     def set_callback(self, callback):
+        """
+        Set the callback URI.
+        """
+
         self.callback = callback
         self.callback_confirmed = 'true'
 

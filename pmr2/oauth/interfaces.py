@@ -24,6 +24,10 @@ class BaseValueError(ValueError):
     __doc__ = "basic value error"
 
 
+class NotRequestTokenError(BaseValueError):
+    __doc__ = "Not request token"
+
+
 class NotAccessTokenError(BaseValueError):
     __doc__ = "Not access token"
 
@@ -221,6 +225,11 @@ class IToken(zope.interface.Interface):
         required=False,
     )
 
+    def validate():
+        """
+        Self validation.
+        """
+
 
 class ITokenManager(zope.interface.Interface):
     """\
@@ -300,7 +309,7 @@ class INonceManager(zope.interface.Interface):
     If nonce must be checked specifically, implement this manager.
     """
 
-    def check(callback):
+    def check(timestamp, nonce):
         """\
         Check that this nonce can be used.
         """

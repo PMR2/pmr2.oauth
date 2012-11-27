@@ -144,16 +144,16 @@ class TestConsumer(unittest.TestCase):
             ConsumerManager.DUMMY_SECRET)
 
     def test_000_consumer(self):
-        c = Consumer('consumer-key', 'consumer-secret')
-        self.assertEqual(c.key, 'consumer-key')
-        self.assertEqual(c.secret, 'consumer-secret')
+        consumer = Consumer('consumer-key', 'consumer-secret')
+        self.assertEqual(consumer.key, 'consumer-key')
+        self.assertEqual(consumer.secret, 'consumer-secret')
         # Default should be no problem.
-        self.assertTrue(c.validate())
+        self.assertTrue(consumer.validate())
 
     def test_001_consumer_equality(self):
-        c = Consumer('consumer-key', 'consumer-secret')
+        consumer = Consumer('consumer-key', 'consumer-secret')
         d = Consumer('consumer-key', 'consumer-secret')
-        self.assertEqual(c, d)
+        self.assertEqual(consumer, d)
 
     def test_100_consumer_manager_empty(self):
         m = ConsumerManager()
@@ -162,16 +162,16 @@ class TestConsumer(unittest.TestCase):
 
     def test_101_consumer_manager_addget(self):
         m = ConsumerManager()
-        c = Consumer('consumer-key', 'consumer-secret')
-        m.add(c)
+        consumer = Consumer('consumer-key', 'consumer-secret')
+        m.add(consumer)
         result = m.get('consumer-key')
-        self.assertEqual(result, c)
+        self.assertEqual(result, consumer)
 
     def test_102_consumer_manager_doubleadd(self):
         m = ConsumerManager()
-        c = Consumer('consumer-key', 'consumer-secret')
-        m.add(c)
-        self.assertRaises(ValueError, m.add, c)
+        consumer = Consumer('consumer-key', 'consumer-secret')
+        m.add(consumer)
+        self.assertRaises(ValueError, m.add, consumer)
 
     def test_103_consumer_manager_remove(self):
         m = ConsumerManager()
@@ -241,18 +241,18 @@ class TestToken(unittest.TestCase):
 
     def test_101_token_manager_addget(self):
         m = TokenManager()
-        c = Token('token-key', 'token-secret')
-        m.add(c)
+        token = Token('token-key', 'token-secret')
+        m.add(token)
         result = m.get('token-key')
-        self.assertEqual(result, c)
-        result = m.get(c)
-        self.assertEqual(result, c)
+        self.assertEqual(result, token)
+        result = m.get(token)
+        self.assertEqual(result, token)
 
     def test_102_token_manager_doubleadd(self):
         m = TokenManager()
-        c = Token('token-key', 'token-secret')
-        m.add(c)
-        self.assertRaises(ValueError, m.add, c)
+        token = Token('token-key', 'token-secret')
+        m.add(token)
+        self.assertRaises(ValueError, m.add, token)
 
     def test_103_token_manager_remove(self):
         m = TokenManager()
@@ -266,32 +266,32 @@ class TestToken(unittest.TestCase):
 
     def test_111_token_manager_addget_user(self):
         m = TokenManager()
-        t = Token('token-key', 'token-secret')
-        t.user = 'user'
-        m.add(t)
+        token = Token('token-key', 'token-secret')
+        token.user = 'user'
+        m.add(token)
         result = m.getTokensForUser('user')
         # only access tokens are tracked.
         self.assertEqual(result, [])
 
     def test_111_token_manager_addget_user(self):
         m = TokenManager()
-        t = Token('token-key', 'token-secret')
-        t.user = 'user'
-        t.access = True
-        m.add(t)
+        token = Token('token-key', 'token-secret')
+        token.user = 'user'
+        token.access = True
+        m.add(token)
         result = m.getTokensForUser('user')
-        self.assertEqual(result, [t])
+        self.assertEqual(result, [token])
 
     def test_113_token_manager_doubleadd_user(self):
         m = TokenManager()
-        t = Token('token-key', 'token-secret')
-        t.user = 'user'
-        t.access = True
-        m.add(t)
-        self.assertRaises(ValueError, m.add, t)
+        token = Token('token-key', 'token-secret')
+        token.user = 'user'
+        token.access = True
+        m.add(token)
+        self.assertRaises(ValueError, m.add, token)
         result = m.getTokensForUser('user')
         # should not result in double entry.
-        self.assertEqual(result, [t])
+        self.assertEqual(result, [token])
 
     def test_114_token_manager_addremove_user(self):
         m = TokenManager()
@@ -327,154 +327,152 @@ class TestToken(unittest.TestCase):
 
     def test_120_token_manager_access_token_tm_empty(self):
         m = TokenManager()
-        self.assertRaises(TokenInvalidError, m.getAccess, 'token-key')
-        self.assertEqual(m.getAccess('token-key', None), None)
+        self.assertRaises(TokenInvalidError, m.getAccessToken, 'token-key')
+        self.assertRaises(TokenInvalidError, m.getRequestToken, 'token-key')
+        self.assertEqual(m.getAccessToken('token-key', None), None)
 
     def test_121_token_manager_access_token_get_not_access(self):
         m = TokenManager()
-        t = Token('token-key', 'token-secret')
-        m.add(t)
-        self.assertRaises(NotAccessTokenError, m.getAccess, 'token-key')
+        token = Token('token-key', 'token-secret')
+        m.add(token)
+        self.assertRaises(NotAccessTokenError, m.getAccessToken, 'token-key')
+        self.assertEqual(m.getRequestToken('token-key'), token)
 
     def test_122_token_manager_access_token_get_user_no_access(self):
         m = TokenManager()
-        t = Token('token-key', 'token-secret')
-        t.user = 'user'
-        m.add(t)
-        self.assertRaises(NotAccessTokenError, m.getAccess, 'token-key')
+        token = Token('token-key', 'token-secret')
+        token.user = 'user'
+        m.add(token)
+        self.assertRaises(NotAccessTokenError, m.getAccessToken, 'token-key')
+        self.assertEqual(m.getRequestToken('token-key'), token)
 
     def test_123_token_manager_access_token_get_access_no_user(self):
         m = TokenManager()
-        t = Token('token-key', 'token-secret')
-        t.access = True
-        m.add(t)
-        self.assertRaises(TokenInvalidError, m.getAccess, 'token-key')
+        token = Token('token-key', 'token-secret')
+        token.access = True
+        m.add(token)
+        self.assertRaises(TokenInvalidError, m.getAccessToken, 'token-key')
+        self.assertRaises(NotRequestTokenError, m.getRequestToken, 'token-key')
 
     def test_124_token_manager_access_token_get_access(self):
         m = TokenManager()
-        t = Token('token-key', 'token-secret')
-        t.access = True
-        t.user = 'user'
-        m.add(t)
-        self.assertEqual(m.getAccess('token-key'), t)
+        token = Token('token-key', 'token-secret')
+        token.access = True
+        token.user = 'user'
+        m.add(token)
+        self.assertEqual(m.getAccessToken('token-key'), token)
+        self.assertRaises(NotRequestTokenError, m.getRequestToken, 'token-key')
 
     def test_125_token_manager_access_token_inconsistent_fail(self):
         m = TokenManager()
-        t = Token('token-key', 'token-secret')
-        t.access = True
-        m.add(t)
+        token = Token('token-key', 'token-secret')
+        token.access = True
+        m.add(token)
         # this would result in the token not being indexed.
-        t.user = 'user'
-        self.assertRaises(TokenInvalidError, m.getAccess, 'token-key')
+        token.user = 'user'
+        self.assertRaises(TokenInvalidError, m.getAccessToken, 'token-key')
+        self.assertRaises(NotRequestTokenError, m.getRequestToken, 'token-key')
 
     def test_200_token_manager_generate_request_token(self):
         m = TokenManager()
-        c = Consumer('consumer-key', 'consumer-secret')
-        #r = oauth.Request.from_consumer_and_token(c, None)
-        r['oauth_callback'] = u'oob'
-        token = m.generateRequestToken(c, r)
-        self.assertEqual(len(m._tokens), 1)
+        consumer = Consumer('consumer-key', 'consumer-secret')
+        callback = u'oob'
+        token = m.generateRequestToken(consumer.key, callback)
         self.assertEqual(m.get(token.key), token)
-        self.assertEqual(m.get(token.key).consumer_key, c.key)
+        self.assertEqual(m.get(token.key).consumer_key, consumer.key)
         self.assertEqual(m.get(token.key).access, False)
+        self.assertEqual(m.getRequestToken(token.key).key, token.key)
 
     def test_201_token_manager_generate_request_token_no_callback(self):
         m = TokenManager()
-        c = Consumer('consumer-key', 'consumer-secret')
-        #r = oauth.Request.from_consumer_and_token(c, None)
-        self.assertRaises(CallbackValueError, m.generateRequestToken, c, r)
+        consumer = Consumer('consumer-key', 'consumer-secret')
+        self.assertRaises(CallbackValueError, m.generateRequestToken, 
+            consumer.key, None)
 
     def test_250_token_manager_claim(self):
         m = TokenManager()
-        c = Consumer('consumer-key', 'consumer-secret')
-        #r = oauth.Request.from_consumer_and_token(c, None)
-        r['oauth_callback'] = u'oob'
-        token = m.generateRequestToken(c, r)
+        consumer = Consumer('consumer-key', 'consumer-secret')
+        callback = u'oob'
+        token = m.generateRequestToken(consumer.key, callback)
         m.claimRequestToken(token, 'user')
         self.assertEqual(token.user, 'user')
         self.assertTrue(token.expiry > int(time.time()))
 
     def test_251_token_manager_claim_fail_access(self):
         m = TokenManager()
-        c = Consumer('consumer-key', 'consumer-secret')
-        #r = oauth.Request.from_consumer_and_token(c, None)
-        r['oauth_callback'] = u'oob'
-        token = m.generateRequestToken(c, r)
+        consumer = Consumer('consumer-key', 'consumer-secret')
+        callback = u'oob'
+        token = m.generateRequestToken(consumer.key, callback)
         token.access = True  # hack it to be access token.
         self.assertRaises(TokenInvalidError, m.claimRequestToken, token, 'u')
-        self.assertNotEqual(token.user, 'user')
+        self.assertEqual(token.user, None)
 
     def test_252_token_manager_claim_fail_missing(self):
         m = TokenManager()
-        c = Consumer('consumer-key', 'consumer-secret')
-        #r = oauth.Request.from_consumer_and_token(c, None)
-        r['oauth_callback'] = u'oob'
-        token = m.generateRequestToken(c, r)
+        consumer = Consumer('consumer-key', 'consumer-secret')
+        callback = u'oob'
+        token = m.generateRequestToken(consumer.key, callback)
         m.remove(token)  # remove it
         self.assertRaises(TokenInvalidError, m.claimRequestToken, token, 'u')
-        self.assertNotEqual(token.user, 'user')
+        self.assertEqual(token.user, None)
 
     def test_300_token_manager_generate_access_token(self):
         m = TokenManager()
-        c = Consumer('consumer-key', 'consumer-secret')
-        #r = oauth.Request.from_consumer_and_token(c, None)
-        r['oauth_callback'] = u'oob'
-        server_token = m.generateRequestToken(c, r)
+        consumer = Consumer('consumer-key', 'consumer-secret')
+        callback = u'oob'
+        server_token = m.generateRequestToken(consumer.key, callback)
+        verifier = server_token.verifier
 
         # Also simulate user claiming the token
         m.claimRequestToken(server_token.key, 'user')
 
         # now simulate passing only the key and secret to consumer
         request_token = Token(server_token.key, server_token.secret)
-        #r = oauth.Request.from_consumer_and_token(c, request_token)
-        r['oauth_verifier'] = server_token.verifier
-        token = m.generateAccessToken(c, r)
-        self.assertEqual(len(m._tokens), 1)
+        token = m.generateAccessToken(consumer.key, request_token, verifier)
+
         self.assertEqual(m.get(token.key), token)
-        self.assertEqual(m.get(token.key).consumer_key, c.key)
+        self.assertEqual(m.get(token.key).consumer_key, consumer.key)
         self.assertEqual(m.get(token.key).access, True)
-        # Also, no user claimed it but okay.
         self.assertEqual(m.get(token.key).user, 'user')
+
         # Also, assert that this token key is available in the method
         # that returns these keys by user id.
         self.assertEqual(m.getTokensForUser('user'), [token])
 
-    def test_310_token_manager_generate_access_token_expired(self):
+    def test_310_token_manager_generate_access_token_no_user(self):
         m = TokenManager()
-        c = Consumer('consumer-key', 'consumer-secret')
-        #r = oauth.Request.from_consumer_and_token(c, None)
-        r['oauth_callback'] = u'oob'
-        server_token = m.generateRequestToken(c, r)
+        consumer = Consumer('consumer-key', 'consumer-secret')
+        callback = u'oob'
+        server_token = m.generateRequestToken(consumer.key, callback)
 
         # simulate passing only the key and secret to consumer
         request_token = Token(server_token.key, server_token.secret)
-        #r = oauth.Request.from_consumer_and_token(c, request_token)
-        r['oauth_verifier'] = server_token.verifier
+        verifier = server_token.verifier
 
         # However, it's not claimed by a user yet, so expiry is not set,
         # thus...
-        self.assertRaises(TokenInvalidError, m.generateAccessToken, c, r)
+        self.assertRaises(TokenInvalidError, m.generateAccessToken, 
+            consumer.key, request_token, verifier)
 
     def test_311_token_manager_generate_access_token_no_request_token(self):
         m = TokenManager()
-        c = Consumer('consumer-key', 'consumer-secret')
-        #r = oauth.Request.from_consumer_and_token(c, None)
-        self.assertRaises(TokenInvalidError, m.generateAccessToken, c, r)
+        consumer = Consumer('consumer-key', 'consumer-secret')
+        self.assertRaises(TokenInvalidError, m.generateAccessToken, 
+            consumer.key, None, None)
 
     def test_312_token_manager_generate_access_token_no_verifier(self):
         m = TokenManager()
-        c = Consumer('consumer-key', 'consumer-secret')
-        #r = oauth.Request.from_consumer_and_token(c, None)
-        r['oauth_callback'] = u'oob'
-        server_token = m.generateRequestToken(c, r)
+        consumer = Consumer('consumer-key', 'consumer-secret')
+        callback = u'oob'
+        server_token = m.generateRequestToken(consumer.key, callback)
 
         # need to claim it too.
         m.claimRequestToken(server_token.key, 'user')
 
         # simulate passing only the key and secret to consumer
         request_token = Token(server_token.key, server_token.secret)
-        #r = oauth.Request.from_consumer_and_token(c, request_token)
-        self.assertRaises(TokenInvalidError, m.generateAccessToken, c, r)
+        self.assertRaises(TokenInvalidError, m.generateAccessToken, 
+            consumer.key, request_token, None)
 
 
 class TestDefaultScopeManager(unittest.TestCase):
