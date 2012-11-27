@@ -199,7 +199,6 @@ class Token(Persistent):
     timestamp = fieldproperty.FieldProperty(IToken['timestamp'])
     expiry = fieldproperty.FieldProperty(IToken['expiry'])
 
-    realm = fieldproperty.FieldProperty(IToken['realm'])
     scope = fieldproperty.FieldProperty(IToken['scope'])
 
     def __init__(self, key, secret):

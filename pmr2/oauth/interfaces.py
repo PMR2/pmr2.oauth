@@ -215,17 +215,9 @@ class IToken(zope.interface.Interface):
         description=_(u'Expiry timestamp for this token'),
     )
 
-    realm = zope.schema.Text(
-        title=_(u'Realm'),
-        description=_(u'The realm specified.'),
-        required=False,
-        default=u'',
-    )
-
     scope = zope.schema.Text(
         title=_(u'Scope'),
-        description=_(u'The scope associated with this token, specific to the '
-                     'associated realm.'),
+        description=_(u'The scope associated with this token'),
         required=False,
     )
 
