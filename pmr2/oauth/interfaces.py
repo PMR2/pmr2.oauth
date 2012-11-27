@@ -215,9 +215,9 @@ class IToken(zope.interface.Interface):
         description=_(u'Expiry timestamp for this token'),
     )
 
-    scope_id = zope.schema.Text(
-        title=_(u'Scope ID'),
-        description=_(u'The id of the scope manager that was used.'),
+    realm = zope.schema.Text(
+        title=_(u'Realm'),
+        description=_(u'The realm specified.'),
         required=False,
         default=u'',
     )
@@ -225,7 +225,7 @@ class IToken(zope.interface.Interface):
     scope = zope.schema.Text(
         title=_(u'Scope'),
         description=_(u'The scope associated with this token, specific to the '
-                     'original scope manager that was in use.'),
+                     'associated realm.'),
         required=False,
     )
 

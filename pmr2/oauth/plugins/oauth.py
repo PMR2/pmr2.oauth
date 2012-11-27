@@ -55,7 +55,7 @@ class OAuthPlugin(BasePlugin):
 
     def _checkScope(self, site, request, token):
         scopeManager = zope.component.queryMultiAdapter(
-            (site, request), IScopeManager, name=token.scope_id)
+            (site, request), IScopeManager, name=token.realm)
         #if not scopeManager:
         #    # Assume a failed scope check.
         #    return False
