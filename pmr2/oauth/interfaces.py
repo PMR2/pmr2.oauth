@@ -24,12 +24,16 @@ class BaseValueError(ValueError):
     __doc__ = "basic value error"
 
 
-class NotRequestTokenError(BaseValueError):
+class NotRequestTokenError(TokenInvalidError):
     __doc__ = "Not request token"
 
 
-class NotAccessTokenError(BaseValueError):
+class NotAccessTokenError(TokenInvalidError):
     __doc__ = "Not access token"
+
+
+class ExpiredTokenError(TokenInvalidError):
+    __doc__ = "Expired token"
 
 
 class CallbackValueError(BaseValueError):
@@ -264,7 +268,18 @@ class ITokenManager(zope.interface.Interface):
         identified by the key of the input token or the input key.
         """
 
-    def getAccess(token, default=False):
+    def getRequestToken(token, default=False):
+        """\
+        Return request token identified by token.
+
+        Raises NotRequestTokenError when token is not an access token.
+        Raises InvalidTokenError if internal consistency (invariants)
+        are violated.
+        If token is not found and default value is false, 
+        InvalidTokenError should be raised also.
+        """
+
+    def getAccessToken(token, default=False):
         """\
         Return access token identified by token.
 

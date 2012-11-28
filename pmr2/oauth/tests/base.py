@@ -1,6 +1,11 @@
+import urllib
 from time import time
 from random import randint
 from sys import maxint
+
+from oauthlib.oauth1 import Client
+from oauthlib.common import Request
+
 import zope.interface
 from zope.annotation.interfaces import IAttributeAnnotatable
 
@@ -52,6 +57,10 @@ class IOAuthTestLayer(zope.interface.Interface):
     """
 
 
+def escape(s):
+    return urllib.quote(s.encode('utf-8'), safe='~')
+
+
 class TestRequest(z3c.form.testing.TestRequest):
 
     zope.interface.implements(IOAuthTestLayer, IAttributeAnnotatable)
@@ -79,12 +88,37 @@ class TestRequest(z3c.form.testing.TestRequest):
         # Some other way of accessing this...
         self._environ['ACTUAL_URL'] = url
 
+        if oauth_keys:
+            self._auth = self.to_header(oauth_keys)
 
-def SignedTestRequest(form=None, oauth_keys=None, consumer=None, token=None,
-        url=None, *a, **kw):
+    def to_header(self, oauth_keys, realm=''):
+        # copied from oauth2 (for now)
+        oauth_params = ((k, v) for k, v in oauth_keys.items()
+                            if k.startswith('oauth_'))
+        stringy_params = ((k, escape(str(v))) for k, v in oauth_params)
+        header_params = ('%s="%s"' % (k, v) for k, v in stringy_params)
+        params_header = ', '.join(header_params)
+
+        auth_header = 'OAuth realm="%s"' % realm
+        if params_header:
+            auth_header = "%s, %s" % (auth_header, params_header)
+
+        return auth_header
+
+
+def SignedTestRequest(form=None, consumer=None, token=None,
+        url=None, callback=None, timestamp=None, verifier=None, *a, **kw):
     """\
     Creates a signed TestRequest
     """
+
+    def safe_unicode(s):
+        # I really really hate oauthlib's insistence on using unicode
+        # on things that are really bytes.
+        if isinstance(s, str):
+            return unicode(s)
+
+        return s
 
     if not consumer:
         raise ValueError('consumer must be provided to build a signed request')
@@ -92,20 +126,38 @@ def SignedTestRequest(form=None, oauth_keys=None, consumer=None, token=None,
     if form is None:
         form = {}
 
-    nonce = str(randint(0, maxint))
-    timestamp = str(int(time()))
-    default_oauth_keys = {
-        'oauth_version': "1.0",
-        'oauth_nonce': nonce,
-        'oauth_timestamp': timestamp,
-    }
-
-    if oauth_keys is None:
-        oauth_keys = default_oauth_keys
-    else:
-        default_oauth_keys.update(oauth_keys)
-        oauth_keys = default_oauth_keys
-
     result = TestRequest(form=form, *a, **kw)
-    #result._auth = headers['Authorization']
+    url = url or result.getURL()
+    url = safe_unicode(url)
+    method = safe_unicode(result.method)
+
+    token_key = token and token.key
+    token_secret = token and token.secret
+
+    client = Client(
+        safe_unicode(consumer.key),
+        safe_unicode(consumer.secret),
+        safe_unicode(token_key),
+        safe_unicode(token_secret),
+        safe_unicode(callback),
+        verifier=safe_unicode(verifier),
+    )
+
+    # Manually sign this thing since we can't override timestamp
+    # for our tests.
+    request = Request(url, method)
+    content_type = request.headers.get('Content-Type', None)
+    request.oauth_params = client.get_oauth_params()
+
+    # XXX assumptions here
+    if timestamp:
+        request.oauth_params[1] = (u'oauth_timestamp', safe_unicode(timestamp))
+
+    request.oauth_params.append((u'oauth_signature', 
+        client.get_oauth_signature(request)))
+
+    url, headers, body = client._render(request, formencode=True, realm=None)
+
+    result._auth = headers['Authorization']
+
     return result

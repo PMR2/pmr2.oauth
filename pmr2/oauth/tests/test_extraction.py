@@ -99,7 +99,7 @@ class TestExtraction(unittest.TestCase):
         creds = plugin.extractCredentials(plugin.REQUEST)
         self.assertEqual(creds, {})
 
-    def test_0100_fail_missing_token(self):
+    def test_0100_fail_missing_unsigned_token(self):
         plugin = self.plugin
         timestamp = str(int(time()))
         request = TestRequest(
@@ -110,7 +110,7 @@ class TestExtraction(unittest.TestCase):
                 'oauth_timestamp': timestamp,
             },
         )
-        self.assertRaises(Forbidden, plugin.extractCredentials, request)
+        self.assertRaises(BadRequest, plugin.extractCredentials, request)
 
     def test_0200_fail_unsigned_request(self):
         plugin = self.plugin
@@ -152,51 +152,74 @@ class TestExtraction(unittest.TestCase):
         consumer, token = self.save_consumer_and_token()
 
         timestamp = '0'
-        request = SignedTestRequest(oauth_keys={'oauth_timestamp': timestamp,},
-            consumer=consumer, token=token,)
+        request = SignedTestRequest(consumer=consumer, token=token,
+            timestamp=timestamp)
         self.assertRaises(BadRequest, plugin.extractCredentials, request)
 
     def test_0210_fail_signed_mismatch_both_secrets(self):
         plugin = self.plugin
         real_consumer, real_token = self.save_consumer_and_token()
         consumer, token = self.generate_consumer_and_token()
-        consumer.secret = 'fail'
-        token.secret = 'fail'
+        consumer.secret = 'failfailfailfail'
+        token.secret = 'failfailfailfail'
 
         request = SignedTestRequest(consumer=consumer, token=token,)
-        self.assertRaises(BadRequest, plugin.extractCredentials, request)
+        self.assertRaises(Forbidden, plugin.extractCredentials, request)
 
     def test_0211_fail_signed_mismatch_consumer_secret(self):
         plugin = self.plugin
         real_consumer, real_token = self.save_consumer_and_token()
         consumer, token = self.generate_consumer_and_token()
-        consumer.secret = 'fail'
+        consumer.secret = 'failfailfailfail'
         token = real_token
 
         request = SignedTestRequest(consumer=consumer, token=token,)
-        self.assertRaises(BadRequest, plugin.extractCredentials, request)
+        self.assertRaises(Forbidden, plugin.extractCredentials, request)
 
     def test_0212_fail_signed_mismatch_token_secret(self):
         plugin = self.plugin
         real_consumer, real_token = self.save_consumer_and_token()
         consumer, token = self.generate_consumer_and_token()
-        token.secret = 'fail'
+        token.secret = 'failfailfailfail'
         consumer = real_consumer
 
         request = SignedTestRequest(consumer=consumer, token=token,)
-        self.assertRaises(BadRequest, plugin.extractCredentials, request)
+        self.assertRaises(Forbidden, plugin.extractCredentials, request)
 
     def test_0300_fail_request_token(self):
         plugin = self.plugin
         consumer, atoken = self.generate_consumer_and_token(save_consumer=True)
-
         # make request token
-        token = self.tokenManager.generateRequestToken(consumer, 
-            {'oauth_callback': u'http://callback.example.com/'})
-        request = SignedTestRequest(consumer=consumer, token=token,)
+        token = self.tokenManager.generateRequestToken(consumer.key, 
+            u'http://callback.example.com/')
 
-        # Since a token is provided, and is stored in the token manager,
-        # it could be used for a valid RequestToken request.
+        # Request token generated properly and stored, but verifier not
+        # signed and provided with request.
+        request = SignedTestRequest(consumer=consumer, token=token,)
+        self.assertRaises(Forbidden, plugin.extractCredentials, request)
+
+        # Verifier provided, but no users have claimed this token.
+        request = SignedTestRequest(consumer=consumer, token=token, 
+            verifier=token.verifier)
+        self.assertRaises(Forbidden, plugin.extractCredentials, request)
+
+    def test_0301_success_request_token(self):
+        plugin = self.plugin
+        consumer, atoken = self.generate_consumer_and_token(save_consumer=True)
+        # make request token
+        token = self.tokenManager.generateRequestToken(consumer.key, 
+            u'http://callback.example.com/')
+
+        # have a user claim this.
+        self.tokenManager.claimRequestToken(token, 'user')
+
+        # Request token generated properly and stored, with verifier
+        # signed and provided with request, and a user has claimed the
+        # token.
+        request = SignedTestRequest(consumer=consumer, token=token, 
+            verifier=token.verifier)
+
+        # Credentials successfully not returned.
         self.assertEqual(plugin.extractCredentials(request), {})
 
         # Now if the generated request token was removed from the store,
@@ -235,7 +258,7 @@ class TestExtraction(unittest.TestCase):
         credentials = plugin.extractCredentials(request)
         self.assertEqual(credentials, {})
 
-    def test_1101_unauth_token_ignored(self):
+    def test_1101_strip_access_token_failure(self):
         # Should not forbid cases where the oauth_token is a request
         # token, as it could be used to request for an access token.
         # (at least this is a valid token, just has no credentials).
@@ -246,8 +269,7 @@ class TestExtraction(unittest.TestCase):
         token.access = False
 
         request = SignedTestRequest(consumer=consumer, token=token,)
-        credentials = plugin.extractCredentials(request)
-        self.assertEqual(credentials, {})
+        self.assertRaises(Forbidden, plugin.extractCredentials, request)
 
 
 def test_suite():

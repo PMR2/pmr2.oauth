@@ -101,6 +101,7 @@ class TokenManager(Persistent, Contained):
 
         # Let the TokenManagers deal with these values.
         token.scope = scope
+        token.expiry = int(time.time()) + self.claim_timeout
 
         self.add(token)
         return token
@@ -152,7 +153,9 @@ class TokenManager(Persistent, Contained):
             return default
 
         if token.access:
-            raise NotRequestTokenError('not a request token.')
+            if default is False:
+                raise NotRequestTokenError('not a request token.')
+            return default
 
         return token
 
@@ -164,7 +167,9 @@ class TokenManager(Persistent, Contained):
             return default
 
         if not token.access:
-            raise NotAccessTokenError('not an access token.')
+            if default is False:
+                raise NotAccessTokenError('not an access token.')
+            return default
 
         # must be identified
         if not token.user:
@@ -199,7 +204,9 @@ class TokenManager(Persistent, Contained):
             raise ExpiredTokenError('expired token')
 
         return (token.consumer_key == consumer_key and 
-                token.verifier == verifier)
+                token.verifier == verifier and
+                token.user is not None
+                )
 
 TokenManagerFactory = factory(TokenManager)
 

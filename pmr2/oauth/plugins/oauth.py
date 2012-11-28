@@ -1,3 +1,6 @@
+import traceback
+import logging
+
 import zope.component
 from zope.app.component.hooks import getSite
 
@@ -11,9 +14,8 @@ from Products.PluggableAuthService.interfaces.plugins \
 from zExceptions import Forbidden
 from zExceptions import BadRequest
 
-import logging
-
 from pmr2.oauth.interfaces import *
+from pmr2.oauth.utility import Server, extractRequestURL
 
 
 manage_addOAuthPlugin = PageTemplateFile("../www/oauthAdd", globals(), 
@@ -32,7 +34,6 @@ def addOAuthPlugin(self, id, title='', REQUEST=None):
                 "?manage_tabs_message=OAuth+plugin+added." %
                 self.absolute_url())
 
-
 class OAuthPlugin(BasePlugin):
     """OAuth authentication plugin.
     """
@@ -47,12 +48,6 @@ class OAuthPlugin(BasePlugin):
         self.title = title
         # init storage too
 
-    def _getConsumer(self, site, request, o_request):
-        consumerManager = zope.component.getMultiAdapter(
-            (site, request), IConsumerManager)
-        consumer_key = o_request.get('oauth_consumer_key')
-        return consumerManager.get(consumer_key)
-
     def _checkScope(self, site, request, token):
         scopeManager = zope.component.queryMultiAdapter(
             (site, request), IScopeManager)
@@ -66,56 +61,105 @@ class OAuthPlugin(BasePlugin):
         This method extracts the OAuth credentials from the request.
         """
 
+        if not request._auth or 'oauth_' not in request._auth:
+            # Not signed with OAuth so no credentials can be found.
+            return {}
+
         site = getSite()
-        o_request = zope.component.getAdapter(request, IRequest)
+        # TODO make this into an adapter?
+        server = Server(site, request)
+        uri = unicode(extractRequestURL(request))
+        http_method = unicode(request.method)
 
-        token_key = o_request.get('oauth_token')
-        if not token_key:
-            # This is likely a new request for a request token
-            return {}
+        # We enforce all OAuth communications to using Authorization.
+        headers = {
+            'Authorization': unicode(request._auth),
+        }
 
-        tokenManager = zope.component.getMultiAdapter(
-            (site, request), ITokenManager)
+        # As this method is called due to it's place in the PAS, a full
+        # authentication scheme will be called regardless.  So try the
+        # main scheme that would yield a credentials.
+
+        #bad_request = []
+        auth_result = req_result = acc_result = None
 
         try:
-            token = tokenManager.getAccess(token_key)
-        except NotAccessTokenError:
-            # This is likely a request for an access token using this
-            # request token.
-            return {}
-        except TokenInvalidError:
-            raise Forbidden('invalid token')
+            auth_result, o_request = server.verify_request(uri, 
+                http_method=http_method, body=None, headers=headers, 
+                require_resource_owner=True, require_verifier=False,
+                )
+        except ValueError:
+            #bad_request.append('fail_main')
+            pass
 
-        # consumer
-        consumer = self._getConsumer(site, request, o_request)
+        # Failure.  Could still try to redeem this for the following
+        # requests.
 
-        if consumer is None or not consumer.key == token.consumer_key:
-            raise Forbidden('invalid consumer key')
-
-        # verify token signature
-        utility = zope.component.getUtility(IOAuthUtility)
         try:
-            params = utility.verify_request(o_request, consumer, token)
-        except Exception, e:  # XXX exception type
-            raise BadRequest(e.message)
+            # For acquiring request token
+            req_result, req_request = server.verify_request(uri, 
+                http_method=http_method, body=None, headers=headers, 
+                require_resource_owner=False, require_verifier=False,
+                )
+        except ValueError:
+            #bad_request.append('fail_requesttoken')
+            pass
 
-        # lastly check whether request fits within the scope this token
-        # is permitted to access.
+        try:
+            # For exchanging of request token for access token
+            acc_result, acc_request = server.verify_request(uri, 
+                http_method=http_method, body=None, headers=headers, 
+                require_resource_owner=True, require_verifier=True,
+                )
+        except ValueError:
+            #bad_request.append('fail_getaccesstoken')
+            pass
+
+        # Return stuff here after all the checks have been done.
+
+        if auth_result:
+            # Got what is needd.
+            return self._extractResultParams(site, server, request, o_request)
+
+        if req_result or acc_result:
+            # However these don't result in credentials, but at least
+            # they are valid.
+            return {}
+
+        # Figure out how to fail this.
+        results = (auth_result, req_result, acc_result)
+
+        if False in results:
+            # There is at least one successful failure.
+            # should raise 401, but that falls back on cookie_auth.
+            raise Forbidden('authorization failed.')
+
+        # No successful failures.
+        raise BadRequest('bad request')
+
+    def _extractResultParams(self, site, server, request, o_request):
+        """
+        Lastly check whether request fits within the scope this token
+        is permitted to access.  Done here because scope is not part
+        of OAuth, also only sucessfully validated request can reach
+        here so this does not need to be part of the delayed 
+        validation.
+        """
+
+        token = server.tokenManager.getAccessToken(
+            o_request.resource_owner_key)
+
         scope = self._checkScope(site, request, token)
         if not scope:
             raise Forbidden('invalid scope')
 
-        result = {}
-        fragment = 'oauth_'
-        for k, v in o_request.iteritems():
-            # as this is passed as keywords into other functions in PAS,
-            # keys need to be strings
-            key = k.encode('utf8')
-            if key.startswith(fragment):
-                result[key] = v
+        signature_type, params, oauth_params = \
+            server.get_signature_type_and_params(o_request)
 
-        result['userid'] = token.user
-        return result
+        result_params = {}
+        result_params.update(oauth_params)
+        result_params['userid'] = token.user
+        return result_params
 
     def extractCredentials(self, request):
         """\
