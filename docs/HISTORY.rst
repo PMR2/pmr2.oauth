@@ -2,6 +2,21 @@
 Changelog
 =========
 
+----------------
+0.4 - Unreleased
+----------------
+
+Major architectural changes:
+
+* Removal of python-oauth2 and use oauthlib.  Significant changes to the
+  PAS OAuthPlugin, including the removal of all private methods, removal
+  of the OAuthUtility, with nearly all authentication and verification
+  functions moved into the adapter that was developed as an extension to
+  the new library.
+* Scope manager completely redefined to accept string identifiers to
+  decouple them from tokens.  String identifiers are the client_key
+  (consumer) and access_key (access token).
+
 -----------------
 0.3a - 2012-11-23
 -----------------
