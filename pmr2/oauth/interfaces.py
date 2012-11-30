@@ -44,10 +44,15 @@ class NonceValueError(BaseValueError):
     __doc__ = "nonce value error"
 
 
-class IOAuthUtility(zope.interface.Interface):
-    """\
-    The OAuth utility.
+class IOAuthAdapter(zope.interface.Interface):
     """
+    Interface for the OAuth adapter.
+    """
+
+    def __call__():
+        """
+        Return a boolean value to determine whether access was granted.
+        """
 
 
 class IOAuthPlugin(zope.interface.Interface):
@@ -60,12 +65,6 @@ class IOAuthPlugin(zope.interface.Interface):
         Extract the OAuth credentials from the request, for processing
         by Plone PAS.
         """
-
-
-class IRequest(zope.interface.Interface):
-    """\
-    Marker interface for the OAuth request.
-    """
 
 
 class IConsumer(zope.interface.Interface):
@@ -139,9 +138,20 @@ class IScopeManager(zope.interface.Interface):
     # individual scope manager should deal with how/what the meaning of
     # the scope value within each token.
 
-    def validate(context, request, scope):
+    def validate(context, client_key, access_key):
         """\
-        Validate the scope against the given context and request.
+        Validate the scope against the given context with the given
+        client and owner.
+
+        context
+            the object to access.
+
+        client
+            the client (consumer) key.
+
+        access_key
+            the access key identifying a given token granted by a
+            resource owner.
         """
 
 

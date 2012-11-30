@@ -1,6 +1,5 @@
 from zope.interface import Interface
 import zope.component
-from zope.publisher.interfaces.browser import IBrowserRequest
 from time import time
 import unittest
 
@@ -8,9 +7,8 @@ from zExceptions import Forbidden
 from zExceptions import BadRequest
 
 from pmr2.oauth.interfaces import *
-from pmr2.oauth.request import BrowserRequestAdapter
 
-from pmr2.oauth.utility import OAuthUtility
+from pmr2.oauth.utility import SiteRequestOAuth1ServerAdapter
 
 from pmr2.oauth.token import Token
 from pmr2.oauth.token import TokenManager
@@ -33,7 +31,7 @@ def mock_factory(cls):
 
 
 class PermissiveScopeManager(DefaultScopeManager):
-    def validate(self, request, token):
+    def validate(self, context, client_key, access_key):
         # a very permissive scope manager.  Focus of the tests here are
         # on the core OAuth bits.  There are separate unit tests for the
         # DefaultScopeManager and integration/system tests that tests
@@ -52,15 +50,13 @@ class TestExtraction(unittest.TestCase):
         smf = mock_factory(PermissiveScopeManager)
         self.plugin = self.createPlugin()
         zope.component.provideAdapter(
-            BrowserRequestAdapter, (IBrowserRequest,), IRequest)
-        zope.component.provideAdapter(
             cmf, (Interface, IOAuthTestLayer,), IConsumerManager)
         zope.component.provideAdapter(
             tmf, (Interface, IOAuthTestLayer,), ITokenManager)
         zope.component.provideAdapter(
             smf, (Interface, IOAuthTestLayer,), IScopeManager)
-        zope.component.provideUtility(
-            OAuthUtility(), IOAuthUtility)
+        zope.component.provideAdapter(SiteRequestOAuth1ServerAdapter,
+            (Interface, IOAuthTestLayer,), IOAuthAdapter)
 
         self.consumerManager = zope.component.getMultiAdapter(
             (object, TestRequest()), IConsumerManager)

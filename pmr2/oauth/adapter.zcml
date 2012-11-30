@@ -3,9 +3,10 @@
     i18n_domain="pmr2.oauth">
 
   <adapter
-      for="zope.publisher.interfaces.browser.IBrowserRequest"
-      factory=".request.BrowserRequestAdapter"
-      provides=".interfaces.IRequest"
+      for="zope.annotation.interfaces.IAnnotatable
+           *"
+      factory=".utility.SiteRequestOAuth1ServerAdapter"
+      provides=".interfaces.IOAuthAdapter"
       />
 
   <adapter

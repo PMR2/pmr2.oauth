@@ -7,33 +7,19 @@ import zope.interface
 from zope.app.component.hooks import getSite
 
 from pmr2.oauth.interfaces import TokenInvalidError
-from pmr2.oauth.interfaces import IOAuthUtility, INonceManager
+from pmr2.oauth.interfaces import IOAuthAdapter, INonceManager
 from pmr2.oauth.interfaces import IConsumerManager, ITokenManager
-
-
-class OAuthUtility(object):
-    """
-    The OAuth utility
-    """
-
-    zope.interface.implements(IOAuthUtility)
-
-    def __init__(self):
-        pass
-
-    def verify_request(self, request, consumer, token):
-        """\
-        Verify an OAuth request with the given consumer and token.
-        """
-
-        raise NotImplementedError
 
 SAFE_ASCII_CHARS = set([chr(i) for i in xrange(32, 127)])
 
-class Server(oauthlib.oauth1.Server):
+
+class SiteRequestOAuth1ServerAdapter(oauthlib.oauth1.Server):
     """
-    Completing the implementation of the server.
+    Completing the implementation of the server as an adapter that
+    unifies the authentication process.
     """
+
+    zope.interface.implements(IOAuthAdapter)
 
     def __init__(self, site, request):
         self.consumerManager = zope.component.getMultiAdapter(
@@ -44,7 +30,134 @@ class Server(oauthlib.oauth1.Server):
         self.nonceManager = zope.component.queryMultiAdapter(
             (site, request), INonceManager)
 
+        self.access_key = None
+
+        self.site = site
+        self.request = request
+
+        # All OAuth related terms are placed in the Authorization.
+        # Using unicode because lol oauthlib's obsession with 
+        # unicode_literals, which adds nothing but annoyance when the
+        # protocol is fundamentally in bytes.
+
+        self.uri = safe_unicode(extractRequestURL(request))
+        self.http_method = safe_unicode(request.method)
+
+        # These are the only headers that affect the signature for
+        # an OAuth request.
+
+        self.headers = {
+            u'Content-type': safe_unicode(request.getHeader('Content-type')),
+            u'Authorization': safe_unicode(request._auth),
+        }
+
+        request.stdin.seek(0)
+        self.body = safe_unicode(request.stdin.read())
+
+    # Local helpers.
+
+    def __call__(self):
+        result, request = self.verify_pas_request()
+        if result:
+            # Only set the access key if access was granted.
+            self.client_key = request.client_key
+            self.access_key = request.resource_owner_key
+        # We only want a True or False value.
+        return result
+
+    def verify_pas_request(self):
+        """
+        Verify a standard request with all checks in order to not
+        trigger a BadRequest or Forbidden error prematurely, which would
+        prevent access to the RequestToken and AccessToken pages.
+        """
+
+        req_result = acc_result = result = None
+        acc_request = req_request = request = None 
+
+        try:
+            req_result, req_request = self.verify_request_token_request()
+        except ValueError:
+            pass
+
+        try:
+            acc_result, acc_request = self.verify_access_token_request()
+        except ValueError:
+            pass
+
+        try:
+            result, request = self.verify_resource_request()
+        except ValueError:
+            if req_result is None and acc_result is None:
+                raise
+
+        if result is False:
+            # Check to see if either one of those passed.  Return an
+            # undefined result (as None) and whichever request object
+            # that got generated.
+            if req_result:
+                return None, req_request
+
+            if acc_result:
+                return None, acc_request
+
+        return result, request
+
+    def verify_resource_request(self):
+        """
+        For verification of requests for accessing resources.
+        """
+
+        return self.verify_request(
+            require_resource_owner=True,
+            require_verifier=False,
+        )
+
+    def verify_request_token_request(self):
+        """
+        For verification of requests for getting RequestTokens.
+        """
+
+        return self.verify_request(
+            require_resource_owner=False, 
+            require_verifier=False,
+        )
+
+    def verify_access_token_request(self):
+        """
+        For verification of requests for getting AccessTokens.
+        """
+
+        return self.verify_request(
+            require_resource_owner=True, 
+            require_verifier=True,
+        )
+
     # Overrides
+
+    def verify_request(self, uri=None, http_method=None, body=None,
+            headers=None, require_resource_owner=True, require_verifier=False,
+            require_realm=False, required_realm=None):
+        """
+        Essentially a clone of the parent class, but the default 
+        parameters will be from this class.
+        """
+
+        if uri is None:
+            uri = self.uri
+        if http_method is None:
+            http_method = self.http_method
+        if body is None:
+            body = self.body
+        if headers is None:
+            headers = self.headers
+
+        return super(SiteRequestOAuth1ServerAdapter, self).verify_request(
+            uri, http_method, body, headers, 
+            require_resource_owner, require_verifier, require_realm,
+            required_realm)
+
+    # Property overrides
 
     @property
     def enforce_ssl(self):
@@ -190,7 +303,6 @@ def random_string(length):
     actual = int(length / 4) * 3
     return base64.urlsafe_b64encode(os.urandom(actual))
 
-
 def extractRequestURL(request):
     # I am not sure why there isn't a thing that gets me the original
     # URI in the HTTP header and has to reconstruct all of this from
@@ -208,3 +320,8 @@ def extractRequestURL(request):
         result = request.getURL()
 
     return result
+
+def safe_unicode(s):
+    if isinstance(s, str):
+        return unicode(s)
+    return s

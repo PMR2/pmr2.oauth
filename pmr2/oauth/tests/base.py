@@ -2,6 +2,7 @@ import urllib
 from time import time
 from random import randint
 from sys import maxint
+from cStringIO import StringIO
 
 from oauthlib.oauth1 import Client
 from oauthlib.common import Request
@@ -90,6 +91,8 @@ class TestRequest(z3c.form.testing.TestRequest):
 
         if oauth_keys:
             self._auth = self.to_header(oauth_keys)
+
+        self.stdin = StringIO()
 
     def to_header(self, oauth_keys, realm=''):
         # copied from oauth2 (for now)

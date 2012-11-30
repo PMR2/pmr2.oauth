@@ -11,10 +11,6 @@ from pmr2.oauth.token import Token
 
 from pmr2.oauth.scope import DefaultScopeManager
 
-from pmr2.oauth.utility import OAuthUtility
-
-from pmr2.oauth import request
-
 from pmr2.oauth.interfaces import *
 
 from pmr2.oauth.tests.base import TestRequest
@@ -372,59 +368,6 @@ class TestDefaultScopeManager(unittest.TestCase):
 
     def setUp(self):
         self.manager = DefaultScopeManager()
-        self.token = Token('token-key', 'token-secret')
-
-    def test_000_base(self):
-        req = TestRequest()
-        # no valid URIs.
-        self.assertFalse(self.manager.validate(req, self.token))
-
-    def test_020_permitted_checked(self):
-        self.manager.permitted = 'foo$\nbar$\n'
-        req = TestRequest(url='http://nohost/test/foo')
-        self.assertTrue(self.manager.validate(req, self.token))
-        req = TestRequest(url='http://nohost/test/bar')
-        self.assertTrue(self.manager.validate(req, self.token))
-
-    def test_021_permitted_checked_failed(self):
-        self.manager.permitted = 'foo$\nbar$\n'
-        req = TestRequest(url='http://nohost/test/food')
-        self.assertFalse(self.manager.validate(req, self.token))
-        req = TestRequest(url='http://nohost/test/bacon')
-        self.assertFalse(self.manager.validate(req, self.token))
-
-        # XXX need testing on POST requests.
-        # Show that POST requests are banned regardless.
-        #req = TestRequest(url='http://nohost/test/foo')
-        #self.assertTrue(self.manager.validate(req, self.token))
-        #req.method = 'POST'
-        #self.assertFalse(self.manager.validate(req, self.token))
-
-    def test_040_limited_token(self):
-        self.token.scope = u'foo$'
-        self.manager.permitted = 'foo$\nbar$\n'
-        req = TestRequest(url='http://nohost/test/foo')
-        self.assertTrue(self.manager.validate(req, self.token))
-
-    def test_041_limited_token_manage_permit_fail(self):
-        self.token.scope = u'foo$'
-        self.manager.permitted = 'foo$\nbar$\n'
-
-        req = TestRequest(url='http://nohost/test/bar')
-        self.assertFalse(self.manager.validate(req, self.token))
-
-    def test_042_limited_token_not_in_permit_fail(self):
-        self.token.scope = u'bacon$'
-        self.manager.permitted = 'foo$\nbar$\n'
-
-        req = TestRequest(url='http://nohost/test/bacon')
-        self.assertFalse(self.manager.validate(req, self.token))
-
-        req = TestRequest(url='http://nohost/test/foo')
-        self.assertFalse(self.manager.validate(req, self.token))
-
-        req = TestRequest(url='http://nohost/test/bar')
-        self.assertFalse(self.manager.validate(req, self.token))
 
 
 def test_suite():

@@ -14,8 +14,7 @@ from Products.PluggableAuthService.interfaces.plugins \
 from zExceptions import Forbidden
 from zExceptions import BadRequest
 
-from pmr2.oauth.interfaces import *
-from pmr2.oauth.utility import Server, extractRequestURL
+from pmr2.oauth.interfaces import IOAuthPlugin, IOAuthAdapter, IScopeManager
 
 
 manage_addOAuthPlugin = PageTemplateFile("../www/oauthAdd", globals(), 
@@ -46,121 +45,8 @@ class OAuthPlugin(BasePlugin):
     def __init__(self, id, title=None):
         self._setId(id)
         self.title = title
-        # init storage too
 
-    def _checkScope(self, site, request, token):
-        scopeManager = zope.component.queryMultiAdapter(
-            (site, request), IScopeManager)
-        #if not scopeManager:
-        #    # Assume a failed scope check.
-        #    return False
-        return scopeManager.validate(request, token)
-
-    def extractOAuthCredentials(self, request):
-        """\
-        This method extracts the OAuth credentials from the request.
-        """
-
-        if not request._auth or 'oauth_' not in request._auth:
-            # Not signed with OAuth so no credentials can be found.
-            return {}
-
-        site = getSite()
-        # TODO make this into an adapter?
-        server = Server(site, request)
-        uri = unicode(extractRequestURL(request))
-        http_method = unicode(request.method)
-
-        # We enforce all OAuth communications to using Authorization.
-        headers = {
-            'Authorization': unicode(request._auth),
-        }
-
-        # As this method is called due to it's place in the PAS, a full
-        # authentication scheme will be called regardless.  So try the
-        # main scheme that would yield a credentials.
-
-        #bad_request = []
-        auth_result = req_result = acc_result = None
-
-        try:
-            auth_result, o_request = server.verify_request(uri, 
-                http_method=http_method, body=None, headers=headers, 
-                require_resource_owner=True, require_verifier=False,
-                )
-        except ValueError:
-            #bad_request.append('fail_main')
-            pass
-
-        # Failure.  Could still try to redeem this for the following
-        # requests.
-
-        try:
-            # For acquiring request token
-            req_result, req_request = server.verify_request(uri, 
-                http_method=http_method, body=None, headers=headers, 
-                require_resource_owner=False, require_verifier=False,
-                )
-        except ValueError:
-            #bad_request.append('fail_requesttoken')
-            pass
-
-        try:
-            # For exchanging of request token for access token
-            acc_result, acc_request = server.verify_request(uri, 
-                http_method=http_method, body=None, headers=headers, 
-                require_resource_owner=True, require_verifier=True,
-                )
-        except ValueError:
-            #bad_request.append('fail_getaccesstoken')
-            pass
-
-        # Return stuff here after all the checks have been done.
-
-        if auth_result:
-            # Got what is needd.
-            return self._extractResultParams(site, server, request, o_request)
-
-        if req_result or acc_result:
-            # However these don't result in credentials, but at least
-            # they are valid.
-            return {}
-
-        # Figure out how to fail this.
-        results = (auth_result, req_result, acc_result)
-
-        if False in results:
-            # There is at least one successful failure.
-            # should raise 401, but that falls back on cookie_auth.
-            raise Forbidden('authorization failed.')
-
-        # No successful failures.
-        raise BadRequest('bad request')
-
-    def _extractResultParams(self, site, server, request, o_request):
-        """
-        Lastly check whether request fits within the scope this token
-        is permitted to access.  Done here because scope is not part
-        of OAuth, also only sucessfully validated request can reach
-        here so this does not need to be part of the delayed 
-        validation.
-        """
-
-        token = server.tokenManager.getAccessToken(
-            o_request.resource_owner_key)
-
-        scope = self._checkScope(site, request, token)
-        if not scope:
-            raise Forbidden('invalid scope')
-
-        signature_type, params, oauth_params = \
-            server.get_signature_type_and_params(o_request)
-
-        result_params = {}
-        result_params.update(oauth_params)
-        result_params['userid'] = token.user
-        return result_params
-
+    # IExtractionPlugin implementation
     def extractCredentials(self, request):
         """\
         This method performs the PAS credential extraction.
@@ -172,8 +58,36 @@ class OAuthPlugin(BasePlugin):
         """
 
         if not (request._auth and request._auth.startswith('OAuth ')):
+            # Skip all not OAuth related.
             return {}
-        mappings = self.extractOAuthCredentials(request)
+
+        site = getSite()
+        verifier = zope.component.getMultiAdapter(
+            (site, request), IOAuthAdapter)
+
+        try:
+            result = verifier()
+        except ValueError:
+            raise BadRequest('bad oauth request')
+
+        if result is None:
+            # Valid request, but yielded no access key that will allow
+            # this plugin to return a credential.
+            return {}
+
+        if result is False:
+            raise Forbidden('authorization failed')
+
+        scopeManager = zope.component.queryMultiAdapter(
+            (site, request), IScopeManager)
+        context = None
+        if (scopeManager is None or not scopeManager.validate(
+                context, verifier.client_key, verifier.access_key)):
+            raise Forbidden('invalid scope')
+
+        mappings = {}
+        token = verifier.tokenManager.getAccessToken(verifier.access_key)
+        mappings['userid'] = token.user
         return mappings
 
     # IAuthenticationPlugin implementation
@@ -192,7 +106,6 @@ class OAuthPlugin(BasePlugin):
             return None  # should we raise Forbidden instead?
 
         return (info['id'], info['login'])
-
 
 classImplements(OAuthPlugin,
                 IExtractionPlugin,

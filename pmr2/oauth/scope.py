@@ -26,7 +26,11 @@ class ScopeManager(Persistent, Contained):
     def __init__(self):
         pass
 
-    def validate(self, request, scope):
+    def validate(self, context, client_key, access_key):
+        """
+        See IScopeManager.validate
+        """
+
         raise NotImplemented
 
 
@@ -68,23 +72,8 @@ class DefaultScopeManager(ScopeManager):
 
         return results
 
-    def validate(self, request, token):
-        url = request.getURL()
-
-        # Check whether the token enforce further restrictions.
-        if token.scope:
-            try:
-                vs = re.compile(token.scope)
-            except:
-                # Be overly paranoid since this value is from the
-                # consumer.
-                return False
-
-            if not vs.search(url):
-                # No need to do anything further since more restrictive
-                # check failed.
-                return False
-
+    def validate(self, context, client_key, access_key):
+        url = None
         valid_scopes = self._compileRegex()
         if not valid_scopes:
             # To be on the safe side, scopes must be defined.
