@@ -88,7 +88,7 @@ class SiteRequestOAuth1ServerAdapter(oauthlib.oauth1.Server):
         try:
             result, request = self.verify_resource_request()
         except ValueError:
-            if req_result is None and acc_result is None:
+            if not (req_result or acc_result):
                 raise
 
         if result is False:
