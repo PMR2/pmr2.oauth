@@ -15,9 +15,4 @@
   <include file="adapter.zcml" />
   <include file="profiles.zcml" />
 
-  <utility
-      provides=".interfaces.IOAuthUtility"
-      factory=".utility.OAuthUtility"
-      />
-
 </configure>
