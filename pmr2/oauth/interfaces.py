@@ -233,12 +233,6 @@ class IToken(zope.interface.Interface):
         description=_(u'Expiry timestamp for this token'),
     )
 
-    scope = zope.schema.Text(
-        title=_(u'Scope'),
-        description=_(u'The scope associated with this token'),
-        required=False,
-    )
-
     def validate():
         """
         Self validation.

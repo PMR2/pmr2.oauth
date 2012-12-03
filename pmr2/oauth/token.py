@@ -85,12 +85,12 @@ class TokenManager(Persistent, Contained):
         token.timestamp = int(time.time())
         return token
 
-    def generateRequestToken(self, consumer_key, callback, scope=None):
+    def generateRequestToken(self, consumer_key, callback):
         """\
         Generate request token from consumer and request.
         """
 
-        # This is our constrain.
+        # This is our constraint.
         if callback is None:
             raise CallbackValueError(
                 'callback must be specified or set to `oob`')
@@ -99,30 +99,26 @@ class TokenManager(Persistent, Contained):
         token.set_callback(callback)
         token.set_verifier()
 
-        # Let the TokenManagers deal with these values.
-        token.scope = scope
         token.expiry = int(time.time()) + self.claim_timeout
 
         self.add(token)
         return token
 
-    def generateAccessToken(self, consumer_key, request_token, verifier):
-        verification = self.requestTokenVerify(
-            consumer_key, request_token, verifier)
-
-        if not verification:
-            raise TokenInvalidError('invalid token')
+    def generateAccessToken(self, consumer_key, request_token):
 
         # Get the copy that is being tracked here.
         old_token = self.get(request_token)
+        if not old_token:
+            raise TokenInvalidError('invalid token')
         old_key = old_token.key
 
         token = self._generateBaseToken(consumer_key)
         token.access = True
 
-        # copy over the vital attributes
+        # Must have a user.
+        if not old_token.user:
+            raise TokenInvalidError('token has no user')
         token.user = old_token.user
-        token.scope = old_token.scope
 
         if old_token:
             # Terminate old token to prevent reuse.
@@ -195,14 +191,11 @@ class TokenManager(Persistent, Contained):
 
     def requestTokenVerify(self, consumer_key, token, verifier):
         """\
-        Verify that the request results in a valid token.
+        Verify that the request results in a valid token by checking for
+        validity of the consumer_key and verifier.
         """
 
         token = self.getRequestToken(token)
-
-        if int(time.time()) > token.expiry:
-            raise ExpiredTokenError('expired token')
-
         return (token.consumer_key == consumer_key and 
                 token.verifier == verifier and
                 token.user is not None
@@ -227,8 +220,6 @@ class Token(Persistent):
     consumer_key = fieldproperty.FieldProperty(IToken['consumer_key'])
     timestamp = fieldproperty.FieldProperty(IToken['timestamp'])
     expiry = fieldproperty.FieldProperty(IToken['expiry'])
-
-    scope = fieldproperty.FieldProperty(IToken['scope'])
 
     def __init__(self, key, secret):
         assert not ((key is None) or (secret is None))

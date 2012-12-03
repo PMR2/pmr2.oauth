@@ -307,7 +307,7 @@ class TestToken(unittest.TestCase):
 
         # now simulate passing only the key and secret to consumer
         request_token = Token(server_token.key, server_token.secret)
-        token = m.generateAccessToken(consumer.key, request_token, verifier)
+        token = m.generateAccessToken(consumer.key, request_token.key)
 
         self.assertEqual(m.get(token.key), token)
         self.assertEqual(m.get(token.key).consumer_key, consumer.key)
@@ -326,42 +326,17 @@ class TestToken(unittest.TestCase):
 
         # simulate passing only the key and secret to consumer
         request_token = Token(server_token.key, server_token.secret)
-        verifier = server_token.verifier
 
         # However, it's not claimed by a user yet, so expiry is not set,
         # thus...
         self.assertRaises(TokenInvalidError, m.generateAccessToken, 
-            consumer.key, request_token, verifier)
+            consumer.key, request_token.key)
 
     def test_311_token_manager_generate_access_token_no_request_token(self):
         m = TokenManager()
         consumer = Consumer('consumer-key', 'consumer-secret')
         self.assertRaises(TokenInvalidError, m.generateAccessToken, 
-            consumer.key, None, None)
-
-    def test_312_token_manager_generate_access_token_no_verifier(self):
-        m = TokenManager()
-        consumer = Consumer('consumer-key', 'consumer-secret')
-        callback = u'oob'
-        server_token = m.generateRequestToken(consumer.key, callback)
-
-        # need to claim it too.
-        m.claimRequestToken(server_token.key, 'user')
-
-        # simulate passing only the key and secret to consumer
-        request_token = Token(server_token.key, server_token.secret)
-        self.assertRaises(TokenInvalidError, m.generateAccessToken, 
-            consumer.key, request_token, None)
-
-    def test_313_token_manager_generate_access_token_consumer_mismatch(self):
-        m = TokenManager()
-        consumer = Consumer('consumer-key', 'consumer-secret')
-        callback = u'oob'
-        request_token = m.generateRequestToken(consumer.key, callback)
-        verifier = request_token.verifier
-        m.claimRequestToken(request_token, 'user')
-        self.assertRaises(TokenInvalidError, m.generateAccessToken, 
-            'consumer-2', request_token, verifier)
+            consumer.key, None)
 
 
 class TestDefaultScopeManager(unittest.TestCase):
