@@ -191,7 +191,7 @@ class SiteRequestOAuth1ServerAdapter(oauthlib.oauth1.Server):
     # Implementation
 
     def get_client_secret(self, client_key):
-        consumer = self.consumerManager.get(client_key)
+        consumer = self.consumerManager.getValidated(client_key)
         if consumer:
             result = consumer.secret
         else:
@@ -245,7 +245,7 @@ class SiteRequestOAuth1ServerAdapter(oauthlib.oauth1.Server):
 
     def validate_client_key(self, client_key):
         dummy = self.consumerManager.get(self.consumerManager.DUMMY_KEY)
-        consumer = self.consumerManager.get(client_key, dummy)
+        consumer = self.consumerManager.getValidated(client_key, dummy)
         return consumer.validate() and consumer != dummy
 
     def validate_request_token(self, client_key, request_token):

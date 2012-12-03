@@ -40,6 +40,10 @@ class ConsumerManager(Persistent, Contained):
     def get(self, consumer_key, default=None):
         return self._consumers.get(consumer_key, default)
 
+    def getValidated(self, consumer_key, default=None):
+        # Provision for further checks by alternative implementations.
+        return self.get(consumer_key, default)
+
     def getAllKeys(self):
         return self._consumers.keys()
 

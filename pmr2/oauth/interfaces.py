@@ -119,6 +119,9 @@ class IConsumerManager(zope.interface.Interface):
     def getValidated(consumer_key, default=None):
         """\
         Return consumer only if it is a validated one.
+
+        This will be used when possible to allow further checks by 
+        alternative implementations.
         """
 
     def remove(consumer):
