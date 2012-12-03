@@ -185,14 +185,9 @@ class IToken(zope.interface.Interface):
         required=True,
     )
 
-    callback = zope.schema.TextLine(
+    callback = zope.schema.ASCIILine(
         title=_(u'Callback'),
-        required=True,
-    )
-
-    callback_confirmed = zope.schema.ASCIILine(
-        title=_(u'Callback Confirmed'),
-        required=True,
+        required=False,
     )
 
     verifier = zope.schema.ASCIILine(

@@ -187,7 +187,7 @@ class TestExtraction(unittest.TestCase):
         consumer, atoken = self.generate_consumer_and_token(save_consumer=True)
         # make request token
         token = self.tokenManager.generateRequestToken(consumer.key, 
-            u'http://callback.example.com/')
+            'http://callback.example.com/')
 
         # Request token generated properly and stored, but verifier not
         # signed and provided with request.
@@ -204,7 +204,7 @@ class TestExtraction(unittest.TestCase):
         consumer, atoken = self.generate_consumer_and_token(save_consumer=True)
         # make request token
         token = self.tokenManager.generateRequestToken(consumer.key, 
-            u'http://callback.example.com/')
+            'http://callback.example.com/')
 
         # have a user claim this.
         self.tokenManager.claimRequestToken(token, 'user')

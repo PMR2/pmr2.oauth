@@ -211,8 +211,6 @@ class Token(Persistent):
     key = fieldproperty.FieldProperty(IToken['key'])
     secret = fieldproperty.FieldProperty(IToken['secret'])
     callback = fieldproperty.FieldProperty(IToken['callback'])
-    callback_confirmed = fieldproperty.FieldProperty(
-        IToken['callback_confirmed'])
     verifier = fieldproperty.FieldProperty(IToken['verifier'])
     access = fieldproperty.FieldProperty(IToken['access'])
 
@@ -232,11 +230,10 @@ class Token(Persistent):
         """
 
         self.callback = callback
-        self.callback_confirmed = 'true'
 
     def set_verifier(self, verifier=None):
-        """\
-        Differs from original implementation.
+        """
+        Based on implementation from python-oauth2
         
         This uses the random_string method to generate the verifier key.
         Does not regenerate a new key if verifier is already set, unless
@@ -258,8 +255,8 @@ class Token(Persistent):
             self.verifier = verifier
 
     def get_callback_url(self):
-        """\
-        Original was broken.
+        """
+        Based on implementation from python-oauth2, with corrections.
         """
 
         if self.callback and self.verifier:
@@ -273,4 +270,3 @@ class Token(Persistent):
             return urlparse.urlunparse((scheme, netloc, path, params,
                 query, fragment))
         return self.callback
-

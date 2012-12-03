@@ -99,7 +99,7 @@ class TestToken(unittest.TestCase):
 
     def test_020_token_get_callback_url(self):
         token = Token('token-key', 'token-secret')
-        token.set_callback(u'http://example.com/')
+        token.set_callback('http://example.com/')
         token.set_verifier('foo')
         url = token.get_callback_url()
         a = 'http://example.com/?oauth_verifier=foo&oauth_token=token-key'
@@ -107,7 +107,7 @@ class TestToken(unittest.TestCase):
 
     def test_021_token_get_callback_url(self):
         token = Token('token-key', 'token-secret')
-        token.set_callback(u'http://example.com/;bar;?bus=4')
+        token.set_callback('http://example.com/;bar;?bus=4')
         token.set_verifier('foo')
         url = token.get_callback_url()
         a = 'http://example.com/;bar;?bus=4&oauth_verifier=foo&' \
@@ -255,7 +255,7 @@ class TestToken(unittest.TestCase):
     def test_200_token_manager_generate_request_token(self):
         m = TokenManager()
         consumer = Consumer('consumer-key', 'consumer-secret')
-        callback = u'oob'
+        callback = 'oob'
         token = m.generateRequestToken(consumer.key, callback)
         self.assertEqual(m.get(token.key), token)
         self.assertEqual(m.get(token.key).consumer_key, consumer.key)
@@ -271,7 +271,7 @@ class TestToken(unittest.TestCase):
     def test_250_token_manager_claim(self):
         m = TokenManager()
         consumer = Consumer('consumer-key', 'consumer-secret')
-        callback = u'oob'
+        callback = 'oob'
         token = m.generateRequestToken(consumer.key, callback)
         m.claimRequestToken(token, 'user')
         self.assertEqual(token.user, 'user')
@@ -280,7 +280,7 @@ class TestToken(unittest.TestCase):
     def test_251_token_manager_claim_fail_access(self):
         m = TokenManager()
         consumer = Consumer('consumer-key', 'consumer-secret')
-        callback = u'oob'
+        callback = 'oob'
         token = m.generateRequestToken(consumer.key, callback)
         token.access = True  # hack it to be access token.
         self.assertRaises(TokenInvalidError, m.claimRequestToken, token, 'u')
@@ -289,7 +289,7 @@ class TestToken(unittest.TestCase):
     def test_252_token_manager_claim_fail_missing(self):
         m = TokenManager()
         consumer = Consumer('consumer-key', 'consumer-secret')
-        callback = u'oob'
+        callback = 'oob'
         token = m.generateRequestToken(consumer.key, callback)
         m.remove(token)  # remove it
         self.assertRaises(TokenInvalidError, m.claimRequestToken, token, 'u')
@@ -298,7 +298,7 @@ class TestToken(unittest.TestCase):
     def test_300_token_manager_generate_access_token(self):
         m = TokenManager()
         consumer = Consumer('consumer-key', 'consumer-secret')
-        callback = u'oob'
+        callback = 'oob'
         server_token = m.generateRequestToken(consumer.key, callback)
         verifier = server_token.verifier
 
@@ -321,7 +321,7 @@ class TestToken(unittest.TestCase):
     def test_310_token_manager_generate_access_token_no_user(self):
         m = TokenManager()
         consumer = Consumer('consumer-key', 'consumer-secret')
-        callback = u'oob'
+        callback = 'oob'
         server_token = m.generateRequestToken(consumer.key, callback)
 
         # simulate passing only the key and secret to consumer
