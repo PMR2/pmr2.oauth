@@ -176,11 +176,17 @@ class IDefaultScopeManager(zope.interface.Interface):
     Fields for the default scope manager.
     """
 
-    permitted = zope.schema.ASCII(
-        title=_(u'Permitted URIs'),
-        description=_(u'List of regular expressions of URIs that are permitted '
-                     'to be accessible via OAuth.'),
-        required=True,
+    default_scopes = zope.schema.Dict(
+        title=_(u'Default Scopes'),
+        description=_(u'List of permitted views for each of the following '
+                     'portal types'),
+        key_type=zope.schema.ASCIILine(
+            title=_(u'Portal Type')
+        ),
+        value_type=zope.schema.List(
+            title=_(u'Permitted subpaths'),
+            value_type=zope.schema.ASCIILine(title=_(u'Subpath')),
+        ),
     )
 
 

@@ -133,6 +133,7 @@ def SignedTestRequest(form=None, consumer=None, token=None,
     url = url or result.getURL()
     url = safe_unicode(url)
     method = safe_unicode(result.method)
+    timestamp = timestamp or unicode(int(time()))
 
     token_key = token and token.key
     token_secret = token and token.secret

@@ -23,19 +23,14 @@ To run this, we first import all the modules we need.
     ...     (self.portal, request), name='test_current_user')
     >>> baseurl = self.portal.absolute_url()
 
-The default OAuth utility should have been registered.
-::
-
-    >>> utility = zope.component.getUtility(IOAuthUtility)
-    >>> utility
-    <pmr2.oauth.utility.OAuthUtility object at ...>
-
-The request adapter should have been registered.
+The OAuth adapter should have been set up.
 ::
 
     >>> request = TestRequest()
-    >>> zope.component.getAdapter(request, IRequest)
-    {}
+    >>> oauthAdapter = zope.component.getMultiAdapter(
+    ...     (self.portal, request), IOAuthAdapter)
+    >>> oauthAdapter
+    <pmr2.oauth.utility.SiteRequestOAuth1ServerAdapter object at ...>
 
 The default consumer manager should also be available via adapter.
 ::
@@ -97,41 +92,19 @@ authorization, however we should log out here first.
     >>> rt()
     Traceback (most recent call last):
     ...
-    BadRequest: missing oauth parameters
+    BadRequest...
 
-We can try to make up some random request, that should fail because it
-is not signed properly.
-:::
-
-    >>> timestamp = str(int(time.time()))
-    >>> request = TestRequest(oauth_keys={
-    ...     'oauth_version': "1.0",
-    ...     'oauth_consumer_key': "consumer1.example.com",
-    ...     'oauth_nonce': "123123123123123123123123123",
-    ...     'oauth_timestamp': timestamp,
-    ...     'oauth_callback': "http://www.example.com/oauth/callback",
-    ...     'oauth_signature_method': "HMAC-SHA1",
-    ...     'oauth_signature': "ANT2FEjwDqxg383D",
-    ... })
-    >>> rt = token.RequestTokenPage(self.portal, request)
-    >>> rt()
-    Traceback (most recent call last):
-    ...
-    BadRequest: Invalid signature...
-
-Now we construct a request signed with the key, using python-oauth2.
-The desired request token string should be generated and returned.
-While the callback URL is still on the portal, this is for convenience
-sake.
+Now we construct a request signed with the key.  The desired request 
+token string should be generated and returned.  While the callback URL 
+is still on the portal, this is for convenience sake.
 ::
 
     >>> timestamp = str(int(time.time()))
-    >>> request = SignedTestRequest(oauth_keys={
-    ...     'oauth_version': "1.0",
-    ...     'oauth_nonce': "4572616e48616d6d65724c61686176",
-    ...     'oauth_timestamp': timestamp,
-    ...     'oauth_callback': baseurl + '/test_oauth_callback',
-    ... }, consumer=consumer1)
+    >>> request = SignedTestRequest(
+    ...     timestamp=timestamp,
+    ...     consumer=consumer1,
+    ...     callback=baseurl + '/test_oauth_callback',
+    ... )
     >>> rt = token.RequestTokenPage(self.portal, request)
     >>> atokenstr = rt()
     >>> print atokenstr
@@ -144,18 +117,13 @@ Try again using a browser, but try an oob callback.
     >>> url = baseurl + '/OAuthRequestToken'
     >>> timestamp = str(int(time.time()))
     >>> request = SignedTestRequest(
-    ...     oauth_keys={
-    ...         'oauth_version': "1.0",
-    ...         'oauth_nonce': "4572616e48616d6d65724c61686176",
-    ...         'oauth_timestamp': timestamp,
-    ...         'oauth_callback': 'oob',
-    ...     },
     ...     consumer=consumer1, 
     ...     url=url,
+    ...     callback='oob',
     ... )
     >>> auth = request._auth
     >>> browser = Browser()
-    >>> browser.addHeader('Authorization', 'OAuth %s' % auth)
+    >>> browser.addHeader('Authorization', auth)
     >>> browser.open(url)
     >>> btokenstr = browser.contents
     >>> print btokenstr
@@ -310,8 +278,8 @@ then be purged, and user will be redirected back to the callback,
 which the consumer will then handle this denial.
 ::
 
-    >>> testtok = tokenManager._generateBaseToken(consumer1, None)
-    >>> testtok.callback = baseurl + u'/test_oauth_callback?'
+    >>> testtok = tokenManager._generateBaseToken(consumer1.key)
+    >>> testtok.callback = baseurl + '/test_oauth_callback?'
     >>> testtok.set_verifier()
     >>> tokenManager.add(testtok)
     >>> u_browser.open(auth_baseurl + '?oauth_token=' + testtok.key)
@@ -324,8 +292,8 @@ which the consumer will then handle this denial.
 In the case of a rejected oob token, a message will be displayed.
 ::
 
-    >>> testtok = tokenManager._generateBaseToken(consumer1, None)
-    >>> testtok.callback = u'oob'
+    >>> testtok = tokenManager._generateBaseToken(consumer1.key)
+    >>> testtok.callback = 'oob'
     >>> tokenManager.add(testtok)
     >>> u_browser.open(auth_baseurl + '?oauth_token=' + testtok.key)
     >>> u_browser.getControl(name='form.buttons.deny').click()
@@ -351,45 +319,44 @@ get you this (log back out first).
 
     >>> self.logout()
     >>> timestamp = str(int(time.time()))
-    >>> request = SignedTestRequest(oauth_keys={
-    ...     'oauth_version': "1.0",
-    ...     'oauth_nonce': "806052fe5585b22f63fe27cba8b78732",
-    ...     'oauth_timestamp': timestamp,
-    ... }, consumer=consumer1)
+    >>> request = SignedTestRequest(
+    ...     consumer=consumer1,
+    ...     timestamp=timestamp,
+    ... )
     >>> rt = token.GetAccessTokenPage(self.portal, request)
     >>> result = rt()
     Traceback (most recent call last):
     ...
-    BadRequest: invalid token
+    BadRequest...
 
 Now for the token, but let's try to request an access token without the
 correct verifier assigned.
 ::
 
     >>> timestamp = str(int(time.time()))
-    >>> request = SignedTestRequest(oauth_keys={
-    ...     'oauth_version': "1.0",
-    ...     'oauth_nonce': "806052fe5585b22f63fe27cba8b78732",
-    ...     'oauth_timestamp': timestamp,
-    ... }, consumer=consumer1, token=atoken)
+    >>> request = SignedTestRequest(
+    ...     consumer=consumer1, 
+    ...     token=atoken,
+    ...     timestamp=timestamp,
+    ... )
     >>> rt = token.GetAccessTokenPage(self.portal, request)
     >>> print rt()
     Traceback (most recent call last):
     ...
-    BadRequest: invalid token
+    BadRequest...
 
 Okay, now do this properly with the verifier provided, as the consumer
 just accessed the callback URL of the consumer to supply it with the
 correct verifier.
 ::
 
-    >>> atoken.verifier = atoken_verifier
     >>> timestamp = str(int(time.time()))
-    >>> request = SignedTestRequest(oauth_keys={
-    ...     'oauth_version': "1.0",
-    ...     'oauth_nonce': "806052fe5585b22f63fe27cba8b78732",
-    ...     'oauth_timestamp': timestamp,
-    ... }, consumer=consumer1, token=atoken)
+    >>> request = SignedTestRequest(
+    ...     consumer=consumer1, 
+    ...     token=atoken,
+    ...     verifier=atoken_verifier,
+    ...     timestamp=timestamp,
+    ... )
     >>> rt = token.GetAccessTokenPage(self.portal, request)
     >>> accesstokenstr = rt()
     >>> print accesstokenstr
@@ -400,28 +367,33 @@ After verification, the old token should have been discarded and cannot
 be used again to request a new token.
 ::
 
-    >>> atoken.verifier = atoken_verifier
     >>> timestamp = str(int(time.time()))
-    >>> request = SignedTestRequest(oauth_keys={
-    ...     'oauth_version': "1.0",
-    ...     'oauth_nonce': "806052fe5585b22f63fe27cba8b78732",
-    ...     'oauth_timestamp': timestamp,
-    ... }, consumer=consumer1, token=atoken)
+    >>> request = SignedTestRequest(
+    ...     consumer=consumer1, 
+    ...     token=atoken,
+    ...     verifier=atoken_verifier,
+    ...     timestamp=timestamp,
+    ... )
     >>> rt = token.GetAccessTokenPage(self.portal, request)
     >>> rt()
     Traceback (most recent call last):
     ...
-    BadRequest: invalid token
+    Forbidden...
 
 Now try again using the browser.
 ::
 
     >>> url = baseurl + '/OAuthGetAccessToken'
-    >>> btoken.verifier = btoken_verifier
-    >>> request = SignedTestRequest(consumer=consumer1, token=btoken, url=url)
+    >>> request = SignedTestRequest(
+    ...     url=url,
+    ...     consumer=consumer1,
+    ...     token=btoken,
+    ...     verifier=btoken_verifier,
+    ...     timestamp=timestamp,
+    ... )
     >>> auth = request._auth
     >>> browser = Browser()
-    >>> browser.addHeader('Authorization', 'OAuth %s' % auth)
+    >>> browser.addHeader('Authorization', auth)
     >>> browser.open(url)
     >>> baccesstokenstr = browser.contents
     >>> print baccesstokenstr
@@ -453,30 +425,33 @@ build this string.
     >>> url = baseurl + '/test_current_user'
     >>> timestamp = str(int(time.time()))
     >>> request = SignedTestRequest(
-    ...     oauth_keys={
-    ...         'oauth_version': "1.0",
-    ...         'oauth_nonce': "806052fe5585b22f63fe27cba8b78732",
-    ...         'oauth_timestamp': timestamp,
-    ...     },
     ...     consumer=consumer1, 
     ...     token=access_token, 
+    ...     timestamp=timestamp,
     ...     url=url,
     ... )
     >>> auth = request._auth
     >>> browser = Browser()
-    >>> browser.addHeader('Authorization', 'OAuth %s' % auth)
+    >>> browser.addHeader('Authorization', auth)
     >>> browser.open(url)
     Traceback (most recent call last):
     ...
     HTTPError: HTTP Error 403: Forbidden
 
 There is one more security consideration that needs to be satisified
-still - the scope.  The default scope manager only permit GET requests,
-and they must match one of the permit rules that it contains.  Add this
-URL and try again.
+still - the scope.  The default scope manager stores key-value pairs of
+portal types against a list of permitted names, with the names being
+the subpath to a given object.
+
+Here we manually assign our default views against the portal root 
+object.
 ::
 
-    >>> scopeManager.permitted = 'test_current_user$\ntest_current_roles$\n'
+    >>> scopeManager.default_scopes = {
+    ...     'Plone Site': ['test_current_user', 'test_current_roles'],
+    ... }
+    >>> browser = Browser()
+    >>> browser.addHeader('Authorization', auth)
     >>> browser.open(url)
     >>> print browser.contents
     test_user_1_
@@ -498,7 +473,7 @@ Try the roles view also, since it is also permitted.
     ... )
     >>> auth = request._auth
     >>> browser = Browser()
-    >>> browser.addHeader('Authorization', 'OAuth %s' % auth)
+    >>> browser.addHeader('Authorization', auth)
     >>> browser.open(url)
     >>> print browser.contents
     Member
@@ -512,189 +487,7 @@ Scope
 While the current scope manager already place limits on what consumers
 can access, individual users should be able to place further
 restrictions on the amount of their resources a given consumer may
-access.  Attaching a scope to a token is a method that enables this 
-limitation.  As the implementation is completely extensible, the
-specific parameters used/accepted by the scope is dependent on those 
-details, likewise for the presentation of the scope to the end user
-(e.g. implementation of scope managers can translate raw scope into
-icons of a provided service more easily identifiable to end users).
-
-For our demonstration, we continue our usage of the default scope
-manager by specifying a regular expression matching a URI.  Here we have
-a consumer requesting a token like earlier, but with a scope parameter
-defined.
-::
-
-    >>> url = baseurl + '/OAuthRequestToken?scope=test_current_user%24'
-    >>> timestamp = str(int(time.time()))
-    >>> request = SignedTestRequest(
-    ...     oauth_keys={
-    ...         'oauth_version': "1.0",
-    ...         'oauth_nonce': "109850980381481596938563",
-    ...         'oauth_timestamp': timestamp,
-    ...         'oauth_callback': baseurl + '/test_oauth_callback',
-    ...     },
-    ...     consumer=consumer1,
-    ...     url=url,
-    ... )
-    >>> auth = request._auth
-    >>> consumer_browser = Browser()
-    >>> consumer_browser.addHeader('Authorization', 'OAuth %s' % auth)
-    >>> consumer_browser.open(url)
-    >>> scoped_request_tokenstr = consumer_browser.contents
-    >>> print scoped_request_tokenstr
-    oauth_token_secret=...&oauth_token=...&oauth_callback_confirmed=true
-    >>> scoped_request_token = oauth.Token.from_string(scoped_request_tokenstr)
-
-Verify that our scope value is stored in the request token.
-::
-
-    >>> srt_key = scoped_request_token.key
-    >>> raw_srt = tokenManager.get(srt_key)
-    >>> print raw_srt.scope
-    test_current_user$
-
-Much like before, the user would be directed to the authorization page,
-this time the specific scope this consumer would like to access is
-visible.  We also reuse the original current user's browser (which
-should still be logged in).  Also, since this token is limited in scope,
-the user should be informed.
-::
-
-    >>> u_browser.open(auth_baseurl + '?oauth_token=' + srt_key)
-    >>> 'The site <strong>' + consumer1.key + '</strong>' in u_browser.contents
-    True
-    >>> 'test_current_user$' in u_browser.contents
-    True
-
-User is nice once more and authorizes this second token.
-::
-
-    >>> u_browser.getControl(name='form.buttons.approve').click()
-    >>> url = u_browser.url
-    >>> qs = urlparse.parse_qs(urlparse.urlparse(url).query)
-    >>> token_verifier = qs['oauth_verifier'][0]
-    >>> scoped_request_token.verifier = token_verifier
-
-Complete the authorization by requesting the access token, and see that
-it retains the scope that was specified in the request token.
-::
-
-    >>> url = baseurl + '/OAuthGetAccessToken'
-    >>> timestamp = str(int(time.time()))
-    >>> request = SignedTestRequest(
-    ...     oauth_keys={
-    ...         'oauth_version': "1.0",
-    ...         'oauth_nonce': "028516734893275926641849",
-    ...         'oauth_timestamp': timestamp,
-    ...     }, 
-    ...     consumer=consumer1, 
-    ...     token=scoped_request_token,
-    ...     url=url,
-    ... )
-    >>> auth = request._auth
-    >>> consumer_browser = Browser()
-    >>> consumer_browser.addHeader('Authorization', 'OAuth %s' % auth)
-    >>> consumer_browser.open(url)
-    >>> scoped_access_tokenstr = consumer_browser.contents
-    >>> print scoped_access_tokenstr
-    oauth_token_secret=...&oauth_token=...
-    >>> scoped_access_token = oauth.Token.from_string(scoped_access_tokenstr)
-    >>> sat_key = scoped_access_token.key
-    >>> raw_sat = tokenManager.get(sat_key)
-    >>> print raw_sat.scope
-    test_current_user$
-
-With this token, consumer only requested the current user and not the
-roles view, so this request should result in a forbidden error (even
-though it is publicly visible).
-::
-
-    >>> url = baseurl + '/test_current_roles'
-    >>> timestamp = str(int(time.time()))
-    >>> request = SignedTestRequest(
-    ...     oauth_keys={
-    ...         'oauth_version': "1.0",
-    ...         'oauth_nonce': "028516734893275926641849",
-    ...         'oauth_timestamp': timestamp,
-    ...     }, 
-    ...     consumer=consumer1, 
-    ...     token=scoped_access_token,
-    ...     url=url,
-    ... )
-    >>> auth = request._auth
-    >>> consumer_browser = Browser()
-    >>> consumer_browser.addHeader('Authorization', 'OAuth %s' % auth)
-    >>> consumer_browser.open(url)
-    Traceback (most recent call last):
-    ...
-    HTTPError: HTTP Error 403: Forbidden
-
-Now attempt to use it to access a permitted resource, in this case it
-would be the test_current_user view.
-::
-
-    >>> url = baseurl + '/test_current_user'
-    >>> timestamp = str(int(time.time()))
-    >>> request = SignedTestRequest(
-    ...     oauth_keys={
-    ...         'oauth_version': "1.0",
-    ...         'oauth_nonce': "028516734893275926641849",
-    ...         'oauth_timestamp': timestamp,
-    ...     }, 
-    ...     consumer=consumer1, 
-    ...     token=scoped_access_token,
-    ...     url=url,
-    ... )
-    >>> auth = request._auth
-    >>> consumer_browser = Browser()
-    >>> consumer_browser.addHeader('Authorization', 'OAuth %s' % auth)
-    >>> consumer_browser.open(url)
-    >>> print consumer_browser.contents
-    test_user_1_
-
-However, if this view is no longer permitted by the default scope
-manager, it should no longer be accessible.
-::
-
-    >>> scopeManager.permitted = 'test_current_roles$\n'
-    >>> consumer_browser.open(url)
-    Traceback (most recent call last):
-    ...
-    HTTPError: HTTP Error 403: Forbidden
-
-The default scope manager should evaluate by the actual view/object that
-is being requested with a URI, even though it may be partial.  Example
-includes the site root, where a default page is selected which in turn
-provides a default view.
-::
-
-    >>> scopeManager.permitted = 'document_view$\ntest_current_roles$\n'
-    >>> url = baseurl
-    >>> timestamp = str(int(time.time()))
-    >>> request = SignedTestRequest(
-    ...     oauth_keys={
-    ...         'oauth_version': "1.0",
-    ...         'oauth_nonce': "028516734893275926641849",
-    ...         'oauth_timestamp': timestamp,
-    ...     }, 
-    ...     consumer=consumer1, 
-    ...     token=access_token, 
-    ...     url=url,
-    ... )
-    >>> auth = request._auth
-    >>> consumer_browser = Browser()
-    >>> consumer_browser.addHeader('Authorization', 'OAuth %s' % auth)
-    >>> consumer_browser.open(url)
-    >>> consumer_browser.url
-    'http://nohost/plone'
-    >>> 'Welcome to Plone' in consumer_browser.contents
-    True
-
-
----------------------
-Management Interfaces
----------------------
+access.  This will be reimplemented once the scope cleanup is complete.
 
 Finally, the user (and site managers) would need to know what tokens are
 stored for who and also the ability to revoke tokens when they no longer
@@ -716,8 +509,6 @@ should show up if the listing page is viewed.
     >>> result = view()
     >>> access_token.key in result
     True
-    >>> scoped_access_token.key in result
-    True
     >>> 'consumer1.example.com' in result
     True
 
@@ -729,7 +520,7 @@ of the tokens using the test browser.
     >>> u_browser.getControl(name="form.widgets.key").controls[0].click()
     >>> u_browser.getControl(name='form.buttons.revoke').click()
     >>> len(tokenManager.getTokensForUser(default_user))
-    2
+    1
     >>> result = u_browser.contents
     >>> 'Access successfully removed' in result
     True
@@ -791,29 +582,3 @@ Should have no problems removing them either.
     False
     >>> 'consumer3.example.com' in result
     False
-
-Lastly, scope manager also has a simple form that allow basic editing of
-global scope parameters for the current active scope manager.  The URI
-to this is `${portal_url}/manage-oauth-consumers`.
-::
-
-    >>> from pmr2.oauth.browser import scope
-    >>> request = TestRequestAuthed()
-    >>> view = scope.ScopeEditForm(self.portal, request)
-    >>> result = view()
-    >>> 'test_current_roles$' in result
-    True
-
-That value can be edited.
-::
-
-    >>> request = TestRequestAuthed(form={
-    ...     'form.widgets.permitted': 'test_current_user$',
-    ...     'form.buttons.apply': 1,
-    ... })
-    >>> view = scope.ScopeEditForm(self.portal, request)
-    >>> result = view()
-    >>> 'test_current_roles$' in result
-    False
-    >>> 'test_current_user$' in result
-    True

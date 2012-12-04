@@ -1,5 +1,8 @@
+import urllib
+
 import zope.component
 import zope.interface
+from zope.app.component.hooks import getSite
 from zope.publisher.browser import BrowserPage
 
 from zExceptions import BadRequest
@@ -23,18 +26,6 @@ class BaseTokenPage(BrowserPage):
     # token to return
     token = None
 
-    def _checkRequest(self, request):
-        o_request = zope.component.getAdapter(request, IRequest)
-
-        if not o_request:
-            raise RequestInvalidError('missing oauth parameters')
-        # XXX check and assemble a list of missing parameters.
-
-        # Also verify the nonce here as this is common.
-        self._checkNonce(o_request.get('oauth_nonce'))
-
-        return o_request
-
     def _checkConsumer(self, key):
         cm = zope.component.getMultiAdapter((self.context, self.request),
             IConsumerManager)
@@ -53,37 +44,40 @@ class BaseTokenPage(BrowserPage):
             raise TokenInvalidError('invalid token')
         return token
 
-    def _checkCallback(self, callback):
-        m = zope.component.queryMultiAdapter((self.context, self.request),
-            ICallbackManager)
-        if m is None:
-            # If this site does not implement any restriction on what
-            # constitutes a valid callback, default is whitelist for
-            # anything.  However, individual token managers can forcibly
-            # enforce some hard values, such as not None or `oob`.
-            return True
-        return m.check(callback)
+    def _verifyToken(self, oauth):
+        # Return the correct OAuth method for the respective token 
+        # request page.
+        raise NotImplementedError()
 
-    def _checkNonce(self, nonce):
-        m = zope.component.queryMultiAdapter((self.context, self.request),
-            INonceManager)
-        if m is None:
-            # if we don't have a way to check nonce, we just have to
-            # assume it is valid.
-            return True
-        return m.check(nonce)
-
-    def _verifyOAuthRequest(self, o_request, consumer, token):
-        # Check that this OAuth request is properly signed.
-        raise NotImplementedError
-        utility = zope.component.getUtility(IOAuthUtility)
-        params = utility.verify_request(o_request, consumer, token)
+    def getOAuth1(self):
+        if not hasattr(self.request, '_pmr2_oauth1_'):
+            site = getSite()
+            oauthAdapter = zope.component.getMultiAdapter((site, self.request),
+                IOAuthAdapter)
+            try:
+                result, oauth1 = self._verifyToken(oauthAdapter)
+            except ValueError:
+                raise BadRequest()
+            if not result:
+                raise Forbidden()
+            #self.request._pmr2_oauth1_ = oauth1
+            return oauth1
+        else:
+            # Prepared by the run at the plugin.
+            return self.request._pmr2_oauth1_
 
     def update(self):
-        raise NotImplemented
+        raise NotImplementedError()
 
     def render(self):
-        return self.token.to_string()
+        token = self.token
+        data = {
+            'oauth_token': token.key,
+            'oauth_token_secret': token.secret,
+        }
+        if token.callback is not None:
+            data['oauth_callback_confirmed'] = 'true'
+        return urllib.urlencode(data)
 
     def __call__(self):
         self.update()
@@ -92,51 +86,44 @@ class BaseTokenPage(BrowserPage):
 
 class RequestTokenPage(BaseTokenPage):
 
+    def _verifyToken(self, oauth):
+        # See parent class
+        return oauth.verify_request_token_request()
+
     def update(self):
+        oauth1 = self.getOAuth1()
 
-        try:
-            o_request = self._checkRequest(self.request)
+        # This is an 8-bit protocol, so we cast the oauthlib request
+        # parameters into something we would expect from the http spec.
+        # If this dies in a fire it is not my problem.
+        consumer_key = str(oauth1.client_key)
+        callback = str(oauth1.callback_uri)
 
-            consumer_key = o_request.get('oauth_consumer_key', None)
-            consumer = self._checkConsumer(consumer_key)
-
-            callback = o_request.get('oauth_callback')
-            self._checkCallback(callback)
-
-            self._verifyOAuthRequest(o_request, consumer, None)
-
-            # create request token
-            tm = zope.component.getMultiAdapter((self.context, self.request),
-                ITokenManager)
-            self.token = tm.generateRequestToken(consumer, o_request)
-        except (BaseValueError, BaseInvalidError,), e:
-            raise BadRequest(e.args[0])
+        # create request token
+        tm = zope.component.getMultiAdapter((self.context, self.request),
+            ITokenManager)
+        self.token = tm.generateRequestToken(consumer_key, callback)
 
 
 class GetAccessTokenPage(BaseTokenPage):
 
+    def _verifyToken(self, oauth):
+        # See parent class
+        return oauth.verify_access_token_request()
+
     def update(self):
-        o_request = self._checkRequest(self.request)
+        oauth1 = self.getOAuth1()
 
-        try:
-            o_request = self._checkRequest(self.request)
+        # This is an 8-bit protocol, so we cast the oauthlib request
+        # parameters into something we would expect from the http spec.
+        # If this dies in a fire it is not my problem.
+        consumer_key = str(oauth1.client_key)
+        token_key = str(oauth1.resource_owner_key)
+        verifier = str(oauth1.verifier)
 
-            consumer_key = o_request.get('oauth_consumer_key', None)
-            consumer = self._checkConsumer(consumer_key)
-
-            token_key = o_request.get('oauth_token', None)
-            token = self._checkToken(token_key)
-
-            self._verifyOAuthRequest(o_request, consumer, token)
-
-            # Token creation will validate the request for the verifier,
-            # which can raise error that needs to be caught.
-            tm = zope.component.getMultiAdapter((self.context, self.request),
-                ITokenManager)
-            self.token = tm.generateAccessToken(consumer, o_request)
-
-        except (BaseValueError, BaseInvalidError,), e:
-            raise BadRequest(e.args[0])
+        tm = zope.component.getMultiAdapter((self.context, self.request),
+            ITokenManager)
+        self.token = tm.generateAccessToken(consumer_key, token_key)
 
 
 class AuthorizeTokenForm(form.PostForm, BaseTokenPage):
@@ -203,7 +190,7 @@ class AuthorizeTokenForm(form.PostForm, BaseTokenPage):
         # can implement more friendly renderings of requested resources
         # in a more friendly way so that these views don't need to be
         # customized.
-        return self.token.scope
+        return ''
 
     @button.buttonAndHandler(_('Grant access'), name='approve')
     def handleApprove(self, action):
@@ -225,6 +212,7 @@ class AuthorizeTokenForm(form.PostForm, BaseTokenPage):
         tm.claimRequestToken(self.token, user)
         if not self.token.callback == 'oob':
             callback_url = self.token.get_callback_url()
+            # XXX here is where the callback URL will fail.
             return self.request.response.redirect(callback_url)
         # handle oob
         self.verifier = self.token.verifier

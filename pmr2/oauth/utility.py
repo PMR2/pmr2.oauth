@@ -65,6 +65,14 @@ class SiteRequestOAuth1ServerAdapter(oauthlib.oauth1.Server):
         # We only want a True or False value.
         return result
 
+    def mark_request(self, oauth_request):
+        """
+        Mark the request object with a flag to give hints for the token
+        management pages.
+        """
+
+        self.request._pmr2_oauth1_ = oauth_request
+
     def verify_pas_request(self):
         """
         Verify a standard request with all checks in order to not
@@ -96,9 +104,11 @@ class SiteRequestOAuth1ServerAdapter(oauthlib.oauth1.Server):
             # undefined result (as None) and whichever request object
             # that got generated.
             if req_result:
+                self.mark_request(req_request)
                 return None, req_request
 
             if acc_result:
+                self.mark_request(acc_request)
                 return None, acc_request
 
         return result, request
@@ -269,17 +279,19 @@ class SiteRequestOAuth1ServerAdapter(oauthlib.oauth1.Server):
         return True
 
     def validate_redirect_uri(self, client_key, redirect_uri):
-        # Zope does this internally, deferr checking to that level.
+        # Redirect URI will be external, verify that it is in the
+        # same format as it was registered for the consumer.
+        # Zope also does this internally, will need to adjust the
+        # token authorization form.
         return True
 
     def validate_requested_realm(self, client_key, realm):
-        # Realms are not currently used, but this could be used for
-        # instantiating the correct scope manager.
+        # Realms are not handled.
         return True
 
     def validate_realm(self, client_key, access_token, uri=None,
             required_realm=None):
-        # Realms are not used.
+        # Realms are not handled.
         return True
 
     def validate_verifier(self, client_key, request_token, verifier):
