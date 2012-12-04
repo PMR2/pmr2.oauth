@@ -78,17 +78,46 @@ class OAuthPlugin(BasePlugin):
         if result is False:
             raise Forbidden('authorization failed')
 
-        scopeManager = zope.component.queryMultiAdapter(
-            (site, request), IScopeManager)
-        context = None
-        if (scopeManager is None or not scopeManager.validate(
-                context, verifier.client_key, verifier.access_key)):
+        # Please see _validateScope
+        scope = self._validateScope(site, request,
+            verifier.client_key, verifier.access_key)
+        if scope is False:
             raise Forbidden('invalid scope')
+
+        if scope is None:
+            # No scope manager?
+            return {}
 
         mappings = {}
         token = verifier.tokenManager.getAccessToken(verifier.access_key)
         mappings['userid'] = token.user
         return mappings
+
+    def _validateScope(self, site, request, client_key, access_key):
+        # This should really be done outside of here by a customized
+        # SecurityManager/Policy, which PAS will invoke some time after
+        # this plugin is called.  However I have no time to figure out 
+        # how or where to start, so a short-circuit process is done here 
+        # for now.
+        
+        pas = self._getPAS()
+        accessed, container, name, value = pas._getObjectContext(
+            request.PUBLISHED, request)
+
+        scopeManager = zope.component.queryMultiAdapter(
+            (site, request), IScopeManager)
+        if not scopeManager:
+            # This normally shouldn't happen...
+            return
+        
+        scopeValidity = scopeManager.validate(client_key, access_key, 
+            accessed=accessed,
+            container=container,
+            name=name,
+            value=value,
+        )
+
+        return scopeValidity
 
     # IAuthenticationPlugin implementation
     def authenticateCredentials(self, credentials):

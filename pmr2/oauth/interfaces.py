@@ -141,13 +141,11 @@ class IScopeManager(zope.interface.Interface):
     # individual scope manager should deal with how/what the meaning of
     # the scope value within each token.
 
-    def validate(context, client_key, access_key):
+    def validate(context, client_key, access_key, 
+            accessed, container, name, value):
         """\
         Validate the scope against the given context with the given
         client and owner.
-
-        context
-            the object to access.
 
         client
             the client (consumer) key.
@@ -155,6 +153,21 @@ class IScopeManager(zope.interface.Interface):
         access_key
             the access key identifying a given token granted by a
             resource owner.
+
+        accessed
+            the immediate object accessed by the client before the
+            value
+
+        container
+            the real container of the value
+
+        name
+            the name used by the client to access the value.
+
+        value
+            the value accessed by the client. 
+
+        The latter four fields are normally called by keywords.
         """
 
 

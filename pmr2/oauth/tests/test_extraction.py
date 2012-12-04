@@ -16,8 +16,6 @@ from pmr2.oauth.token import TokenManager
 from pmr2.oauth.consumer import Consumer
 from pmr2.oauth.consumer import ConsumerManager
 
-from pmr2.oauth.scope import DefaultScopeManager
-
 from pmr2.oauth.tests.base import IOAuthTestLayer
 from pmr2.oauth.tests.base import TestRequest
 from pmr2.oauth.tests.base import SignedTestRequest
@@ -30,15 +28,6 @@ def mock_factory(cls):
     return getInstance
 
 
-class PermissiveScopeManager(DefaultScopeManager):
-    def validate(self, context, client_key, access_key):
-        # a very permissive scope manager.  Focus of the tests here are
-        # on the core OAuth bits.  There are separate unit tests for the
-        # DefaultScopeManager and integration/system tests that tests
-        # all of this stuff working together.
-        return True
-
-
 class TestExtraction(unittest.TestCase):
 
     default_consumer_key = 'consumer.example.com'
@@ -47,14 +36,11 @@ class TestExtraction(unittest.TestCase):
     def setUp(self):
         tmf = mock_factory(TokenManager)
         cmf = mock_factory(ConsumerManager)
-        smf = mock_factory(PermissiveScopeManager)
         self.plugin = self.createPlugin()
         zope.component.provideAdapter(
             cmf, (Interface, IOAuthTestLayer,), IConsumerManager)
         zope.component.provideAdapter(
             tmf, (Interface, IOAuthTestLayer,), ITokenManager)
-        zope.component.provideAdapter(
-            smf, (Interface, IOAuthTestLayer,), IScopeManager)
         zope.component.provideAdapter(SiteRequestOAuth1ServerAdapter,
             (Interface, IOAuthTestLayer,), IOAuthAdapter)
 
@@ -62,14 +48,17 @@ class TestExtraction(unittest.TestCase):
             (object, TestRequest()), IConsumerManager)
         self.tokenManager = zope.component.getMultiAdapter(
             (object, TestRequest()), ITokenManager)
-        self.scopeManager = zope.component.getMultiAdapter(
-            (object, TestRequest()), IScopeManager)
 
     def createPlugin(self):
         from pmr2.oauth.tests.utility import MockPAS
         from pmr2.oauth.tests.utility import MockSite
         from pmr2.oauth.plugins.oauth import OAuthPlugin
-        plugin = OAuthPlugin("oauth")
+
+        class NoScopeOAuthPlugin(OAuthPlugin):
+            def _validateScope(self, *a, **kw):
+                return True
+
+        plugin = NoScopeOAuthPlugin("oauth")
         return plugin.__of__((MockPAS()).__of__(MockSite()))
 
     def generate_consumer_and_token(self, consumer_key=None,
