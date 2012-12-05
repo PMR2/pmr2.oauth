@@ -71,21 +71,21 @@ class DefaultScopeManager(ScopeManager):
 
         return
 
-    def validate(self, client_key, access_key, container, name, **kw):
+    def validate(self, client_key, access_key, accessed, name, **kw):
         """
         Default validation.
 
         Ignore where the value was originally accessed from and focus
-        on the container.  Traverse back up the container until we reach
-        a registered type, using the names to build our subpath, then
-        see if it is in the list of permitted scope for the container
-        type.
+        on the accessed object.  Traverse up the parents until arrival 
+        at a registered type, using the names to build the subpath, then
+        check for its existence in the list of permitted scope for the 
+        accessed object.
         """
 
         if not self.default_scopes:
             return False
 
-        container_typeid, subpath = self.resolveValues(container, name)
+        container_typeid, subpath = self.resolveValues(accessed, name)
         valid_scopes = self.default_scopes.get(container_typeid, {})
         if not valid_scopes:
             return False

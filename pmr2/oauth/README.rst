@@ -423,11 +423,9 @@ build this string.
 ::
 
     >>> url = baseurl + '/test_current_user'
-    >>> timestamp = str(int(time.time()))
     >>> request = SignedTestRequest(
     ...     consumer=consumer1, 
     ...     token=access_token, 
-    ...     timestamp=timestamp,
     ...     url=url,
     ... )
     >>> auth = request._auth
@@ -460,13 +458,7 @@ Try the roles view also, since it is also permitted.
 ::
 
     >>> url = baseurl + '/test_current_roles'
-    >>> timestamp = str(int(time.time()))
     >>> request = SignedTestRequest(
-    ...     oauth_keys={
-    ...         'oauth_version': "1.0",
-    ...         'oauth_nonce': "806052fe5585b22f63fe27cba8b78732",
-    ...         'oauth_timestamp': timestamp,
-    ...     },
     ...     consumer=consumer1, 
     ...     token=access_token, 
     ...     url=url,
@@ -478,6 +470,30 @@ Try the roles view also, since it is also permitted.
     >>> print browser.contents
     Member
     Authenticated
+
+If a client were to access a content type object without specifying a
+view, typically the default view will be resolved.  If this is included
+in the list of allowed names for the content type, the scope manager
+will permit access.  Naturally, create an entry in the scope manager for
+this content type.
+::
+
+    >>> scopeManager.default_scopes = {
+    ...     'Plone Site': ['test_current_user', 'test_current_roles'],
+    ...     'Folder': ['folder_listing',],
+    ... }
+    >>> url = self.folder.absolute_url()
+    >>> request = SignedTestRequest(
+    ...     consumer=consumer1, 
+    ...     token=access_token, 
+    ...     url=url,
+    ... )
+    >>> auth = request._auth
+    >>> browser = Browser()
+    >>> browser.addHeader('Authorization', auth)
+    >>> browser.open(url)
+    >>> 'There are currently no items in this folder.' in browser.contents
+    True
 
 
 -----
