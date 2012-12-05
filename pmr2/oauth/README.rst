@@ -489,6 +489,11 @@ can access, individual users should be able to place further
 restrictions on the amount of their resources a given consumer may
 access.  This will be reimplemented once the scope cleanup is complete.
 
+
+---------------------
+Management Interfaces
+---------------------
+
 Finally, the user (and site managers) would need to know what tokens are
 stored for who and also the ability to revoke tokens when they no longer
 wish to retain access for the consumer.  This is where the management
