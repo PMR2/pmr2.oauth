@@ -50,7 +50,7 @@ class DefaultScopeManager(ScopeManager):
     default_scopes = fieldproperty.FieldProperty(
         IDefaultScopeManager['default_scopes'])
 
-    def getContainerType(self, container):
+    def resolveValues(self, container, name):
         # use getSite() instead of container?
         pt_tool = getToolByName(container, 'portal_types', None)
         if pt_tool is None:
@@ -58,11 +58,15 @@ class DefaultScopeManager(ScopeManager):
 
         context = aq_inner(container)
         typeinfo = None
+        subpath = [name]
 
         while context is not None:
             typeinfo = pt_tool.getTypeInfo(context)
             if typeinfo:
-                return typeinfo.id
+                subpath.reverse()
+                return typeinfo.id, '/'.join(subpath)
+            # It should have a name...
+            subpath.append(context.__name__)
             context = aq_parent(context)
 
         return
@@ -81,13 +85,11 @@ class DefaultScopeManager(ScopeManager):
         if not self.default_scopes:
             return False
 
-        container_type = self.getContainerType(container)
-        valid_scopes = self.default_scopes.get(container_type, {})
+        container_typeid, subpath = self.resolveValues(container, name)
+        valid_scopes = self.default_scopes.get(container_typeid, {})
         if not valid_scopes:
             return False
 
-        # XXX name is not corrected.  Implement unit tests for this 
-        # class
-        return name in valid_scopes
+        return subpath in valid_scopes
 
 DefaultScopeManagerFactory = factory(DefaultScopeManager)
