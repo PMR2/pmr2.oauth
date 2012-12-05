@@ -10,35 +10,76 @@ from zope.schema import fieldproperty
 from Acquisition import aq_parent, aq_inner
 from Products.CMFCore.utils import getToolByName
 
-from pmr2.oauth.interfaces import IScopeManager
-from pmr2.oauth.interfaces import IDefaultScopeManager
+from pmr2.oauth.interfaces import IScopeManager, IDefaultScopeManager
+from pmr2.oauth.interfaces import IDefaultScopeProfile
 from pmr2.oauth.factory import factory
 
 
-class ScopeManager(Persistent, Contained):
+class ScopeManager(object):
     """\
     Base scope manager.
 
-    The base scope manager, does nothing on its own, serve as a 
-    boilerplate for other scope manager.
+    The base scope manager, does nothing on its own, can be used as a
+    boilerplate for other scope managers.
     """
 
-    zope.component.adapts(IAttributeAnnotatable, zope.interface.Interface)
     zope.interface.implements(IScopeManager)
     
     def __init__(self):
         pass
 
+    def storeClientScope(self, client_key, scope):
+        """
+        See IScopeManager
+        """
+
+        raise NotImplementedError()
+
+    def storeAccessScope(self, access_key, scope):
+        """
+        See IScopeManager
+        """
+
+        raise NotImplementedError()
+
+    def getClientScope(self, client_key):
+        """
+        See IScopeManager
+        """
+
+        raise NotImplementedError()
+
+    def getAccessScope(self, access_key):
+        """
+        See IScopeManager
+        """
+
+        raise NotImplementedError()
+
+    def delClientScope(self, client_key):
+        """
+        See IScopeManager
+        """
+
+        raise NotImplementedError()
+
+    def delAccessScope(self, access_key):
+        """
+        See IScopeManager
+        """
+
+        raise NotImplementedError()
+
     def validate(self, client_key, access_key, **kw):
         """
-        See IScopeManager.validate
+        See IScopeManager
         """
 
-        raise NotImplemented
+        raise NotImplementedError()
 
 
-class DefaultScopeManager(ScopeManager):
-    """\
+class DefaultScopeManager(Persistent, Contained, ScopeManager):
+    """
     Default scope manager.
 
     The default scope manage only checks whether the name listed in the
@@ -46,17 +87,67 @@ class DefaultScopeManager(ScopeManager):
     in this manager.
     """
 
+    zope.component.adapts(IAttributeAnnotatable, zope.interface.Interface)
     zope.interface.implements(IDefaultScopeManager)
-    default_scopes = fieldproperty.FieldProperty(
-        IDefaultScopeManager['default_scopes'])
 
-    def resolveValues(self, container, name):
+    mappings = fieldproperty.FieldProperty(IDefaultScopeProfile['mappings'])
+
+    def storeClientScope(self, client_key, scope):
+        """
+        See IScopeManager
+        """
+
+    def storeAccessScope(self, access_key, scope):
+        """
+        See IScopeManager
+        """
+
+    def getClientScope(self, client_key):
+        """
+        See IScopeManager
+        """
+
+    def getAccessScope(self, access_key):
+        """
+        See IScopeManager
+        """
+
+    def delClientScope(self, client_key):
+        """
+        See IScopeManager
+        """
+
+    def delAccessScope(self, access_key):
+        """
+        See IScopeManager
+        """
+
+    def validate(self, client_key, access_key,
+            accessed, container, name, value):
+        """
+        See IScopeManager.
+        """
+
+        accessed_typeid, subpath = self.resolveTarget(accessed, name)
+        profile = self.resolveProfile(client_key, access_key)
+        return self.validateTargetWithProfile(
+            accessed_typeid, subpath, profile)
+
+    def resolveProfile(self, client_key, access_key):
+        """
+        See IDefaultScopeManager.
+        """
+
+        # XXX placeholder
+        return self
+
+    def resolveTarget(self, accessed, name):
         # use getSite() instead of container?
-        pt_tool = getToolByName(container, 'portal_types', None)
+        pt_tool = getToolByName(accessed, 'portal_types', None)
         if pt_tool is None:
-            return
+            return None, None
 
-        context = aq_inner(container)
+        context = aq_inner(accessed)
         typeinfo = None
         subpath = [name]
 
@@ -69,9 +160,9 @@ class DefaultScopeManager(ScopeManager):
             subpath.append(context.__name__)
             context = aq_parent(context)
 
-        return
+        return None, None
 
-    def validate(self, client_key, access_key, accessed, name, **kw):
+    def validateTargetWithProfile(self, accessed_typeid, subpath, profile):
         """
         Default validation.
 
@@ -82,11 +173,11 @@ class DefaultScopeManager(ScopeManager):
         accessed object.
         """
 
-        if not self.default_scopes:
+        mappings = profile.mappings
+        if not mappings:
             return False
 
-        container_typeid, subpath = self.resolveValues(accessed, name)
-        valid_scopes = self.default_scopes.get(container_typeid, {})
+        valid_scopes = mappings.get(accessed_typeid, {})
         if not valid_scopes:
             return False
 

@@ -138,16 +138,42 @@ class IScopeManager(zope.interface.Interface):
     on what an authenticated token can access.
     """
 
-    # individual scope manager should deal with how/what the meaning of
-    # the scope value within each token.
+    def storeClientScope(client_key, scope):
+        """
+        Store the scope provided by client, referenced by client_key.
+        """
 
-    def validate(context, client_key, access_key, 
-            accessed, container, name, value):
-        """\
+    def storeAccessScope(access_key, scope):
+        """
+        Store the scope provided by access, referenced by access_key.
+        """
+
+    def getClientScope(client_key):
+        """
+        Get the scope for the provided client_key.
+        """
+
+    def getAccessScope(access_key):
+        """
+        Get the scope for the provided access_key.
+        """
+
+    def delClientScope(client_key):
+        """
+        Delete the scope for the provided client_key.
+        """
+
+    def delAccessScope(access_key):
+        """
+        Delete the scope for the provided access_key.
+        """
+
+    def validate(client_key, access_key, accessed, container, name, value):
+        """
         Validate the scope against the given context with the given
         client and owner.
 
-        client
+        client_key
             the client (consumer) key.
 
         access_key
@@ -171,15 +197,39 @@ class IScopeManager(zope.interface.Interface):
         """
 
 
-class IDefaultScopeManager(zope.interface.Interface):
-    """\
-    Fields for the default scope manager.
+class IDefaultScopeManager(IScopeManager):
+    """
+    Market interface for the default scope manager.
     """
 
-    default_scopes = zope.schema.Dict(
-        title=_(u'Default Scopes'),
-        description=_(u'List of permitted views for each of the following '
-                     'portal types'),
+    def resolveProfile(client_key, access_key):
+        """
+        Reolve the provided client_key and access_key into a validation
+        profile.
+        """
+
+    def resolveTarget(accessed, name):
+        """
+        Resolve the accessed item and name into a target for the next
+        method.
+        """
+
+    def validateTargetWithProfile(accessed_typeid, subpath, profile):
+        """
+        The scope value will resolve into a profile which is used to
+        validate against the provided parameters.
+        """
+
+
+class IDefaultScopeProfile(zope.interface.Interface):
+    """
+    Validation profile for the default scope manager.
+    """
+
+    mappings = zope.schema.Dict(
+        title=_(u'Scope Mappings'),
+        description=_(u'A mapping for each of the following portal types to '
+                     'a list of permitted subpaths.'),
         key_type=zope.schema.ASCIILine(
             title=_(u'Portal Type')
         ),

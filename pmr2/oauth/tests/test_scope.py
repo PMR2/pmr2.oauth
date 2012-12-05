@@ -18,65 +18,68 @@ from pmr2.oauth.scope import DefaultScopeManager
 from pmr2.oauth.tests import base
 
 
-class DefaultScopeManagerTestCase(ptc.PloneTestCase):
+class DefaultScopeManagerBaseTestCase(ptc.PloneTestCase):
+    """
+    The base test cases without the handling of client/access keys.
+    """
 
     def afterSetUp(self):
         self.scopeManager = DefaultScopeManager()
 
-    def assertScopeValid(self, client, owner, container, name):
-        self.assertTrue(self.scopeManager.validate(
-            client, owner, container, name))
+    def assertScopeValid(self, accessed, name):
+        self.assertTrue(self.scopeManager.validate(None, None,
+            accessed, None, name, None))
 
-    def assertScopeInvalid(self, client, owner, container, name):
-        self.assertFalse(self.scopeManager.validate(
-            client, owner, container, name))
+    def assertScopeInvalid(self, accessed, name):
+        self.assertFalse(self.scopeManager.validate(None, None,
+            accessed, None, name, None))
 
     def test_0000_empty_scope(self):
-        self.assertEqual(self.scopeManager.default_scopes, None)
-        self.assertScopeInvalid('', '', None, '')
+        self.assertEqual(self.scopeManager.mappings, None)
+        self.assertScopeInvalid(None, '')
 
     def test_0100_root_scope(self):
-        self.scopeManager.default_scopes = {
+        self.scopeManager.mappings = {
             'Plone Site': ['folder_contents'],
         }
-        self.assertScopeValid('', '', self.portal, 'folder_contents')
-        self.assertScopeInvalid('', '', self.portal, 'manage')
+        self.assertScopeValid(self.portal, 'folder_contents')
+        self.assertScopeInvalid(self.portal, 'manage')
 
     def test_0101_folder_scope(self):
-        self.scopeManager.default_scopes = {
+        self.scopeManager.mappings = {
             'Folder': ['folder_contents'],
         }
-        self.assertScopeValid('', '', self.folder, 'folder_contents')
+        self.assertScopeValid(self.folder, 'folder_contents')
 
     def test_0201_browser_view(self):
-        self.scopeManager.default_scopes = {
+        self.scopeManager.mappings = {
             'Folder': ['+/addFile', 'folder_contents'],
         }
         # Adding views.
         folder_add = self.folder.restrictedTraverse('+')
-        self.assertScopeValid('', '', folder_add, 'addFile')
-        self.assertScopeInvalid('', '', folder_add, 'addFolder')
-        self.assertScopeInvalid('', '', self.folder, 'addFile')
+        self.assertScopeValid(folder_add, 'addFile')
+        self.assertScopeInvalid(folder_add, 'addFolder')
+        self.assertScopeInvalid(self.folder, 'addFile')
 
         # For whatever reason this happened, but still forbidden by
         # scope restrictions.
         portal_add = self.portal.unrestrictedTraverse('+')
-        self.assertScopeInvalid('', '', portal_add, 'addFile')
+        self.assertScopeInvalid(portal_add, 'addFile')
 
     def test_2000_bad_scope_assignment(self):
         self.assertRaises(WrongContainedType, setattr, 
-            self.scopeManager, 'default_scopes', {
+            self.scopeManager, 'mappings', {
                 'Folder': 'folder_contents',
             }
         )
 
         self.assertRaises(WrongType, setattr, 
-            self.scopeManager, 'default_scopes', ['folder_contents']
+            self.scopeManager, 'mappings', ['folder_contents']
         )
 
 
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
-    suite.addTest(makeSuite(DefaultScopeManagerTestCase))
+    suite.addTest(makeSuite(DefaultScopeManagerBaseTestCase))
     return suite

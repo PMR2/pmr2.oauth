@@ -445,7 +445,7 @@ Here we manually assign our default views against the portal root
 object.
 ::
 
-    >>> scopeManager.default_scopes = {
+    >>> scopeManager.mappings = {
     ...     'Plone Site': ['test_current_user', 'test_current_roles'],
     ... }
     >>> browser = Browser()
@@ -478,7 +478,7 @@ will permit access.  Naturally, create an entry in the scope manager for
 this content type.
 ::
 
-    >>> scopeManager.default_scopes = {
+    >>> scopeManager.mappings = {
     ...     'Plone Site': ['test_current_user', 'test_current_roles'],
     ...     'Folder': ['folder_listing',],
     ... }
@@ -496,9 +496,9 @@ this content type.
     True
 
 
------
-Scope
------
+-------------
+Scope Control
+-------------
 
 While the current scope manager already place limits on what consumers
 can access, individual users should be able to place further

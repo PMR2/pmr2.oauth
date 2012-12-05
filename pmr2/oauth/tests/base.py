@@ -153,7 +153,7 @@ def SignedTestRequest(form=None, consumer=None, token=None,
     content_type = request.headers.get('Content-Type', None)
     request.oauth_params = client.get_oauth_params()
 
-    # XXX assumptions here
+    # assumptions made to the output here to force a timestamp.
     if timestamp:
         request.oauth_params[1] = (u'oauth_timestamp', safe_unicode(timestamp))
 
