@@ -20,6 +20,8 @@ from pmr2.oauth.interfaces import *
 from pmr2.oauth.browser.template import ViewPageTemplateFile
 from pmr2.oauth.browser.template import path
 
+_marker = object()
+
 
 class BaseTokenPage(BrowserPage):
 
@@ -104,6 +106,13 @@ class RequestTokenPage(BaseTokenPage):
             ITokenManager)
         self.token = tm.generateRequestToken(consumer_key, callback)
 
+        # store the scope.
+        scope = self.request.get('scope', None)
+        key = self.token.key
+        sm = zope.component.getMultiAdapter((self.context, self.request),
+            IScopeManager)
+        sm.setScope(key, scope)
+
 
 class GetAccessTokenPage(BaseTokenPage):
 
@@ -124,6 +133,18 @@ class GetAccessTokenPage(BaseTokenPage):
         tm = zope.component.getMultiAdapter((self.context, self.request),
             ITokenManager)
         self.token = tm.generateAccessToken(consumer_key, token_key)
+
+        # move the scope stored into the access token.
+        sm = zope.component.getMultiAdapter((self.context, self.request),
+            IScopeManager)
+
+        scope = sm.popScope(token_key, _marker)
+        if scope == _marker:
+            # could not find the scope that was stored.
+            raise Forbidden()
+
+        key = self.token.key
+        sm.setAccessScope(key, scope)
 
 
 class AuthorizeTokenForm(form.PostForm, BaseTokenPage):
