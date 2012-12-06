@@ -85,6 +85,12 @@ class IConsumer(zope.interface.Interface):
         required=True,
     )
 
+    title = zope.schema.TextLine(
+        title=_(u'Consumer Title'),
+        description=_(u'Short description of what or who this consumer is.'),
+        required=False,
+    )
+
     def validate():
         """
         Self validation.

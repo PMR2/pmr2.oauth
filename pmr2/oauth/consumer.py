@@ -65,11 +65,13 @@ class Consumer(Persistent):
 
     key = fieldproperty.FieldProperty(IConsumer['key'])
     secret = fieldproperty.FieldProperty(IConsumer['secret'])
+    title = fieldproperty.FieldProperty(IConsumer['title'])
 
-    def __init__(self, key, secret):
+    def __init__(self, key, secret, title=None):
         assert not ((key is None) or (secret is None))
         self.key = key
         self.secret = secret
+        self.title = title
 
     def __eq__(self, other):
         same_type = isinstance(other, self.__class__)

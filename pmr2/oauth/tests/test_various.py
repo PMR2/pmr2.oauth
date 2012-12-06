@@ -27,9 +27,16 @@ class TestConsumer(unittest.TestCase):
         # Default should be no problem.
         self.assertTrue(consumer.validate())
 
+        consumer = Consumer('consumer2-key', 'consumer-secret', u'A Consumer')
+        self.assertEqual(consumer.key, 'consumer2-key')
+        self.assertEqual(consumer.secret, 'consumer-secret')
+        self.assertEqual(consumer.title, u'A Consumer')
+
     def test_001_consumer_equality(self):
         consumer = Consumer('consumer-key', 'consumer-secret')
-        d = Consumer('consumer-key', 'consumer-secret')
+        d = Consumer('consumer-key', 'consumer-secret', u'Test')
+        # Titles don't factor into equality in terms of authorization
+        # schemes.
         self.assertEqual(consumer, d)
 
     def test_100_consumer_manager_empty(self):
@@ -43,6 +50,12 @@ class TestConsumer(unittest.TestCase):
         m.add(consumer)
         result = m.get('consumer-key')
         self.assertEqual(result, consumer)
+
+        consumer2 = Consumer('consumer2-key', 'consumer-secret', u'A Consumer')
+        m.add(consumer2)
+        result = m.get('consumer2-key')
+        self.assertEqual(result, consumer2)
+        self.assertEqual(result.title, consumer2.title)
 
     def test_102_consumer_manager_doubleadd(self):
         m = ConsumerManager()
