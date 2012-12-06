@@ -33,42 +33,21 @@ class BaseScopeManager(object):
     def __init__(self):
         pass
 
-    def setClientScope(self, client_key, scope):
+    def setScope(self, key, scope):
         """
         See IScopeManager
         """
 
         raise NotImplementedError()
 
-    def setAccessScope(self, access_key, scope):
+    def getScope(self, key, default=_marker):
         """
         See IScopeManager
         """
 
         raise NotImplementedError()
 
-    def getClientScope(self, client_key, default=_marker):
-        """
-        See IScopeManager
-        """
-
-        raise NotImplementedError()
-
-    def getAccessScope(self, access_key, default=_marker):
-        """
-        See IScopeManager
-        """
-
-        raise NotImplementedError()
-
-    def delClientScope(self, client_key):
-        """
-        See IScopeManager
-        """
-
-        raise NotImplementedError()
-
-    def delAccessScope(self, access_key):
+    def popScope(self, key, default=_marker):
         """
         See IScopeManager
         """
@@ -93,39 +72,52 @@ class BTreeScopeManager(Persistent, Contained, BaseScopeManager):
 
     zope.component.adapts(IAttributeAnnotatable, zope.interface.Interface)
 
+    client_prefix = 'client.'
+    access_prefix = 'access.'
+
     def __init__(self):
-        self._client_scope = OOBTree()
-        self._access_scope = OOBTree()
+        self._scope = OOBTree()
+
+    def setScope(self, key, scope):
+        if key in self._scope.keys():
+            raise KeyExistsError()
+        self._scope[key] = scope
+
+    def getScope(self, key, default=_marker):
+        result = self._scope.get(key, default)
+        if result == _marker:
+            raise KeyError()
+        return result
+
+    def popScope(self, key, default=_marker):
+        result = self._scope.pop(key, default)
+        return result
 
     def setClientScope(self, client_key, scope):
-        if client_key in self._client_scope.keys():
-            raise KeyExistsError()
-        self._client_scope[client_key] = scope
+        key = self.client_prefix + client_key
+        self.setScope(key, scope)
 
     def setAccessScope(self, access_key, scope):
-        if access_key in self._access_scope.keys():
-            raise KeyExistsError()
-        self._access_scope[access_key] = scope
+        key = self.access_prefix + access_key
+        self.setScope(key, scope)
 
     def getClientScope(self, client_key, default=_marker):
-        result = self._client_scope.get(client_key, default)
-        if result == _marker:
-            raise KeyError()
-        return result
+        key = self.client_prefix + client_key
+        return self.getScope(key, default)
 
     def getAccessScope(self, access_key, default=_marker):
-        result = self._access_scope.get(access_key, default)
-        if result == _marker:
-            raise KeyError()
-        return result
+        key = self.access_prefix + access_key
+        return self.getScope(key, default)
 
     def delClientScope(self, client_key, default=_marker):
-        result = self._client_scope.pop(client_key, default)
+        key = self.client_prefix + client_key
+        result = self.popScope(key, default)
         if result == _marker:
             raise KeyError()
 
     def delAccessScope(self, access_key, default=_marker):
-        result = self._access_scope.pop(access_key, default)
+        key = self.access_prefix + access_key
+        result = self.popScope(key, default)
         if result == _marker:
             raise KeyError()
 

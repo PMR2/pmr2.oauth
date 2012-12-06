@@ -148,6 +148,21 @@ class IScopeManager(zope.interface.Interface):
     on what an authenticated token can access.
     """
 
+    def setScope(key, scope):
+        """
+        Set a scope identified by key.
+        """
+
+    def getScope(key, scope):
+        """
+        Get a scope identified by key.
+        """
+
+    def popScope(key, scope):
+        """
+        Pop out a scope identified by key
+        """
+
     def setClientScope(client_key, scope):
         """
         Set the scope provided by client, referenced by client_key.
