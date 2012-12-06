@@ -196,25 +196,26 @@ class SiteRequestOAuth1ServerAdapter(oauthlib.oauth1.Server):
     @property
     def dummy_resource_owner(self):
         # This is not actually used.
-        return ''
+        return u''
 
     # Implementation
 
     def get_client_secret(self, client_key):
         consumer = self.consumerManager.getValidated(client_key)
+        # Spend actual time failing.
+        dummy = self.consumerManager.getValidated(
+            self.consumerManager.DUMMY_KEY)
+
         if consumer:
             result = consumer.secret
         else:
-            # TODO confirm time spent failing to allow this shortcut.
             result = self.consumerManager.DUMMY_SECRET
 
         return unicode(result)
 
     @property
     def dummy_client(self):
-        consumer = self.consumerManager.get(self.consumerManager.DUMMY_KEY)
-        result = consumer.key
-
+        result = self.consumerManager.DUMMY_KEY
         return unicode(result)
 
     def get_request_token_secret(self, client_key, request_token):
@@ -254,7 +255,9 @@ class SiteRequestOAuth1ServerAdapter(oauthlib.oauth1.Server):
         raise NotImplementedError
 
     def validate_client_key(self, client_key):
-        dummy = self.consumerManager.get(self.consumerManager.DUMMY_KEY)
+        # This will search through the table to acquire a failed dummy key
+        dummy = self.consumerManager.get(self.consumerManager.DUMMY_KEY,
+            self.consumerManager.makeDummy())
         consumer = self.consumerManager.getValidated(client_key, dummy)
         return consumer.validate() and consumer != dummy
 

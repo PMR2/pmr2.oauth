@@ -565,20 +565,23 @@ in this case should be a browser, we will use the authenticated test
 request class.
 ::
 
+    >>> added_consumer_keys = []
     >>> from pmr2.testing.base import TestRequest as TestRequestAuthed
     >>> request = TestRequestAuthed(form={
-    ...     'form.widgets.key': 'consumer2.example.com',
+    ...     'form.widgets.title': 'consumer2.example.com',
     ...     'form.buttons.add': 1,
     ... })
     >>> view = consumer.ConsumerAddForm(self.portal, request)
     >>> view.update()
+    >>> added_consumer_keys.append(view._data['key'])
 
     >>> request = TestRequestAuthed(form={
-    ...     'form.widgets.key': 'consumer3.example.com',
+    ...     'form.widgets.title': 'consumer3.example.com',
     ...     'form.buttons.add': 1,
     ... })
     >>> view = consumer.ConsumerAddForm(self.portal, request)
     >>> view.update()
+    >>> added_consumer_keys.append(view._data['key'])
 
 Now the management form should show these couple new consumers.
 ::
@@ -595,8 +598,7 @@ Should have no problems removing them either.
 ::
 
     >>> request = TestRequestAuthed(form={
-    ...     'form.widgets.key': [
-    ...         'consumer2.example.com', 'consumer3.example.com'],
+    ...     'form.widgets.key': added_consumer_keys,
     ...     'form.buttons.remove': 1,
     ... })
     >>> view = consumer.ConsumerManageForm(self.portal, request)

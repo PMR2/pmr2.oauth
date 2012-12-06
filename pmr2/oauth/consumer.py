@@ -9,6 +9,7 @@ from zope.schema import fieldproperty
 from pmr2.oauth.interfaces import IConsumer
 from pmr2.oauth.interfaces import IConsumerManager
 from pmr2.oauth.factory import factory
+from pmr2.oauth.utility import random_string
 
 
 class ConsumerManager(Persistent, Contained):
@@ -23,13 +24,21 @@ class ConsumerManager(Persistent, Contained):
     zope.component.adapts(IAttributeAnnotatable, zope.interface.Interface)
     zope.interface.implements(IConsumerManager)
 
-    DUMMY_KEY = 'dummy'
-    DUMMY_SECRET = 'dummy'
+    __dummy_key = fieldproperty.FieldProperty(IConsumer['key'])
+    __dummy_secret = fieldproperty.FieldProperty(IConsumer['secret'])
+
+    @property
+    def DUMMY_KEY(self):
+        return self.__dummy_key
+
+    @property
+    def DUMMY_SECRET(self):
+        return self.__dummy_secret
     
     def __init__(self):
+        self.__dummy_key = random_string(24)
+        self.__dummy_secret = random_string(24)
         self._consumers = OOBTree()
-        dummy = Consumer(self.DUMMY_KEY, self.DUMMY_SECRET)
-        self.add(dummy)
 
     def add(self, consumer):
         assert IConsumer.providedBy(consumer)
@@ -47,11 +56,13 @@ class ConsumerManager(Persistent, Contained):
     def getAllKeys(self):
         return self._consumers.keys()
 
+    def makeDummy(self):
+        return Consumer(str(self.DUMMY_KEY), str(self.DUMMY_SECRET))
+
     def remove(self, consumer):
         if IConsumer.providedBy(consumer):
             consumer = consumer.key
-        if consumer != self.DUMMY_KEY:
-            self._consumers.pop(consumer)
+        self._consumers.pop(consumer)
 
 ConsumerManagerFactory = factory(ConsumerManager)
 

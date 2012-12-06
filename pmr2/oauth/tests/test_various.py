@@ -17,8 +17,7 @@ from pmr2.oauth.tests.base import TestRequest
 class TestConsumer(unittest.TestCase):
 
     def setUp(self):
-        self.dummy = Consumer(ConsumerManager.DUMMY_KEY,
-            ConsumerManager.DUMMY_SECRET)
+        pass
 
     def test_000_consumer(self):
         consumer = Consumer('consumer-key', 'consumer-secret')
@@ -42,7 +41,6 @@ class TestConsumer(unittest.TestCase):
     def test_100_consumer_manager_empty(self):
         m = ConsumerManager()
         self.assertEqual(m.get('consumer-key'), None)
-        self.assertEqual(m.get(ConsumerManager.DUMMY_KEY), self.dummy)
 
     def test_101_consumer_manager_addget(self):
         m = ConsumerManager()
@@ -71,14 +69,7 @@ class TestConsumer(unittest.TestCase):
         m.add(c2)
         m.remove(c1.key)
         m.remove(c2)
-        self.assertEqual(len(m._consumers), 1)
-
-    def test_104_consumer_manager_remove_dummy(self):
-        # Dummy cannot be removed normally.
-        m = ConsumerManager()
-        m.remove(self.dummy)
-        self.assertEqual(len(m._consumers), 1)
-        self.assertEqual(m.get(ConsumerManager.DUMMY_KEY), self.dummy)
+        self.assertEqual(len(m._consumers), 0)
 
 
 class TestToken(unittest.TestCase):

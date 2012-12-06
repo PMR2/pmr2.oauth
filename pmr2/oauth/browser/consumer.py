@@ -25,8 +25,9 @@ class ConsumerAddForm(form.AddForm):
     """
 
     fields = field.Fields(IConsumer).select(
-        'key',
+        # key should be generated.
         # secret should be generated.
+        'title',
     )
 
     def update(self):
@@ -36,12 +37,15 @@ class ConsumerAddForm(form.AddForm):
     def create(self, data):
         # I don't think we need a consumer factory for this... just
         # inherit/redefine this form for your consumers.
-        return Consumer(data['key'], random_string(24))
+        data['key'] = key = random_string(24)
+        data['secret'] = secret = random_string(24)
+        self._data = data
+        return Consumer(key, secret, data['title'])
 
-    def add(self, object):
+    def add(self, obj):
         cm = zope.component.getMultiAdapter(
             (self.context, self.request), IConsumerManager)
-        cm.add(object)
+        cm.add(obj)
 
     def nextURL(self):
         return self.context.absolute_url() + '/manage-oauth-consumers'

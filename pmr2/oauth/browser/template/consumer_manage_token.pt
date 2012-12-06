@@ -26,7 +26,8 @@
                       id string:form-widgets-key-${repeat/t/number};
                   "
               /> <span tal:content="t/key">example.com</span> - <span 
-                tal:content="t/secret">secret</span>
+                tal:content="t/secret">secret</span> - <span
+                tal:content="t/title">title</span>
             </li>
           </tal:loop>
         </ul>
