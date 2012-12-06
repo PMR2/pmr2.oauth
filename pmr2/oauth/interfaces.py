@@ -4,6 +4,10 @@ import zope.schema
 from pmr2.oauth import MessageFactory as _
 
 
+class KeyExistsError(KeyError):
+    __doc__ = "key exists error"
+
+
 class BaseInvalidError(KeyError):
     __doc__ = "base invalid error."
 
@@ -154,12 +158,12 @@ class IScopeManager(zope.interface.Interface):
         Set the scope provided by access, referenced by access_key.
         """
 
-    def getClientScope(client_key):
+    def getClientScope(client_key, default):
         """
         Get the scope for the provided client_key.
         """
 
-    def getAccessScope(access_key):
+    def getAccessScope(access_key, default):
         """
         Get the scope for the provided access_key.
         """

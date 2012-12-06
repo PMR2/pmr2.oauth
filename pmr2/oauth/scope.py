@@ -11,10 +11,13 @@ from zope.schema import fieldproperty
 from Acquisition import aq_parent, aq_inner
 from Products.CMFCore.utils import getToolByName
 
+from pmr2.oauth.interfaces import KeyExistsError
 from pmr2.oauth.interfaces import IScopeManager, IDefaultScopeManager
 from pmr2.oauth.interfaces import IContentTypeScopeManager
 from pmr2.oauth.interfaces import IContentTypeScopeProfile
 from pmr2.oauth.factory import factory
+
+_marker = object()
 
 
 class BaseScopeManager(object):
@@ -44,14 +47,14 @@ class BaseScopeManager(object):
 
         raise NotImplementedError()
 
-    def getClientScope(self, client_key):
+    def getClientScope(self, client_key, default=_marker):
         """
         See IScopeManager
         """
 
         raise NotImplementedError()
 
-    def getAccessScope(self, access_key):
+    def getAccessScope(self, access_key, default=_marker):
         """
         See IScopeManager
         """
@@ -95,34 +98,36 @@ class BTreeScopeManager(Persistent, Contained, BaseScopeManager):
         self._access_scope = OOBTree()
 
     def setClientScope(self, client_key, scope):
-        """
-        See IScopeManager
-        """
+        if client_key in self._client_scope.keys():
+            raise KeyExistsError()
+        self._client_scope[client_key] = scope
 
     def setAccessScope(self, access_key, scope):
-        """
-        See IScopeManager
-        """
+        if access_key in self._access_scope.keys():
+            raise KeyExistsError()
+        self._access_scope[access_key] = scope
 
-    def getClientScope(self, client_key):
-        """
-        See IScopeManager
-        """
+    def getClientScope(self, client_key, default=_marker):
+        result = self._client_scope.get(client_key, default)
+        if result == _marker:
+            raise KeyError()
+        return result
 
-    def getAccessScope(self, access_key):
-        """
-        See IScopeManager
-        """
+    def getAccessScope(self, access_key, default=_marker):
+        result = self._access_scope.get(access_key, default)
+        if result == _marker:
+            raise KeyError()
+        return result
 
-    def delClientScope(self, client_key):
-        """
-        See IScopeManager
-        """
+    def delClientScope(self, client_key, default=_marker):
+        result = self._client_scope.pop(client_key, default)
+        if result == _marker:
+            raise KeyError()
 
-    def delAccessScope(self, access_key):
-        """
-        See IScopeManager
-        """
+    def delAccessScope(self, access_key, default=_marker):
+        result = self._access_scope.pop(access_key, default)
+        if result == _marker:
+            raise KeyError()
 
 
 class ContentTypeScopeManager(BTreeScopeManager):
