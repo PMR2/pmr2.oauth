@@ -26,7 +26,7 @@
   <adapter
       for="zope.annotation.interfaces.IAnnotatable
            *"
-      factory=".scope.DefaultScopeManagerFactory"
+      factory=".scope.ContentTypeScopeManagerFactory"
       provides=".interfaces.IScopeManager"
       />
 

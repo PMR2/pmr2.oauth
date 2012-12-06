@@ -13,18 +13,18 @@ from pmr2.oauth.interfaces import IDefaultScopeManager
 from pmr2.oauth.interfaces import ITokenManager, IConsumerManager
 from pmr2.oauth.token import Token
 from pmr2.oauth.consumer import Consumer
-from pmr2.oauth.scope import DefaultScopeManager
+from pmr2.oauth.scope import ContentTypeScopeManager
 
 from pmr2.oauth.tests import base
 
 
-class DefaultScopeManagerBaseTestCase(ptc.PloneTestCase):
+class ContentTypeScopeManagerBaseTestCase(ptc.PloneTestCase):
     """
     The base test cases without the handling of client/access keys.
     """
 
     def afterSetUp(self):
-        self.scopeManager = DefaultScopeManager()
+        self.scopeManager = ContentTypeScopeManager()
 
     def assertScopeValid(self, accessed, name):
         self.assertTrue(self.scopeManager.validate(None, None,
@@ -81,5 +81,5 @@ class DefaultScopeManagerBaseTestCase(ptc.PloneTestCase):
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
-    suite.addTest(makeSuite(DefaultScopeManagerBaseTestCase))
+    suite.addTest(makeSuite(ContentTypeScopeManagerBaseTestCase))
     return suite

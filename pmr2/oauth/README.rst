@@ -57,7 +57,9 @@ Lastly, the scope manager.
     >>> scopeManager = zope.component.getMultiAdapter(
     ...     (self.portal, request), IScopeManager)
     >>> scopeManager
-    <pmr2.oauth.scope.DefaultScopeManager object at ...>
+    <pmr2.oauth.scope.ContentTypeScopeManager object at ...>
+    >>> IScopeManager.providedBy(scopeManager)
+    True
 
 
 ---------------------

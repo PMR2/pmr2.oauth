@@ -138,14 +138,14 @@ class IScopeManager(zope.interface.Interface):
     on what an authenticated token can access.
     """
 
-    def storeClientScope(client_key, scope):
+    def setClientScope(client_key, scope):
         """
-        Store the scope provided by client, referenced by client_key.
+        Set the scope provided by client, referenced by client_key.
         """
 
-    def storeAccessScope(access_key, scope):
+    def setAccessScope(access_key, scope):
         """
-        Store the scope provided by access, referenced by access_key.
+        Set the scope provided by access, referenced by access_key.
         """
 
     def getClientScope(client_key):
@@ -199,7 +199,17 @@ class IScopeManager(zope.interface.Interface):
 
 class IDefaultScopeManager(IScopeManager):
     """
-    Market interface for the default scope manager.
+    Marker interface for the default scope manager.
+    """
+
+
+class IContentTypeScopeManager(IScopeManager):
+    """
+    A scope manager based on content types.
+
+    A scope manager validates the requested object and the name with a
+    content type profile specific to the client and/or resource access
+    key if available, or the default profile if not.
     """
 
     def resolveProfile(client_key, access_key):
@@ -221,7 +231,7 @@ class IDefaultScopeManager(IScopeManager):
         """
 
 
-class IDefaultScopeProfile(zope.interface.Interface):
+class IContentTypeScopeProfile(zope.interface.Interface):
     """
     Validation profile for the default scope manager.
     """

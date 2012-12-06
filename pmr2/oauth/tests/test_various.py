@@ -9,8 +9,6 @@ from pmr2.oauth.consumer import Consumer
 from pmr2.oauth.token import TokenManager
 from pmr2.oauth.token import Token
 
-from pmr2.oauth.scope import DefaultScopeManager
-
 from pmr2.oauth.interfaces import *
 
 from pmr2.oauth.tests.base import TestRequest
@@ -339,16 +337,9 @@ class TestToken(unittest.TestCase):
             consumer.key, None)
 
 
-class TestDefaultScopeManager(unittest.TestCase):
-
-    def setUp(self):
-        self.manager = DefaultScopeManager()
-
-
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
     suite.addTest(makeSuite(TestConsumer))
     suite.addTest(makeSuite(TestToken))
-    suite.addTest(makeSuite(TestDefaultScopeManager))
     return suite

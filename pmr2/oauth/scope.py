@@ -11,7 +11,8 @@ from Acquisition import aq_parent, aq_inner
 from Products.CMFCore.utils import getToolByName
 
 from pmr2.oauth.interfaces import IScopeManager, IDefaultScopeManager
-from pmr2.oauth.interfaces import IDefaultScopeProfile
+from pmr2.oauth.interfaces import IContentTypeScopeManager
+from pmr2.oauth.interfaces import IContentTypeScopeProfile
 from pmr2.oauth.factory import factory
 
 
@@ -28,14 +29,14 @@ class ScopeManager(object):
     def __init__(self):
         pass
 
-    def storeClientScope(self, client_key, scope):
+    def setClientScope(self, client_key, scope):
         """
         See IScopeManager
         """
 
         raise NotImplementedError()
 
-    def storeAccessScope(self, access_key, scope):
+    def setAccessScope(self, access_key, scope):
         """
         See IScopeManager
         """
@@ -78,26 +79,34 @@ class ScopeManager(object):
         raise NotImplementedError()
 
 
-class DefaultScopeManager(Persistent, Contained, ScopeManager):
-    """
-    Default scope manager.
+class ContentTypeScopeProfile(object):
 
-    The default scope manage only checks whether the name listed in the
-    token matches the ones that are allowed, which are stored as a list
-    in this manager.
+    zope.interface.implements(IContentTypeScopeProfile)
+
+
+class ContentTypeScopeManager(Persistent, Contained, ScopeManager):
+    """
+    A scope manager based on content types.
+
+    This scope manager validates the request using the content type of
+    the accessed object and the subpath of the request against a content
+    type profile.  The content type profile to be used will be one of
+    specified by the resource access key, the client key or default, and
+    is resolved in this order.
     """
 
     zope.component.adapts(IAttributeAnnotatable, zope.interface.Interface)
-    zope.interface.implements(IDefaultScopeManager)
+    zope.interface.implements(IContentTypeScopeManager)
 
-    mappings = fieldproperty.FieldProperty(IDefaultScopeProfile['mappings'])
+    mappings = fieldproperty.FieldProperty(
+        IContentTypeScopeProfile['mappings'])
 
-    def storeClientScope(self, client_key, scope):
+    def setClientScope(self, client_key, scope):
         """
         See IScopeManager
         """
 
-    def storeAccessScope(self, access_key, scope):
+    def setAccessScope(self, access_key, scope):
         """
         See IScopeManager
         """
@@ -183,4 +192,4 @@ class DefaultScopeManager(Persistent, Contained, ScopeManager):
 
         return subpath in valid_scopes
 
-DefaultScopeManagerFactory = factory(DefaultScopeManager)
+ContentTypeScopeManagerFactory = factory(ContentTypeScopeManager)
