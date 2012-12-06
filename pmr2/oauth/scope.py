@@ -1,6 +1,7 @@
 import re
 
 from persistent import Persistent
+from BTrees.OOBTree import OOBTree
 
 from zope.app.container.contained import Contained
 from zope.annotation.interfaces import IAttributeAnnotatable
@@ -16,7 +17,7 @@ from pmr2.oauth.interfaces import IContentTypeScopeProfile
 from pmr2.oauth.factory import factory
 
 
-class ScopeManager(object):
+class BaseScopeManager(object):
     """\
     Base scope manager.
 
@@ -79,27 +80,19 @@ class ScopeManager(object):
         raise NotImplementedError()
 
 
-class ContentTypeScopeProfile(object):
-
-    zope.interface.implements(IContentTypeScopeProfile)
-
-
-class ContentTypeScopeManager(Persistent, Contained, ScopeManager):
+class BTreeScopeManager(Persistent, Contained, BaseScopeManager):
     """
-    A scope manager based on content types.
+    Basic BTree based client/access scope manager.
 
-    This scope manager validates the request using the content type of
-    the accessed object and the subpath of the request against a content
-    type profile.  The content type profile to be used will be one of
-    specified by the resource access key, the client key or default, and
-    is resolved in this order.
+    Provides mapping of client and access keys to a scope, but does not
+    provide any validation capabilities.
     """
 
     zope.component.adapts(IAttributeAnnotatable, zope.interface.Interface)
-    zope.interface.implements(IContentTypeScopeManager)
 
-    mappings = fieldproperty.FieldProperty(
-        IContentTypeScopeProfile['mappings'])
+    def __init__(self):
+        self._client_scope = OOBTree()
+        self._access_scope = OOBTree()
 
     def setClientScope(self, client_key, scope):
         """
@@ -130,6 +123,23 @@ class ContentTypeScopeManager(Persistent, Contained, ScopeManager):
         """
         See IScopeManager
         """
+
+
+class ContentTypeScopeManager(BTreeScopeManager):
+    """
+    A scope manager based on content types.
+
+    This scope manager validates the request using the content type of
+    the accessed object and the subpath of the request against a content
+    type profile.  The content type profile to be used will be one of
+    specified by the resource access key, the client key or default, and
+    is resolved in this order.
+    """
+
+    zope.interface.implements(IContentTypeScopeManager)
+
+    mappings = fieldproperty.FieldProperty(
+        IContentTypeScopeProfile['mappings'])
 
     def validate(self, client_key, access_key,
             accessed, container, name, value):
@@ -193,3 +203,8 @@ class ContentTypeScopeManager(Persistent, Contained, ScopeManager):
         return subpath in valid_scopes
 
 ContentTypeScopeManagerFactory = factory(ContentTypeScopeManager)
+
+
+class ContentTypeScopeProfile(object):
+
+    zope.interface.implements(IContentTypeScopeProfile)
