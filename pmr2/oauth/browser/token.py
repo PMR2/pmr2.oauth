@@ -28,24 +28,6 @@ class BaseTokenPage(BrowserPage):
     # token to return
     token = None
 
-    def _checkConsumer(self, key):
-        cm = zope.component.getMultiAdapter((self.context, self.request),
-            IConsumerManager)
-
-        consumer = cm.getValidated(key)
-        if not consumer:
-            raise ConsumerInvalidError('invalid consumer')
-        return consumer
-
-    def _checkToken(self, key):
-        tm = zope.component.getMultiAdapter((self.context, self.request),
-            ITokenManager)
-
-        token = tm.get(key)
-        if not token:
-            raise TokenInvalidError('invalid token')
-        return token
-
     def _verifyToken(self, oauth):
         # Return the correct OAuth method for the respective token 
         # request page.
@@ -69,6 +51,8 @@ class BaseTokenPage(BrowserPage):
             return self.request._pmr2_oauth1_
 
     def update(self):
+        # Considering modifying to call something like create and store
+        # token and store scope.
         raise NotImplementedError()
 
     def render(self):
@@ -164,6 +148,24 @@ class AuthorizeTokenForm(form.PostForm, BaseTokenPage):
     verifierTemplate = ViewPageTemplateFile(path('authorize_verifier.pt'))
     template = ViewPageTemplateFile(path('authorize_question.pt'))
     _errors = False
+
+    def _checkConsumer(self, key):
+        cm = zope.component.getMultiAdapter((self.context, self.request),
+            IConsumerManager)
+
+        consumer = cm.getValidated(key)
+        if not consumer:
+            raise ConsumerInvalidError('invalid consumer')
+        return consumer
+
+    def _checkToken(self, key):
+        tm = zope.component.getMultiAdapter((self.context, self.request),
+            ITokenManager)
+
+        token = tm.get(key)
+        if not token:
+            raise TokenInvalidError('invalid token')
+        return token
 
     def _update(self):
         token_key = self.request.form.get('oauth_token', None)
