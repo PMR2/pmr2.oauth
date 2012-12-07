@@ -2,6 +2,8 @@ import re
 
 from persistent import Persistent
 from BTrees.OOBTree import OOBTree
+from BTrees.IOBTree import IOBTree
+from BTrees.OIBTree import OIBTree
 
 from zope.app.container.contained import Contained
 from zope.annotation.interfaces import IAttributeAnnotatable
@@ -79,7 +81,7 @@ class BTreeScopeManager(Persistent, Contained, BaseScopeManager):
         self._scope = OOBTree()
 
     def setScope(self, key, scope):
-        if key in self._scope.keys():
+        if self._scope.get(key, _marker) != _marker:
             raise KeyExistsError()
         self._scope[key] = scope
 
@@ -121,6 +123,16 @@ class BTreeScopeManager(Persistent, Contained, BaseScopeManager):
         if result == _marker:
             raise KeyError()
 
+    def requestScope(self, request_key, raw_scope):
+        """
+        Requesting scope for this key.
+        """
+
+        # No reason or means to refuse this request as this doesn't do
+        # any kind of management.
+        self.setScope(request_key, raw_scope)
+        return True
+
 
 class ContentTypeScopeManager(BTreeScopeManager):
     """
@@ -128,15 +140,92 @@ class ContentTypeScopeManager(BTreeScopeManager):
 
     This scope manager validates the request using the content type of
     the accessed object and the subpath of the request against a content
-    type profile.  The content type profile to be used will be one of
+    type mapping.  The content type mapping to be used will be one of
     specified by the resource access key, the client key or default, and
     is resolved in this order.
+
+    One more restriction imposed by this scope manager: mappings are
+    enforced absolutely for access keys.  This allows clients to request
+    new default scopes for themselves at will and/or have site-wide
+    default scope changes without compromising the scopes already
+    granted by the resource owner referenced by the access key.
+
+    This however does not address the case where additional global
+    restrictions that may be placed by the site owner as the focus is
+    ultimately on the access keys.  Workaround is to revoke those keys
+    and have the content owners issue new ones regardless of changes.
+
+    Pruning of unused scope is not implemented.
     """
 
     zope.interface.implements(IContentTypeScopeManager)
 
-    mappings = fieldproperty.FieldProperty(
-        IContentTypeScopeProfile['mappings'])
+    default_mapping_id = fieldproperty.FieldProperty(
+        IContentTypeScopeManager['default_mapping_id'])
+
+    def __init__(self):
+        super(ContentTypeScopeManager, self).__init__()
+        self._mappings = IOBTree()
+
+        # To ease the usage of scopes, the mappings are referenced by
+        # names and are called profiles which add a few useful fields to
+        # allow slightly easier usage.  This separates the name from the
+        # already active tokens such that once a token is instantiated
+        # with a scope, the mapping is stuck until the token is revoked.
+        self._named_mappings = OIBTree()  # name to id.
+
+        self.default_mapping_id = self.addMapping({})
+
+    def addMapping(self, mapping):
+        key = 0  # default?
+        if len(self._mappings) > 0:
+            # Can calculate the next key.
+            key = self._mappings.maxKey() + 1
+        self._mappings[key] = mapping
+        return key
+
+    def getMapping(self, mapping_id, default=_marker):
+        result = self._mappings.get(mapping_id, default)
+        if result is _marker:
+            raise KeyError()
+        return result
+
+    def getMappingIdFromName(self, name):
+        # Returned ID could potentially not exist, what do?
+        return self._named_mappings[name]
+
+    def setMappingNameToID(self, name, mapping_id):
+        self._named_mappings[name] = mapping_id
+
+    def delMappingName(self, name):
+        return self._named_mappings.pop(name)
+
+    def requestScope(self, request_key, raw_scope):
+        """
+        This manager references scope by ids internally.  Resolve the
+        raw scope id by the client into the mapping ids.
+        """
+
+        raw_scopes = raw_scope and raw_scope.split(',') or []
+        result = set()
+        for rs in raw_scopes:
+            # Ignoring the current site URI and just capture the final
+            # fragment.
+            name = rs.split('/')[-1]
+            try:
+                mapping_id = self.getMappingIdFromName(name)
+                # verify that this exists.
+                mapping = self.getMapping(mapping_id)
+            except KeyError:
+                # Failed to fulfill the requested scope.
+                return False
+            result.add(mapping_id)
+
+        if not result:
+            result.add(self.default_mapping_id)
+
+        self.setScope(request_key, result)
+        return True
 
     def validate(self, client_key, access_key,
             accessed, container, name, value):
@@ -144,20 +233,34 @@ class ContentTypeScopeManager(BTreeScopeManager):
         See IScopeManager.
         """
 
-        accessed_typeid, subpath = self.resolveTarget(accessed, name)
-        profile = self.resolveProfile(client_key, access_key)
-        return self.validateTargetWithProfile(
-            accessed_typeid, subpath, profile)
+        mappings = self.resolveMapping(client_key, access_key)
+        # multiple rights were requested, check through all of them.
+        for mapping_id in mappings:
+            mapping = self.getMapping(mapping_id, {})
+            result = self.validateTargetWithMapping(accessed, name, mapping)
+            if result:
+                return result
 
-    def resolveProfile(self, client_key, access_key):
+        # no matching mappings.
+        return False
+
+    def resolveMapping(self, client_key, access_key):
         """
         See IDefaultScopeManager.
         """
 
-        # XXX placeholder
-        return self
+        # As all mappings are referenced byh access keys.
+        return self.getAccessScope(access_key, None)
 
     def resolveTarget(self, accessed, name):
+        """
+        Accessed target resolution.
+
+        Find the type of the container object of the accessed object by
+        traversing upwards, and gather the path to resolve into the 
+        content type id.  Return both these values.
+        """
+
         # use getSite() instead of container?
         pt_tool = getToolByName(accessed, 'portal_types', None)
         if pt_tool is None:
@@ -178,22 +281,13 @@ class ContentTypeScopeManager(BTreeScopeManager):
 
         return None, None
 
-    def validateTargetWithProfile(self, accessed_typeid, subpath, profile):
-        """
-        Default validation.
+    def validateTargetWithMapping(self, accessed, name, mapping):
+        atype, subpath = self.resolveTarget(accessed, name)
+        return self.validateTypeSubpathMapping(atype, subpath, mapping)
 
-        Ignore where the value was originally accessed from and focus
-        on the accessed object.  Traverse up the parents until arrival 
-        at a registered type, using the names to build the subpath, then
-        check for its existence in the list of permitted scope for the 
-        accessed object.
-        """
-
-        mappings = profile.mappings
-        if not mappings:
-            return False
-
-        valid_scopes = mappings.get(accessed_typeid, {})
+    def validateTypeSubpathMapping(self, accessed_type, subpath, mapping):
+        # A simple lookup method.
+        valid_scopes = mapping.get(accessed_type, {})
         if not valid_scopes:
             return False
 
@@ -203,5 +297,9 @@ ContentTypeScopeManagerFactory = factory(ContentTypeScopeManager)
 
 
 class ContentTypeScopeProfile(object):
+    """
+    The one for editing purpose.  Allows definition of names and fields
+    related to the user side creation and usage of mappings.
+    """
 
     zope.interface.implements(IContentTypeScopeProfile)

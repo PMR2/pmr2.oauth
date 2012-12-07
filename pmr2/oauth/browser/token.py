@@ -95,7 +95,8 @@ class RequestTokenPage(BaseTokenPage):
         key = self.token.key
         sm = zope.component.getMultiAdapter((self.context, self.request),
             IScopeManager)
-        sm.setScope(key, scope)
+        if not sm.requestScope(key, scope):
+            raise Forbidden()
 
 
 class GetAccessTokenPage(BaseTokenPage):

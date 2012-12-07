@@ -48,6 +48,10 @@ class NonceValueError(BaseValueError):
     __doc__ = "nonce value error"
 
 
+class InvalidScopeError(BaseValueError):
+    __doc__ = "invalid scope."
+
+
 class IOAuthAdapter(zope.interface.Interface):
     """
     Interface for the OAuth adapter.
@@ -193,6 +197,22 @@ class IScopeManager(zope.interface.Interface):
         Delete the scope for the provided access_key.
         """
 
+    def requestScope(request_key, rawscope):
+        """
+        Request a scope for the request key process.
+
+        request_key
+            the generated request key.
+        rawscope
+            the raw scope string sent by the client.
+
+        Return True if the rawscope is successfully stored as a scope
+        with the request_key, False otherwise.
+        
+        The actual scope object can be retrieved by calling
+        `self.getScope(request_key)` if this was successful.
+        """
+
     def validate(client_key, access_key, accessed, container, name, value):
         """
         Validate the scope against the given context with the given
@@ -236,6 +256,12 @@ class IContentTypeScopeManager(IScopeManager):
     content type profile specific to the client and/or resource access
     key if available, or the default profile if not.
     """
+
+    default_mapping_id = zope.schema.Int(
+        title=_(u'Default Mapping ID'),
+        required=True,
+        default=0,
+    )
 
     def resolveProfile(client_key, access_key):
         """

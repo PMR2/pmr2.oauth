@@ -439,15 +439,13 @@ build this string.
     HTTPError: HTTP Error 403: Forbidden
 
 There is one more security consideration that needs to be satisified
-still - the scope.  The default scope manager stores key-value pairs of
-portal types against a list of permitted names, with the names being
-the subpath to a given object.
+still - the scope.
 
-Here we manually assign our default views against the portal root 
-object.
+For now we omit its restrictions by overriding some of the fields
+through unconventional injection of values.
 ::
 
-    >>> scopeManager.mappings = {
+    >>> scopeManager._mappings[scopeManager.default_mapping_id] = {
     ...     'Plone Site': ['test_current_user', 'test_current_roles'],
     ... }
     >>> browser = Browser()
@@ -476,11 +474,11 @@ Try the roles view also, since it is also permitted.
 If a client were to access a content type object without specifying a
 view, typically the default view will be resolved.  If this is included
 in the list of allowed names for the content type, the scope manager
-will permit access.  Naturally, create an entry in the scope manager for
-this content type.
+will permit access.  Again a brute forced approach is taken to work
+around scope manager restrictions.
 ::
 
-    >>> scopeManager.mappings = {
+    >>> scopeManager._mappings[scopeManager.default_mapping_id] = {
     ...     'Plone Site': ['test_current_user', 'test_current_roles'],
     ...     'Folder': ['folder_listing',],
     ... }
@@ -505,7 +503,8 @@ Scope Control
 While the current scope manager already place limits on what consumers
 can access, individual users should be able to place further
 restrictions on the amount of their resources a given consumer may
-access.  This will be reimplemented once the scope cleanup is complete.
+access.  This will be reimplemented once the UI to show users what
+scopes are available are reimplemented.
 
 
 ---------------------

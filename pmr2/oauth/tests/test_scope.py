@@ -87,41 +87,136 @@ class BTreeScopeManagerTestCase(unittest.TestCase):
         self.assertEqual(self.sm.getAccessScope(self.access), scope2)
 
 
-class ContentTypeScopeManagerBaseTestCase(ptc.PloneTestCase):
+class CTSMMappingTestCase(unittest.TestCase):
     """
-    The base test cases without the handling of client/access keys.
+    Testing the profile and management within this scope manager.
+    """
+
+    def setUp(self):
+        self.sm = ContentTypeScopeManager()
+        self.file_mapping = {'File': ['document_view']}
+        self.folder_mapping = {'Folder': ['folder_contents']}
+
+    def test_0100_get_mapping(self):
+        self.assertRaises(KeyError, self.sm.getMapping, 1)
+        self.assertEqual(self.sm.getMapping(1, 'test'), 'test')
+
+    def test_0101_add_get_mapping(self):
+        self.assertEqual(self.sm.addMapping('test'), 1)
+        self.assertEqual(self.sm.getMapping(1), 'test')
+
+    def test_0200_mapping_name_and_id(self):
+        _marker = 2
+        self.assertRaises(KeyError, self.sm.getMappingIdFromName, 'rawscope')
+        self.sm.setMappingNameToID('rawscope', _marker)
+        self.assertEqual(self.sm.getMappingIdFromName('rawscope'), _marker)
+        self.sm.setMappingNameToID('rawscope', 3)
+        self.assertEqual(self.sm.getMappingIdFromName('rawscope'), 3)
+        self.assertEqual(self.sm.delMappingName('rawscope'), 3)
+        self.assertRaises(KeyError, self.sm.getMappingIdFromName, 'rawscope')
+
+    def test_1000_request_scope_fresh_fail(self):
+        self.assertFalse(self.sm.requestScope('key', 'rawscope'))
+        self.assertEqual(len(self.sm._scope), 0)
+
+    def test_1001_request_scope_fresh_default(self):
+        self.assertTrue(self.sm.requestScope('key', None))
+        self.assertEqual(len(self.sm._scope), 1)
+        # Can't set this again.
+        self.assertRaises(KeyError, self.sm.requestScope, 'key', None)
+
+    def test_1002_request_scope_set_singular(self):
+        key = 'request_key'
+        scope = 'test_scope'
+        mapping_id = self.sm.addMapping(self.file_mapping)
+        self.sm.setMappingNameToID(scope, mapping_id)
+        self.assertTrue(self.sm.requestScope(key, scope))
+        self.assertEqual(len(self.sm._scope), 1)
+        mappings = self.sm.getScope(key)
+        self.assertEqual(len(mappings), 1)
+        self.assertTrue(mapping_id in mappings)
+        # Obviously not an access scope.
+        self.assertRaises(KeyError, self.sm.getAccessScope, key)
+        # Nor a client scope.
+        self.assertRaises(KeyError, self.sm.getClientScope, key)
+
+    def test_1003_request_scope_multiple(self):
+        file_id = self.sm.addMapping(self.file_mapping)
+        folder_id = self.sm.addMapping(self.folder_mapping)
+        self.sm.setMappingNameToID('file', file_id)
+        self.sm.setMappingNameToID('folder', folder_id)
+
+        key1 = 'request_key1'
+        key2 = 'request_key2'
+        raw_scope = 'test_scope'
+        self.assertFalse(self.sm.requestScope(key1, 'test_scope'))
+        # all of them must be valid.
+        self.assertFalse(self.sm.requestScope(key1, 
+            'http://nohost/plone/scope/file,test_scope'))
+        self.assertTrue(self.sm.requestScope(key1, 
+            'http://nohost/plone/scope/file,http://nohost/plone/scope/folder'))
+
+        mappings = self.sm.getScope(key1)
+        self.assertEqual(len(mappings), 2)
+        self.assertTrue(file_id in mappings)
+        self.assertTrue(folder_id in mappings)
+
+        self.assertTrue(self.sm.requestScope(key2, 
+            'http://nohost/plone/scope/folder'))
+        mappings = self.sm.getScope(key2)
+        self.assertEqual(len(mappings), 1)
+        self.assertTrue(file_id not in mappings)
+
+
+class CTSMPloneTestCase(ptc.PloneTestCase):
+    """
+    Testing the validation on just the objects with the provided 
+    mapping and other Plone integration.
     """
 
     def afterSetUp(self):
-        self.scopeManager = ContentTypeScopeManager()
+        self.sm = ContentTypeScopeManager()
+        self.mapping = {}
 
     def assertScopeValid(self, accessed, name):
-        self.assertTrue(self.scopeManager.validate(None, None,
-            accessed, None, name, None))
+        self.assertTrue(self.sm.validateTargetWithMapping(
+            accessed, name, self.mapping))
 
     def assertScopeInvalid(self, accessed, name):
-        self.assertFalse(self.scopeManager.validate(None, None,
-            accessed, None, name, None))
+        self.assertFalse(self.sm.validateTargetWithMapping(
+            accessed, name, self.mapping))
 
-    def test_0000_empty_scope(self):
-        self.assertEqual(self.scopeManager.mappings, None)
-        self.assertScopeInvalid(None, '')
+    def test_0000_resolve_target(self):
+        obj, path = self.sm.resolveTarget(self.folder, 'folder_contents')
+        self.assertEqual(obj, 'Folder')
+        self.assertEqual(path, 'folder_contents')
+
+    def test_0001_resolve_subtarget(self):
+        folder_add = self.folder.restrictedTraverse('+')
+        obj, path = self.sm.resolveTarget(folder_add, 'addFolder')
+        self.assertEqual(obj, 'Folder')
+        self.assertEqual(path, '+/addFolder')
+
+    def test_0002_resolve_nothing(self):
+        obj, path = self.sm.resolveTarget(object(), 'addFolder')
+        self.assertEqual(obj, None)
+        self.assertEqual(path, None)
 
     def test_0100_root_scope(self):
-        self.scopeManager.mappings = {
+        self.mapping = {
             'Plone Site': ['folder_contents'],
         }
         self.assertScopeValid(self.portal, 'folder_contents')
         self.assertScopeInvalid(self.portal, 'manage')
 
     def test_0101_folder_scope(self):
-        self.scopeManager.mappings = {
+        self.mapping = {
             'Folder': ['folder_contents'],
         }
         self.assertScopeValid(self.folder, 'folder_contents')
 
     def test_0201_browser_view(self):
-        self.scopeManager.mappings = {
+        self.mapping = {
             'Folder': ['+/addFile', 'folder_contents'],
         }
         # Adding views.
@@ -135,21 +230,54 @@ class ContentTypeScopeManagerBaseTestCase(ptc.PloneTestCase):
         portal_add = self.portal.unrestrictedTraverse('+')
         self.assertScopeInvalid(portal_add, 'addFile')
 
-    def test_2000_bad_scope_assignment(self):
-        self.assertRaises(WrongContainedType, setattr, 
-            self.scopeManager, 'mappings', {
-                'Folder': 'folder_contents',
-            }
-        )
 
-        self.assertRaises(WrongType, setattr, 
-            self.scopeManager, 'mappings', ['folder_contents']
-        )
+class CTSMValidateTestCase(ptc.PloneTestCase):
+    """
+    Testing the validation process.
+    """
+
+    def afterSetUp(self):
+        self.sm = ContentTypeScopeManager()
+        self.file_mapping = {'File': ['document_view']}
+        self.folder_mapping = {'Folder': ['folder_contents', '+/addFile']}
+        file_id = self.sm.addMapping(self.file_mapping)
+        folder_id = self.sm.addMapping(self.folder_mapping)
+        self.sm.setMappingNameToID('file', file_id)
+        self.sm.setMappingNameToID('folder', folder_id)
+        self.folder_add = self.folder.restrictedTraverse('+')
+
+        self.all_ids = set([file_id, folder_id])
+
+    def test_0100_request_to_access(self):
+        rkey = 'request_key'
+        akey = 'access_key'
+        self.assertTrue(self.sm.requestScope(rkey, 
+            'http://nohost/plone/scope/file,http://nohost/plone/scope/folder'))
+
+        self.sm.setAccessScope(akey, self.sm.getScope(rkey))
+        self.assertEqual(self.sm.getAccessScope(akey), self.all_ids)
+        # Should there be something to automatically revoke it?
+        # Probably?
+
+        self.assertFalse(self.sm.validate('', akey, self.folder,
+            self.portal, 'document_view', object()))
+        self.assertTrue(self.sm.validate('', akey, self.folder,
+            self.portal, 'folder_contents', object()))
+
+        self.assertFalse(self.sm.validate('', akey, self.folder_add,
+            self.portal, 'addFolder', object()))
+        self.assertTrue(self.sm.validate('', akey, self.folder_add,
+            self.portal, 'addFile', object()))
+
+        # TODO test cases where mappings have been purged but the
+        # token references to them were not.
 
 
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
     suite.addTest(makeSuite(BTreeScopeManagerTestCase))
-    suite.addTest(makeSuite(ContentTypeScopeManagerBaseTestCase))
+    suite.addTest(makeSuite(CTSMMappingTestCase))
+    suite.addTest(makeSuite(CTSMPloneTestCase))
+    suite.addTest(makeSuite(CTSMValidateTestCase))
     return suite

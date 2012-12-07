@@ -172,7 +172,10 @@ class SiteRequestOAuth1ServerAdapter(oauthlib.oauth1.Server):
     @property
     def enforce_ssl(self):
         # Since the reverse proxy does not provide any ssl and any 
-        # secure traffic would not be reflected here.
+        # secure traffic would not be reflected here.  However, this
+        # value is used to verify whether to need the https be in the
+        # signing URL, so there might be a need to provide a way to
+        # configure this.
         return False
 
     @property
