@@ -284,11 +284,17 @@ class IContentTypeScopeManager(IScopeManager):
 
 class IContentTypeScopeProfile(zope.interface.Interface):
     """
-    Validation profile for the default scope manager.
+    Interface for the scope profile and editor.
     """
 
-    mappings = zope.schema.Dict(
-        title=_(u'Scope Mappings'),
+    description = zope.schema.Text(
+        title=_(u'Description'),
+        description=_(u'A description of the rights granted by this scope.'),
+        required=False,
+    )
+
+    mapping = zope.schema.Dict(
+        title=_(u'Mapping'),
         description=_(u'A mapping for each of the following portal types to '
                      'a list of permitted subpaths.'),
         key_type=zope.schema.ASCIILine(
@@ -297,6 +303,7 @@ class IContentTypeScopeProfile(zope.interface.Interface):
         value_type=zope.schema.List(
             title=_(u'Permitted subpaths'),
             value_type=zope.schema.ASCIILine(title=_(u'Subpath')),
+            required=False,
         ),
     )
 
@@ -460,3 +467,9 @@ class INonceManager(zope.interface.Interface):
         """\
         Check that this nonce can be used.
         """
+
+
+class _IDynamicSchemaInterface(zope.interface.Interface):
+    """
+    Placeholder
+    """

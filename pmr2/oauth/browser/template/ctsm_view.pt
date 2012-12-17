@@ -1,0 +1,18 @@
+
+<h2 i18n:translate="">
+  List of Scope Profiles.
+</h2>
+<ul>
+  <tal:loop repeat="t view/getProfileNames">
+    <li>
+      <a tal:attributes="
+          href string:${view/url_expr}/view/${t};
+      " tal:content="t">example.com</a>
+    </li>
+  </tal:loop>
+</ul>
+<p>
+  <a tal:attributes="
+          href string:${view/url_expr}/add"
+     i18n:translate="">Add Scope Profile</a>
+</p>

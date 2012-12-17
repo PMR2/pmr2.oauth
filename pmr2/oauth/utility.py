@@ -4,11 +4,16 @@ import base64
 import oauthlib.oauth1
 
 import zope.interface
+import zope.schema
 from zope.app.component.hooks import getSite
+
+from Products.CMFCore.utils import getToolByName
 
 from pmr2.oauth.interfaces import TokenInvalidError
 from pmr2.oauth.interfaces import IOAuthAdapter, INonceManager
 from pmr2.oauth.interfaces import IConsumerManager, ITokenManager
+
+from pmr2.oauth.schema import buildSchemaInterface
 
 SAFE_ASCII_CHARS = set([chr(i) for i in xrange(32, 127)])
 
@@ -343,3 +348,22 @@ def safe_unicode(s):
     if isinstance(s, str):
         return unicode(s)
     return s
+   
+def getUserPortalTypes():
+    site = getSite()
+    portal_catalog = getToolByName(site, 'portal_catalog')
+    plone_utils = getToolByName(site, 'plone_utils')
+    portal_types = getToolByName(site, 'portal_types')
+    all_used_types = portal_catalog.uniqueValuesFor('portal_type');
+    all_friendly_types = plone_utils.getUserFriendlyTypes(all_used_types)
+    return [(t, portal_types.getTypeInfo(t).title) for t in all_friendly_types]
+
+def schemaFactory(**kw):
+    title = unicode(kw.pop('title'))
+    required = kw.pop('required')
+    return zope.schema.List(title=title, required=required,
+        value_type=zope.schema.ASCIILine())
+
+def buildContentTypeScopeProfileInterface():
+    types = getUserPortalTypes()
+    return buildSchemaInterface(types, schemaFactory)

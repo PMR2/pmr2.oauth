@@ -27,7 +27,20 @@
       for="zope.annotation.interfaces.IAnnotatable
            *"
       factory=".scope.ContentTypeScopeManagerFactory"
-      provides=".interfaces.IScopeManager"
+      provides=".interfaces.IContentTypeScopeManager"
       />
+
+  <!-- 
+    Provide a direct bridge between the profile to be edited to the
+    interface used by the form.
+  -->
+
+  <adapter 
+      for=".interfaces.IContentTypeScopeProfile"
+      provides=".browser.interfaces.IContentTypeScopeProfileEdit"
+      factory=".converter.NullConverter"
+      />
+
+  <adapter factory=".converter.SchemaMethodObjectConverter" />
 
 </configure>

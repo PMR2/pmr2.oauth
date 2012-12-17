@@ -50,7 +50,8 @@ Ditto for the token manager.
     >>> tokenManager
     <pmr2.oauth.token.TokenManager object at ...>
 
-Lastly, the scope manager.
+Lastly, the scope manager.  Verify that this component is registered for
+both the base generic interface and its specific interface.
 ::
 
     >>> request = TestRequest()
@@ -59,6 +60,10 @@ Lastly, the scope manager.
     >>> scopeManager
     <pmr2.oauth.scope.ContentTypeScopeManager object at ...>
     >>> IScopeManager.providedBy(scopeManager)
+    True
+    >>> result = zope.component.getMultiAdapter(
+    ...     (self.portal, request), IContentTypeScopeManager)
+    >>> scopeManager == result
     True
 
 
@@ -500,11 +505,131 @@ around scope manager restrictions.
 Scope Control
 -------------
 
-While the current scope manager already place limits on what consumers
-can access, individual users should be able to place further
-restrictions on the amount of their resources a given consumer may
-access.  This will be reimplemented once the UI to show users what
-scopes are available are reimplemented.
+To properly restrict what resources can be accessed by consumers, access
+granted by an access token is limited by scope managers, which was
+demostrated earlier.  However, the adminstrators must have a way to
+customize them.  To do that views and forms are provided::
+
+    >>> from pmr2.oauth.browser import scope
+    >>> from pmr2.testing.base import TestRequest as PMR2TestRequest
+    >>> context = self.portal
+    >>> request = PMR2TestRequest()
+    >>> view = scope.ContentTypeScopeManagerView(context, request)
+    >>> print view()
+    <BLANKLINE>
+    ...
+    <h2>
+      List of Scope Profiles.
+    </h2>
+    <ul>
+    </ul>
+    <p>
+      <a href=".../add">Add Scope Profile</a>
+    </p>
+    ...
+
+Selecting that link will bring up the Add Scope Profile form::
+
+    >>> request = PMR2TestRequest(form={
+    ...     'form.widgets.name': 'test_profile',
+    ...     'form.buttons.add': 1,
+    ... })
+    >>> view = scope.ContentTypeScopeProfileAddForm(context, request)
+    >>> view.update()
+
+Once that profile is added it will be first added as an edit profile, 
+which are work in progress profiles to separate them from active ones.
+This ensures that any existing access keys using the original scopes 
+will not get retroactively updated by new scopes.
+
+As stated, this can be retrieved and listed using the method provided by
+the scope manager::
+
+    >>> scopeManager.getEditProfile('test_profile')
+    <pmr2.oauth.scope.ContentTypeScopeProfile object at ...>
+    >>> scopeManager.getEditProfileNames()[0]
+    'test_profile'
+
+The manager view will list this also::
+
+    >>> request = PMR2TestRequest()
+    >>> view = scope.ContentTypeScopeManagerView(context, request)
+    >>> print view()
+    <BLANKLINE>
+    ...
+    <h2>
+      List of Scope Profiles.
+    </h2>
+    <ul>
+      <li>
+        <a href=".../test_profile">test_profile</a>
+      </li>
+    </ul>
+    <p>
+      <a href=".../add">Add Scope Profile</a>
+    </p>
+    ...
+
+The link leads to the view form.  There should be three actions with
+corresponding buttons::
+
+    >>> request = PMR2TestRequest()
+    >>> view = scope.ContentTypeScopeProfileDisplayForm(context, request)
+    >>> view = view.publishTraverse(request, 'test_profile')
+    >>> view.update()
+    >>> result = view.render()
+    >>> 'Commit Update' in result
+    True
+    >>> 'Edit' in result
+    True
+    >>> 'Revert' in result
+    True
+
+Now instantiate the edit view for that profile::
+
+    >>> request = PMR2TestRequest()
+    >>> view = scope.ContentTypeScopeProfileEditForm(context, request)
+    >>> view = view.publishTraverse(request, 'test_profile')
+    >>> view.update()
+    >>> result = view.render()
+    >>> 'Document' in result
+    True
+    >>> 'Folder' in result
+    True
+
+Apply the value and see that the profile is updated::
+
+    >>> request = PMR2TestRequest(form={
+    ...     'form.widgets.mapping.widgets.Document': u'document_view',
+    ...     'form.widgets.mapping-empty-marker': 1,
+    ...     'form.buttons.apply': 1,
+    ... })
+    >>> view = scope.ContentTypeScopeProfileEditForm(context, request)
+    >>> view = view.publishTraverse(request, 'test_profile')
+    >>> view.update()
+    >>> result = view.render()
+    >>> profile = scopeManager.getEditProfile('test_profile')
+    >>> profile.mapping['Document']
+    ['document_view']
+
+However, as currently implemented, views that were permitted for another
+type that may have been installed previously will not be saved if the
+profile is updated with the form.  Here we add a dummy mapping and then
+update the form again and see that the views enabled for the Dummy type
+is not preserved::
+
+    >>> new_mapping = {}
+    >>> new_mapping.update(profile.mapping)
+    >>> new_mapping['Dummy'] = ['dummy_view']
+    >>> profile.mapping = new_mapping
+    >>> profile.mapping.get('Dummy', False)
+    ['dummy_view']
+    >>> view = scope.ContentTypeScopeProfileEditForm(context, request)
+    >>> view = view.publishTraverse(request, 'test_profile')
+    >>> view.update()
+    >>> profile = scopeManager.getEditProfile('test_profile')
+    >>> profile.mapping.get('Dummy', False)
+    False
 
 
 ---------------------

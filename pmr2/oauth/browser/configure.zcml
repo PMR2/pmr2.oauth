@@ -60,4 +60,32 @@
       permission="cmf.ManagePortal"
       />
 
+  <browser:view
+      for="Products.CMFPlone.interfaces.siteroot.IPloneSiteRoot"
+      name="manage-ctsp"
+      class=".scope.ContentTypeScopeManagerView"
+      permission="cmf.ManagePortal"
+      />
+
+  <browser:page
+      for=".scope.ContentTypeScopeManagerView"
+      name="add"
+      class=".scope.ContentTypeScopeProfileAddForm"
+      permission="cmf.ManagePortal"
+      />
+
+  <browser:page
+      for=".scope.ContentTypeScopeManagerView"
+      name="edit"
+      class=".scope.ContentTypeScopeProfileEditForm"
+      permission="cmf.ManagePortal"
+      />
+
+  <browser:page
+      for=".scope.ContentTypeScopeManagerView"
+      name="view"
+      class=".scope.ContentTypeScopeProfileDisplayForm"
+      permission="cmf.ManagePortal"
+      />
+
 </configure>

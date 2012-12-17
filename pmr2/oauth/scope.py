@@ -174,7 +174,13 @@ class ContentTypeScopeManager(BTreeScopeManager):
         # with a scope, the mapping is stuck until the token is revoked.
         self._named_mappings = OIBTree()  # name to id.
 
+        # To not overburden the named mappings with work-in-progress
+        # profiles, instantiate one here also.
+        self._edit_mappings = OOBTree()
+
         self.default_mapping_id = self.addMapping({})
+
+    # Main mapping related management methods.
 
     def addMapping(self, mapping):
         key = 0  # default?
@@ -198,7 +204,43 @@ class ContentTypeScopeManager(BTreeScopeManager):
         self._named_mappings[name] = mapping_id
 
     def delMappingName(self, name):
-        return self._named_mappings.pop(name)
+        saved = self._named_mappings.pop(name, None)
+        edits = self._edit_mappings.pop(name, None)
+        return (saved, edits)
+
+    def getMappingFromName(self, name, default=_marker):
+        try:
+            mapping_id = self.getMappingIdFromName(name)
+            mapping = self.getMapping(mapping_id)
+        except KeyError:
+            if default == _marker:
+                raise
+            mapping = default
+        return mapping
+
+    def getMappingNames(self):
+        return self._named_mappings.keys()
+
+    # Temporary/edited mapping profiles
+
+    def getEditProfile(self, name, default=None):
+        return self._edit_mappings.get(name, default)
+
+    def setEditProfile(self, name, value):
+        assert IContentTypeScopeProfile.providedBy(value) or value is None
+        self._edit_mappings[name] = value
+
+    def commitEditProfile(self, name):
+        profile = self.getEditProfile(name)
+        if not (IContentTypeScopeProfile.providedBy(profile)):
+            raise KeyError('edit profile does not exist')
+        mapping = profile.mapping
+        self.setMappingNameToID(name, self.addMapping(mapping))
+
+    def getEditProfileNames(self):
+        return self._edit_mappings.keys()
+
+    # Scope handling.
 
     def requestScope(self, request_key, raw_scope):
         """
@@ -214,7 +256,7 @@ class ContentTypeScopeManager(BTreeScopeManager):
             name = rs.split('/')[-1]
             try:
                 mapping_id = self.getMappingIdFromName(name)
-                # verify that this exists.
+                # This verifies the existence of the mapping with id.
                 mapping = self.getMapping(mapping_id)
             except KeyError:
                 # Failed to fulfill the requested scope.
@@ -303,3 +345,7 @@ class ContentTypeScopeProfile(object):
     """
 
     zope.interface.implements(IContentTypeScopeProfile)
+
+    description = fieldproperty.FieldProperty(
+        IContentTypeScopeProfile['description'])
+    mapping = fieldproperty.FieldProperty(IContentTypeScopeProfile['mapping'])

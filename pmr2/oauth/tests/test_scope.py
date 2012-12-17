@@ -16,6 +16,7 @@ from pmr2.oauth.interfaces import ITokenManager, IConsumerManager
 from pmr2.oauth.token import Token
 from pmr2.oauth.consumer import Consumer
 from pmr2.oauth.scope import BTreeScopeManager, ContentTypeScopeManager
+from pmr2.oauth.scope import ContentTypeScopeProfile
 
 from pmr2.oauth.tests import base
 
@@ -112,7 +113,7 @@ class CTSMMappingTestCase(unittest.TestCase):
         self.assertEqual(self.sm.getMappingIdFromName('rawscope'), _marker)
         self.sm.setMappingNameToID('rawscope', 3)
         self.assertEqual(self.sm.getMappingIdFromName('rawscope'), 3)
-        self.assertEqual(self.sm.delMappingName('rawscope'), 3)
+        self.sm.delMappingName('rawscope')
         self.assertRaises(KeyError, self.sm.getMappingIdFromName, 'rawscope')
 
     def test_1000_request_scope_fresh_fail(self):
@@ -168,7 +169,37 @@ class CTSMMappingTestCase(unittest.TestCase):
         self.assertTrue(file_id not in mappings)
 
 
-class CTSMPloneTestCase(ptc.PloneTestCase):
+class CTSMEditingTestCase(unittest.TestCase):
+    """
+    Testing the profile and management within this scope manager.
+    """
+
+    def setUp(self):
+        self.sm = ContentTypeScopeManager()
+        self.file_profile = ContentTypeScopeProfile()
+        self.file_profile.mapping = {'File': ['document_view']}
+        self.folder_profile = ContentTypeScopeProfile()
+        self.folder_profile.mapping = {'Folder': ['folder_contents']}
+
+    def test_0001_edit(self):
+        self.sm.setEditProfile('file', None)
+        self.assertRaises(AssertionError, 
+            self.sm.setEditProfile, 'file', object())
+
+        self.sm.setEditProfile('file', self.file_profile)
+        self.assertEqual(self.sm.getEditProfile('file'), self.file_profile)
+
+    def test_0002_commit_del(self):
+        self.sm.setEditProfile('file', self.file_profile)
+        self.sm.commitEditProfile('file')
+        self.assertEqual(self.sm.getMappingFromName('file'),
+            self.file_profile.mapping)
+
+        self.sm.delMappingName('file')
+        self.assertEqual(self.sm.getEditProfile('file'), None)
+        self.assertEqual(self.sm.getMappingFromName('file', None), None)
+
+class CTSMPloneIntegrationTestCase(ptc.PloneTestCase):
     """
     Testing the validation on just the objects with the provided 
     mapping and other Plone integration.
@@ -278,6 +309,7 @@ def test_suite():
     suite = TestSuite()
     suite.addTest(makeSuite(BTreeScopeManagerTestCase))
     suite.addTest(makeSuite(CTSMMappingTestCase))
-    suite.addTest(makeSuite(CTSMPloneTestCase))
+    suite.addTest(makeSuite(CTSMEditingTestCase))
+    suite.addTest(makeSuite(CTSMPloneIntegrationTestCase))
     suite.addTest(makeSuite(CTSMValidateTestCase))
     return suite
