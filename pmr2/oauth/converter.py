@@ -9,7 +9,7 @@ from pmr2.oauth.schema import ISchemaMethodObject
 class SchemaMethodObjectConverter(ObjectConverter):
     """
     Data converter for the dynamic schema object that's really a 
-    wraooer for a dict.
+    wrapper for a dict.
     """
 
     zope.component.adapts(ISchemaMethodObject, IObjectWidget)

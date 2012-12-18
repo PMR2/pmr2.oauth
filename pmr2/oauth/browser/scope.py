@@ -1,7 +1,11 @@
 import zope.component
 import zope.interface
+from zope.app.component.hooks import getSite
 from zope.publisher.browser import BrowserView
+from zope.publisher.interfaces import NotFound
+from zope.publisher.interfaces import IPublishTraverse
 
+from Acquisition import Implicit
 from Products.CMFCore.utils import getToolByName
 
 from z3c.form import field
@@ -44,7 +48,7 @@ class ScopeEditForm(form.EditForm):
         return sm
 
 
-class ContentTypeScopeManagerView(page.SimplePage):
+class ContentTypeScopeManagerView(Implicit, page.SimplePage):
 
     template = ViewPageTemplateFile(path('ctsm_view.pt'))
 
@@ -71,8 +75,17 @@ class ContentTypeScopeManagerView(page.SimplePage):
         # naive.
         return sorted(list(set(list(pn) + list(epn))))
 
+    def publishTraverse(self, request, name):
+        # Since this is registerd as a view and is Implicit, it needs
+        # this or this doesn't get resolved.
+        return self
+
 
 class ContentTypeScopeProfileTraverseForm(form.Form, page.TraversePage):
+
+    def update(self):
+        self.request['disable_border'] = True
+        super(ContentTypeScopeProfileTraverseForm, self).update()
 
     def getContent(self):
         # only do this once.
@@ -81,10 +94,16 @@ class ContentTypeScopeProfileTraverseForm(form.Form, page.TraversePage):
         return self._source
 
     def getSource(self):
+        if not self.traverse_subpath:
+            raise NotFound(self.context, '')
+
+        site = getSite()
         sm = zope.component.getMultiAdapter(
-            (self.context, self.request), IContentTypeScopeManager)
+            (site, self.request), IContentTypeScopeManager)
         name = self.traverse_subpath[0]
         obj = sm.getEditProfile(name)
+        if obj is None:
+            raise NotFound(self.context, name)
         return obj
 
 
@@ -123,8 +142,9 @@ class ContentTypeScopeProfileAddForm(form.AddForm):
         return result
 
     def add(self, obj):
+        site = getSite()
         sm = zope.component.getMultiAdapter(
-            (self.context, self.request), IContentTypeScopeManager)
+            (site, self.request), IContentTypeScopeManager)
         sm.setEditProfile(self._data['name'], obj)
 
     def nextURL(self):

@@ -338,7 +338,7 @@ class ContentTypeScopeManager(BTreeScopeManager):
 ContentTypeScopeManagerFactory = factory(ContentTypeScopeManager)
 
 
-class ContentTypeScopeProfile(object):
+class ContentTypeScopeProfile(Persistent):
     """
     The one for editing purpose.  Allows definition of names and fields
     related to the user side creation and usage of mappings.

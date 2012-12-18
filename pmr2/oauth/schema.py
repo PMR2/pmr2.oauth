@@ -36,7 +36,7 @@ class SchemaMethodObject(Object):
 
 
 def buildSchemaInterface(fields, schema_factory, schema_keywords=None,
-        iname='IDynamicSchemaInterface'
+        iname='IDynamicSchemaInterface', sort=True,
     ):
     """
     Dynamic schema interface builder.
@@ -49,8 +49,14 @@ def buildSchemaInterface(fields, schema_factory, schema_keywords=None,
         '__doc__': 'Dynamic schema interface.',
     }
 
+    items = enumerate(fields)
+    if sort:
+        # maybe check whether sort is callable, if so, use it as the
+        # sort method.
+        items = enumerate(sorted(fields))
+
     results = {}
-    for c, values in enumerate(sorted(fields)):
+    for c, values in items:
         id_, title = values
 
         kw = {

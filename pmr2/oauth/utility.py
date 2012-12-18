@@ -356,7 +356,10 @@ def getUserPortalTypes():
     portal_types = getToolByName(site, 'portal_types')
     all_used_types = portal_catalog.uniqueValuesFor('portal_type');
     all_friendly_types = plone_utils.getUserFriendlyTypes(all_used_types)
-    return [(t, portal_types.getTypeInfo(t).title) for t in all_friendly_types]
+    # XXX assumption, should use portal_types.getTypeInfo
+    root = [('Plone Site', 'Plone Site')]  
+    main = [(t, portal_types.getTypeInfo(t).title) for t in all_friendly_types]
+    return root + sorted(main, lambda x, y: cmp(x[1], y[1]))
 
 def schemaFactory(**kw):
     title = unicode(kw.pop('title'))
@@ -366,4 +369,4 @@ def schemaFactory(**kw):
 
 def buildContentTypeScopeProfileInterface():
     types = getUserPortalTypes()
-    return buildSchemaInterface(types, schemaFactory)
+    return buildSchemaInterface(types, schemaFactory, sort=False)

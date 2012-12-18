@@ -632,6 +632,67 @@ is not preserved::
     False
 
 
+~~~~~~~~~~~~~~
+Error Handling
+~~~~~~~~~~~~~~
+
+Traversing to profiles using edit form will get NotFound::
+
+    >>> request = PMR2TestRequest()
+    >>> view = scope.ContentTypeScopeProfileEditForm(context, request)
+    >>> view.update()
+    Traceback (most recent call last):
+    ...
+    NotFound...
+
+    >>> request = PMR2TestRequest()
+    >>> view = scope.ContentTypeScopeProfileEditForm(context, request)
+    >>> view = view.publishTraverse(request, 'no_profile')
+    >>> view.update()
+    Traceback (most recent call last):
+    ...
+    NotFound...
+
+    >>> request = PMR2TestRequest()
+    >>> view = scope.ContentTypeScopeProfileDisplayForm(context, request)
+    >>> view = view.publishTraverse(request, 'no_profile')
+    >>> view.update()
+    Traceback (most recent call last):
+    ...
+    NotFound...
+
+
+~~~~~~~~~~~~~~~~~~~~~~
+Through a web browser.
+~~~~~~~~~~~~~~~~~~~~~~
+
+To set up the scope management interface in a more natural manner, the
+views use the base scope management view as the context.  This can
+result in some unintended consequences and here these will be tested.
+
+First log in as portal owner::
+
+    >>> o_browser = Browser()
+    >>> o_browser.open(baseurl + '/login')
+    >>> o_browser.getControl(name='__ac_name').value = portal_owner
+    >>> o_browser.getControl(name='__ac_password').value = default_password
+    >>> o_browser.getControl(name='submit').click()
+
+Now traverse to the content type scope profile management page::
+
+    >>> o_browser.open(baseurl + '/manage-ctsp')
+    >>> contents = o_browser.contents
+    >>> 'test_profile' in contents
+    True
+
+The edit profile should be visible.  Open that too::
+
+    >>> o_browser.open(baseurl + '/manage-ctsp/edit/test_profile')
+    >>> ct = o_browser.getControl(name="form.widgets.mapping.widgets.Document")
+    >>> ct.value
+    'document_view'
+
+
 ---------------------
 Management Interfaces
 ---------------------
