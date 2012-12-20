@@ -241,4 +241,5 @@ class ContentTypeScopeProfileAddForm(form.AddForm):
         sm.setEditProfile(self._data['name'], obj)
 
     def nextURL(self):
-        return self.context.absolute_url()
+        return '/'.join([self.context.absolute_url(), 
+            self.context.__name__, 'view', self._data['name'],])
