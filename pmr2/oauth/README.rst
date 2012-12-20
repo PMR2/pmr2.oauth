@@ -14,6 +14,7 @@ To run this, we first import all the modules we need.
     >>> import zope.component
     >>> import zope.interface
     >>> from Testing.testbrowser import Browser
+    >>> from Products.statusmessages.interfaces import IStatusMessage
     >>> from pmr2.oauth.interfaces import *
     >>> from pmr2.oauth.consumer import *
     >>> from pmr2.oauth.tests.base import TestRequest
@@ -570,7 +571,7 @@ The manager view will list this also::
     </p>
     ...
 
-The link leads to the view form.  There should be three actions with
+The link leads to the view form.  There should be some actions with
 corresponding buttons::
 
     >>> request = PMR2TestRequest()
@@ -618,6 +619,7 @@ profile is updated with the form.  Here we add a dummy mapping and then
 update the form again and see that the views enabled for the Dummy type
 is not preserved::
 
+    >>> request.environ['pmr2.traverse_subpath'] = []
     >>> new_mapping = {}
     >>> new_mapping.update(profile.mapping)
     >>> new_mapping['Dummy'] = ['dummy_view']
@@ -630,6 +632,49 @@ is not preserved::
     >>> profile = scopeManager.getEditProfile('test_profile')
     >>> profile.mapping.get('Dummy', False)
     False
+
+Back onto the edit form.  See that the profile can be committed for
+use::
+
+    >>> request = PMR2TestRequest(form={
+    ...     'form.buttons.setdefault': 1,
+    ... })
+    >>> view = scope.ContentTypeScopeProfileDisplayForm(context, request)
+    >>> view = view.publishTraverse(request, 'test_profile')
+    >>> view.update()
+
+Wait, the profile has not been committed.  There will be an error 
+rendered, along with the notification that it has been modified.::
+
+    >>> status = IStatusMessage(request)
+    >>> messages = status.show()
+    >>> messages[0].message
+    u'This profile has not been committed yet.'
+    >>> messages[1].message
+    u'This profile has been modified. ...
+
+Try this again after committing it::
+
+    >>> request = PMR2TestRequest(form={
+    ...     'form.buttons.commit': 1,
+    ... })
+    >>> view = scope.ContentTypeScopeProfileDisplayForm(context, request)
+    >>> view = view.publishTraverse(request, 'test_profile')
+    >>> view.update()
+
+    >>> request = PMR2TestRequest(form={
+    ...     'form.buttons.setdefault': 1,
+    ... })
+    >>> view = scope.ContentTypeScopeProfileDisplayForm(context, request)
+    >>> view = view.publishTraverse(request, 'test_profile')
+    >>> view.update()
+
+    >>> mapping_id = scopeManager.default_mapping_id
+    >>> mapping_id
+    1
+    >>> mapping = scopeManager.getMapping(mapping_id)
+    >>> mapping['Document']
+    ['document_view']
 
 
 ~~~~~~~~~~~~~~
@@ -678,24 +723,85 @@ First log in as portal owner::
     >>> o_browser.getControl(name='__ac_password').value = default_password
     >>> o_browser.getControl(name='submit').click()
 
-Now traverse to the content type scope profile management page::
+Now traverse to the content type scope profile management page.  The
+created profile will be available for selection::
 
     >>> o_browser.open(baseurl + '/manage-ctsp')
     >>> contents = o_browser.contents
-    >>> 'test_profile' in contents
+    >>> o_browser.getLink('test_profile').click()
+
+A brief summary of the permitted views will be shown::
+
+    >>> contents = o_browser.contents
+    >>> 'document_view' in contents
     True
 
-The edit profile should be visible.  Open that too::
+The edit button should be available.  Select that to open the edit form,
+and see that the fields are populated with previously assigned values::
 
-    >>> o_browser.open(baseurl + '/manage-ctsp/edit/test_profile')
+    >>> o_browser.getControl(name='form.buttons.edit').click()
     >>> ct = o_browser.getControl(name="form.widgets.mapping.widgets.Document")
     >>> ct.value
     'document_view'
 
+Permit the viewing of folder contents and the two test views definied
+for this test that are for the site root::
 
----------------------
-Management Interfaces
----------------------
+    >>> o_browser.getControl(name="form.widgets.mapping.widgets.Folder"
+    ...      ).value = 'folder_listing'
+    >>> o_browser.getControl(name="form.widgets.mapping.widgets.Plone Site"
+    ...      ).value = 'test_current_roles'
+    >>> o_browser.getControl(name='form.buttons.apply').click()
+    >>> profile = scopeManager.getEditProfile('test_profile')
+    >>> profile.mapping.get('Plone Site', False)
+    ['test_current_roles']
+
+Return to the main view and see that the profile is applied::
+
+    >>> o_browser.getControl(name='form.buttons.cancel').click()
+    >>> contents = o_browser.contents
+    >>> 'test_current_roles' in contents
+    True
+    >>> 'This profile has been modified.' in contents
+    True
+
+Now commit the changes, and see if this profile is activated.  Note the
+status message about the modified state is now visible again::
+
+    >>> o_browser.getControl(name='form.buttons.commit').click()
+    >>> contents = o_browser.contents
+    >>> mapping = scopeManager.getMappingByName('test_profile')
+    >>> mapping.get('Plone Site', False)
+    ['test_current_roles']
+    >>> mapping.get('Document', False)
+    ['document_view']
+    >>> 'This profile has been modified.' in contents
+    False
+
+Test for the functionality of the revert button also::
+
+    >>> o_browser.getControl(name='form.buttons.edit').click()
+    >>> o_browser.getControl(name="form.widgets.mapping.widgets.Plone Site"
+    ...      ).value = 'test_current_user\r\ntest_current_roles'
+    >>> o_browser.getControl(name='form.buttons.apply').click()
+    >>> profile = scopeManager.getEditProfile('test_profile')
+    >>> profile.mapping.get('Plone Site', False)
+    ['test_current_user', 'test_current_roles']
+
+    >>> o_browser.getControl(name='form.buttons.cancel').click()
+    >>> 'This profile has been modified.' in o_browser.contents
+    True
+    >>> o_browser.getControl(name='form.buttons.revert').click()
+    >>> 'This profile has been modified.' in o_browser.contents
+    False
+    >>> profile = scopeManager.getEditProfile('test_profile')
+    >>> profile.mapping.get('Plone Site', False)
+    ['test_current_roles']
+
+
+---------------------------
+Other Management Interfaces
+---------------------------
 
 Finally, the user (and site managers) would need to know what tokens are
 stored for who and also the ability to revoke tokens when they no longer

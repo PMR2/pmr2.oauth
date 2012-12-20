@@ -7,9 +7,11 @@ from zope.publisher.interfaces import IPublishTraverse
 
 from Acquisition import Implicit
 from Products.CMFCore.utils import getToolByName
+from Products.statusmessages.interfaces import IStatusMessage
 
 from z3c.form import field
 from z3c.form import button
+from z3c.form.interfaces import DISPLAY_MODE
 
 from pmr2.z3cform import form
 from pmr2.z3cform import page
@@ -83,6 +85,13 @@ class ContentTypeScopeManagerView(Implicit, page.SimplePage):
 
 class ContentTypeScopeProfileTraverseForm(form.Form, page.TraversePage):
 
+    @property
+    def profile_name(self):
+        if not self.traverse_subpath or len(self.traverse_subpath) > 1:
+            return None
+
+        return self.traverse_subpath[0]
+
     def update(self):
         self.request['disable_border'] = True
         super(ContentTypeScopeProfileTraverseForm, self).update()
@@ -94,13 +103,13 @@ class ContentTypeScopeProfileTraverseForm(form.Form, page.TraversePage):
         return self._source
 
     def getSource(self):
-        if not self.traverse_subpath:
+        name = self.profile_name
+        if not name:
             raise NotFound(self.context, '')
 
         site = getSite()
         sm = zope.component.getMultiAdapter(
             (site, self.request), IContentTypeScopeManager)
-        name = self.traverse_subpath[0]
         obj = sm.getEditProfile(name)
         if obj is None:
             raise NotFound(self.context, name)
@@ -109,27 +118,111 @@ class ContentTypeScopeProfileTraverseForm(form.Form, page.TraversePage):
 
 class ContentTypeScopeProfileDisplayForm(ContentTypeScopeProfileTraverseForm):
 
+    # May just take a shortcut and have a custom template to show icons.
     #template = ViewPageTemplateFile(path('ctsp_view.pt'))
 
-    #fields = field.Fields(IContentTypeScopeProfile)
+    fields = field.Fields(IContentTypeScopeProfileEdit)
+    mode = DISPLAY_MODE
+    next_target = None
 
     @button.buttonAndHandler(_('Edit'), name='edit')
     def handleEdit(self, action):
-        pass
+        if self.profile_name:
+            # absolute_url is implicitly acquired by the parent view.
+            self.next_target = '/'.join([self.context.absolute_url(), 
+                self.context.__name__, 'edit', self.profile_name,])
 
     @button.buttonAndHandler(_('Commit Update'), name='commit')
     def handleCommit(self, action):
-        pass
+        site = getSite()
+        sm = zope.component.getMultiAdapter(
+            (site, self.request), IContentTypeScopeManager)
+        profile, original = self._getProfileAndMapping()
+        new_mapping = profile.mapping
+        new_id = sm.addMapping(new_mapping)
+        sm.setMappingNameToId(self.profile_name, new_id)
+
+        self.next_target = '/'.join([self.context.absolute_url(), 
+            self.context.__name__, 'view', self.profile_name,])
 
     @button.buttonAndHandler(_('Revert'), name='revert')
     def handleRevert(self, action):
-        pass
+        profile, original = self._getProfileAndMapping()
+        profile.mapping = original
+
+        self.next_target = '/'.join([self.context.absolute_url(), 
+            self.context.__name__, 'view', self.profile_name,])
+
+    @button.buttonAndHandler(_('Set as Default'), name='setdefault')
+    def handleSetDefault(self, action):
+        site = getSite()
+        sm = zope.component.getMultiAdapter(
+            (site, self.request), IContentTypeScopeManager)
+        try:
+            sm.default_mapping_id = sm.getMappingId(self.profile_name)
+        except KeyError:
+            status = IStatusMessage(self.request)
+            status.addStatusMessage(_(
+                u'This profile has not been committed yet.'),
+                'error'
+            )
+
+        self.next_target = '/'.join([self.context.absolute_url(), 
+            self.context.__name__, 'view', self.profile_name,])
+
+    def update(self):
+        super(ContentTypeScopeProfileDisplayForm, self).update()
+
+        if self.isMappingModified():
+            status = IStatusMessage(self.request)
+            status.addStatusMessage(_(
+                u'This profile has been modified.  Please commit the changes '
+                 'when they are ready.'),
+                'info'
+            )
+
+        if self.next_target:
+            self.request.response.redirect(self.next_target)
+
+    def _getProfileAndMapping(self):
+        profile = self.getContent()
+        site = getSite()
+        sm = zope.component.getMultiAdapter(
+            (site, self.request), IContentTypeScopeManager)
+        mapping = sm.getMappingByName(self.profile_name, {})
+        return profile, mapping
+
+    def isMappingModified(self):
+        profile, mapping = self._getProfileAndMapping()
+
+        # XXX I would like some way to compare the two profiles in a
+        # sane way but only using active types and types that have
+        # stuff assigned.  So for now just use this naive method.
+        return not profile.mapping == mapping
 
 
 class ContentTypeScopeProfileEditForm(form.EditForm,
         ContentTypeScopeProfileTraverseForm):
 
     fields = field.Fields(IContentTypeScopeProfileEdit)
+
+    @button.buttonAndHandler(_('Apply'), name='apply')
+    def handleApply(self, action):
+        data, errors = self.extractData()
+        if errors:
+            self.status = self.formErrorsMessage
+            return
+        changes = self.applyChanges(data)
+        if changes:
+            self.status = self.successMessage
+        else:
+            self.status = self.noChangesMessage
+
+    @button.buttonAndHandler(_('Cancel and Return'), name='cancel')
+    def handleCancel(self, action):
+        next_target = '/'.join([self.context.absolute_url(), 
+            self.context.__name__, 'view', self.profile_name,])
+        self.request.response.redirect(next_target)
 
 
 class ContentTypeScopeProfileAddForm(form.AddForm):
