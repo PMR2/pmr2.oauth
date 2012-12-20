@@ -196,11 +196,11 @@ class ContentTypeScopeManager(BTreeScopeManager):
             raise KeyError()
         return result
 
-    def getMappingIdFromName(self, name):
+    def getMappingId(self, name):
         # Returned ID could potentially not exist, what do?
         return self._named_mappings[name]
 
-    def setMappingNameToID(self, name, mapping_id):
+    def setMappingNameToId(self, name, mapping_id):
         self._named_mappings[name] = mapping_id
 
     def delMappingName(self, name):
@@ -208,9 +208,9 @@ class ContentTypeScopeManager(BTreeScopeManager):
         edits = self._edit_mappings.pop(name, None)
         return (saved, edits)
 
-    def getMappingFromName(self, name, default=_marker):
+    def getMappingByName(self, name, default=_marker):
         try:
-            mapping_id = self.getMappingIdFromName(name)
+            mapping_id = self.getMappingId(name)
             mapping = self.getMapping(mapping_id)
         except KeyError:
             if default == _marker:
@@ -235,7 +235,7 @@ class ContentTypeScopeManager(BTreeScopeManager):
         if not (IContentTypeScopeProfile.providedBy(profile)):
             raise KeyError('edit profile does not exist')
         mapping = profile.mapping
-        self.setMappingNameToID(name, self.addMapping(mapping))
+        self.setMappingNameToId(name, self.addMapping(mapping))
 
     def getEditProfileNames(self):
         return self._edit_mappings.keys()
@@ -255,7 +255,7 @@ class ContentTypeScopeManager(BTreeScopeManager):
             # fragment.
             name = rs.split('/')[-1]
             try:
-                mapping_id = self.getMappingIdFromName(name)
+                mapping_id = self.getMappingId(name)
                 # This verifies the existence of the mapping with id.
                 mapping = self.getMapping(mapping_id)
             except KeyError:

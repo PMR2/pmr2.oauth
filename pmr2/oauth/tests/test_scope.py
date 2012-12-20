@@ -108,13 +108,13 @@ class CTSMMappingTestCase(unittest.TestCase):
 
     def test_0200_mapping_name_and_id(self):
         _marker = 2
-        self.assertRaises(KeyError, self.sm.getMappingIdFromName, 'rawscope')
-        self.sm.setMappingNameToID('rawscope', _marker)
-        self.assertEqual(self.sm.getMappingIdFromName('rawscope'), _marker)
-        self.sm.setMappingNameToID('rawscope', 3)
-        self.assertEqual(self.sm.getMappingIdFromName('rawscope'), 3)
+        self.assertRaises(KeyError, self.sm.getMappingId, 'rawscope')
+        self.sm.setMappingNameToId('rawscope', _marker)
+        self.assertEqual(self.sm.getMappingId('rawscope'), _marker)
+        self.sm.setMappingNameToId('rawscope', 3)
+        self.assertEqual(self.sm.getMappingId('rawscope'), 3)
         self.sm.delMappingName('rawscope')
-        self.assertRaises(KeyError, self.sm.getMappingIdFromName, 'rawscope')
+        self.assertRaises(KeyError, self.sm.getMappingId, 'rawscope')
 
     def test_1000_request_scope_fresh_fail(self):
         self.assertFalse(self.sm.requestScope('key', 'rawscope'))
@@ -130,7 +130,7 @@ class CTSMMappingTestCase(unittest.TestCase):
         key = 'request_key'
         scope = 'test_scope'
         mapping_id = self.sm.addMapping(self.file_mapping)
-        self.sm.setMappingNameToID(scope, mapping_id)
+        self.sm.setMappingNameToId(scope, mapping_id)
         self.assertTrue(self.sm.requestScope(key, scope))
         self.assertEqual(len(self.sm._scope), 1)
         mappings = self.sm.getScope(key)
@@ -144,8 +144,8 @@ class CTSMMappingTestCase(unittest.TestCase):
     def test_1003_request_scope_multiple(self):
         file_id = self.sm.addMapping(self.file_mapping)
         folder_id = self.sm.addMapping(self.folder_mapping)
-        self.sm.setMappingNameToID('file', file_id)
-        self.sm.setMappingNameToID('folder', folder_id)
+        self.sm.setMappingNameToId('file', file_id)
+        self.sm.setMappingNameToId('folder', folder_id)
 
         key1 = 'request_key1'
         key2 = 'request_key2'
@@ -192,12 +192,12 @@ class CTSMEditingTestCase(unittest.TestCase):
     def test_0002_commit_del(self):
         self.sm.setEditProfile('file', self.file_profile)
         self.sm.commitEditProfile('file')
-        self.assertEqual(self.sm.getMappingFromName('file'),
+        self.assertEqual(self.sm.getMappingByName('file'),
             self.file_profile.mapping)
 
         self.sm.delMappingName('file')
         self.assertEqual(self.sm.getEditProfile('file'), None)
-        self.assertEqual(self.sm.getMappingFromName('file', None), None)
+        self.assertEqual(self.sm.getMappingByName('file', None), None)
 
 class CTSMPloneIntegrationTestCase(ptc.PloneTestCase):
     """
@@ -273,8 +273,8 @@ class CTSMValidateTestCase(ptc.PloneTestCase):
         self.folder_mapping = {'Folder': ['folder_contents', '+/addFile']}
         file_id = self.sm.addMapping(self.file_mapping)
         folder_id = self.sm.addMapping(self.folder_mapping)
-        self.sm.setMappingNameToID('file', file_id)
-        self.sm.setMappingNameToID('folder', folder_id)
+        self.sm.setMappingNameToId('file', file_id)
+        self.sm.setMappingNameToId('folder', folder_id)
         self.folder_add = self.folder.restrictedTraverse('+')
 
         self.all_ids = set([file_id, folder_id])
