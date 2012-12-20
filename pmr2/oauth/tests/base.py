@@ -1,4 +1,5 @@
 import urllib
+import urlparse
 from time import time
 from random import randint
 from sys import maxint
@@ -165,3 +166,11 @@ def SignedTestRequest(form=None, consumer=None, token=None,
     result._auth = headers['Authorization']
 
     return result
+
+def makeToken(qsstr):
+    # quick and dirty, don't do this for real.
+    d = urlparse.parse_qs(qsstr)
+    t = {}
+    t['key'] = d.get('oauth_token', ['']).pop()
+    t['secret'] = d.get('oauth_token_secret', ['']).pop()
+    return type('Token', (object,), t)

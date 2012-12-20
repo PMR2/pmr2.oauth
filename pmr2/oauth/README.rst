@@ -10,13 +10,13 @@ To run this, we first import all the modules we need.
 
     >>> import time
     >>> import urlparse
-    >>> import oauth2 as oauth
     >>> import zope.component
     >>> import zope.interface
     >>> from Testing.testbrowser import Browser
     >>> from Products.statusmessages.interfaces import IStatusMessage
     >>> from pmr2.oauth.interfaces import *
     >>> from pmr2.oauth.consumer import *
+    >>> from pmr2.oauth.tests.base import makeToken
     >>> from pmr2.oauth.tests.base import TestRequest
     >>> from pmr2.oauth.tests.base import SignedTestRequest
     >>> request = TestRequest()
@@ -117,7 +117,7 @@ is still on the portal, this is for convenience sake.
     >>> atokenstr = rt()
     >>> print atokenstr
     oauth_token_secret=...&oauth_token=...&oauth_callback_confirmed=true
-    >>> atoken = oauth.Token.from_string(atokenstr)
+    >>> atoken = makeToken(atokenstr)
 
 Try again using a browser, but try an oob callback.
 ::
@@ -136,7 +136,7 @@ Try again using a browser, but try an oob callback.
     >>> btokenstr = browser.contents
     >>> print btokenstr
     oauth_token_secret=...&oauth_token=...&oauth_callback_confirmed=true
-    >>> btoken = oauth.Token.from_string(btokenstr)
+    >>> btoken = makeToken(btokenstr)
 
 
 -------------------
@@ -369,7 +369,7 @@ correct verifier.
     >>> accesstokenstr = rt()
     >>> print accesstokenstr
     oauth_token_secret=...&oauth_token=...
-    >>> access_token = oauth.Token.from_string(accesstokenstr)
+    >>> access_token = makeToken(accesstokenstr)
 
 After verification, the old token should have been discarded and cannot
 be used again to request a new token.
@@ -406,7 +406,7 @@ Now try again using the browser.
     >>> baccesstokenstr = browser.contents
     >>> print baccesstokenstr
     oauth_token_secret=...&oauth_token=...
-    >>> bacctoken = oauth.Token.from_string(baccesstokenstr)
+    >>> bacctoken = makeToken(baccesstokenstr)
 
 
 ------------------
