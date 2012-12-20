@@ -333,7 +333,17 @@ class ContentTypeScopeManager(BTreeScopeManager):
         if not valid_scopes:
             return False
 
-        return subpath in valid_scopes
+        for vs in valid_scopes:
+            # XXX ignores second last asterisk, preventing validation
+            # against items that have an asterisk in its name for 
+            # whatever reason...
+            if vs.endswith('*') and '/' in vs:
+                match = subpath.startswith(vs[:vs.rindex('*')])
+            else:
+                match = subpath == vs
+            if match:
+                return True
+        return False
 
 ContentTypeScopeManagerFactory = factory(ContentTypeScopeManager)
 

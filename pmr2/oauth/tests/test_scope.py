@@ -261,6 +261,28 @@ class CTSMPloneIntegrationTestCase(ptc.PloneTestCase):
         portal_add = self.portal.unrestrictedTraverse('+')
         self.assertScopeInvalid(portal_add, 'addFile')
 
+    def test_0301_asterisk_ending(self):
+        self.mapping = {
+            'Folder': ['folder*contents', 'test_*'],
+            'Plone Site': ['test/test_*', 'test/view*me', 'example/*'],
+        }
+
+        self.assertScopeInvalid(self.folder, 'folder_contents')
+        self.assertScopeInvalid(self.folder, 'test_view')
+        self.assertScopeInvalid(self.folder, 'test_')
+
+        self.assertScopeInvalid(self.portal, 'test_')
+        self.assertScopeInvalid(self.portal, 'test/test')
+        self.assertScopeInvalid(self.portal, 'test/view_me')
+        self.assertScopeValid(self.portal, 'test/test_')
+        self.assertScopeValid(self.portal, 'test/test_view')
+        self.assertScopeValid(self.portal, 'test/test_page')
+
+        # invalid for now
+        self.assertScopeInvalid(self.portal, 'example')
+        self.assertScopeValid(self.portal, 'example/')
+        self.assertScopeValid(self.portal, 'example/a')
+
 
 class CTSMValidateTestCase(ptc.PloneTestCase):
     """
