@@ -502,6 +502,108 @@ around scope manager restrictions.
     True
 
 
+---------------------------
+Token Management Interfaces
+---------------------------
+
+The user (and site managers) would need to know what tokens are stored 
+for who and also the ability to revoke tokens when they no longer wish 
+to retain access for the consumer.  This is where the management form 
+comes in.
+
+Do note that as of this release, the URIs to the following management
+interfaces are not made visible such as from the dashboard or the Site
+Setup interfaces.  Site administrators may wish to add those links 
+manually if they wish to make these functions more visible.
+
+As our test user have granted access to two tokens already, they both
+should show up if the listing page is viewed.
+::
+
+    >>> from pmr2.oauth.browser import user
+    >>> self.login(default_user)
+    >>> request = TestRequest()
+    >>> view = user.UserTokenForm(self.portal, request)
+    >>> result = view()
+    >>> access_token.key in result
+    True
+    >>> 'consumer1.example.com' in result
+    True
+
+All the required data are present in the form.  Let's try to remove one
+of the tokens using the test browser.
+::
+
+    >>> u_browser.open(baseurl + '/issued_oauth_tokens')
+    >>> u_browser.getControl(name="form.widgets.key").controls[0].click()
+    >>> u_browser.getControl(name='form.buttons.revoke').click()
+    >>> len(tokenManager.getTokensForUser(default_user))
+    1
+    >>> result = u_browser.contents
+    >>> 'Access successfully removed' in result
+    True
+
+Same deal for consumers, we can open the consumer management form and
+we should see the single consumer that had been added earlier.  Site
+managers can access this page at `${portal_url}/manage-oauth-consumers`.
+::
+
+    >>> from pmr2.oauth.browser import consumer
+    >>> request = TestRequest()
+    >>> view = consumer.ConsumerManageForm(self.portal, request)
+    >>> result = view()
+    >>> 'consumer1.example.com' in result
+    True
+
+We can try to add a few consumers using the form also.  Since the client
+in this case should be a browser, we will use the authenticated test
+request class.
+::
+
+    >>> added_consumer_keys = []
+    >>> from pmr2.testing.base import TestRequest as TestRequestAuthed
+    >>> request = TestRequestAuthed(form={
+    ...     'form.widgets.title': 'consumer2.example.com',
+    ...     'form.buttons.add': 1,
+    ... })
+    >>> view = consumer.ConsumerAddForm(self.portal, request)
+    >>> view.update()
+    >>> added_consumer_keys.append(view._data['key'])
+
+    >>> request = TestRequestAuthed(form={
+    ...     'form.widgets.title': 'consumer3.example.com',
+    ...     'form.buttons.add': 1,
+    ... })
+    >>> view = consumer.ConsumerAddForm(self.portal, request)
+    >>> view.update()
+    >>> added_consumer_keys.append(view._data['key'])
+
+Now the management form should show these couple new consumers.
+::
+
+    >>> request = TestRequestAuthed()
+    >>> view = consumer.ConsumerManageForm(self.portal, request)
+    >>> result = view()
+    >>> 'consumer2.example.com' in result
+    True
+    >>> 'consumer3.example.com' in result
+    True
+
+Should have no problems removing them either.
+::
+
+    >>> request = TestRequestAuthed(form={
+    ...     'form.widgets.key': added_consumer_keys,
+    ...     'form.buttons.remove': 1,
+    ... })
+    >>> view = consumer.ConsumerManageForm(self.portal, request)
+    >>> result = view()
+    >>> 'consumer2.example.com' in result
+    False
+    >>> 'consumer3.example.com' in result
+    False
+
+
 -------------
 Scope Control
 -------------
@@ -934,105 +1036,3 @@ that the original permissions are still intact::
     Traceback (most recent call last):
     ...
     HTTPError: HTTP Error 403: Forbidden
-
-
----------------------------
-Token Management Interfaces
----------------------------
-
-The user (and site managers) would need to know what tokens are stored 
-for who and also the ability to revoke tokens when they no longer wish 
-to retain access for the consumer.  This is where the management form 
-comes in.
-
-Do note that as of this release, the URIs to the following management
-interfaces are not made visible such as from the dashboard or the Site
-Setup interfaces.  Site administrators may wish to add those links 
-manually if they wish to make these functions more visible.
-
-As our test user have granted access to two tokens already, they both
-should show up if the listing page is viewed.
-::
-
-    >>> from pmr2.oauth.browser import user
-    >>> self.login(default_user)
-    >>> request = TestRequest()
-    >>> view = user.UserTokenForm(self.portal, request)
-    >>> result = view()
-    >>> access_token.key in result
-    True
-    >>> 'consumer1.example.com' in result
-    True
-
-All the required data are present in the form.  Let's try to remove one
-of the tokens using the test browser.
-::
-
-    >>> u_browser.open(baseurl + '/issued_oauth_tokens')
-    >>> u_browser.getControl(name="form.widgets.key").controls[0].click()
-    >>> u_browser.getControl(name='form.buttons.revoke').click()
-    >>> len(tokenManager.getTokensForUser(default_user))
-    1
-    >>> result = u_browser.contents
-    >>> 'Access successfully removed' in result
-    True
-
-Same deal for consumers, we can open the consumer management form and
-we should see the single consumer that had been added earlier.  Site
-managers can access this page at `${portal_url}/manage-oauth-consumers`.
-::
-
-    >>> from pmr2.oauth.browser import consumer
-    >>> request = TestRequest()
-    >>> view = consumer.ConsumerManageForm(self.portal, request)
-    >>> result = view()
-    >>> 'consumer1.example.com' in result
-    True
-
-We can try to add a few consumers using the form also.  Since the client
-in this case should be a browser, we will use the authenticated test
-request class.
-::
-
-    >>> added_consumer_keys = []
-    >>> from pmr2.testing.base import TestRequest as TestRequestAuthed
-    >>> request = TestRequestAuthed(form={
-    ...     'form.widgets.title': 'consumer2.example.com',
-    ...     'form.buttons.add': 1,
-    ... })
-    >>> view = consumer.ConsumerAddForm(self.portal, request)
-    >>> view.update()
-    >>> added_consumer_keys.append(view._data['key'])
-
-    >>> request = TestRequestAuthed(form={
-    ...     'form.widgets.title': 'consumer3.example.com',
-    ...     'form.buttons.add': 1,
-    ... })
-    >>> view = consumer.ConsumerAddForm(self.portal, request)
-    >>> view.update()
-    >>> added_consumer_keys.append(view._data['key'])
-
-Now the management form should show these couple new consumers.
-::
-
-    >>> request = TestRequestAuthed()
-    >>> view = consumer.ConsumerManageForm(self.portal, request)
-    >>> result = view()
-    >>> 'consumer2.example.com' in result
-    True
-    >>> 'consumer3.example.com' in result
-    True
-
-Should have no problems removing them either.
-::
-
-    >>> request = TestRequestAuthed(form={
-    ...     'form.widgets.key': added_consumer_keys,
-    ...     'form.buttons.remove': 1,
-    ... })
-    >>> view = consumer.ConsumerManageForm(self.portal, request)
-    >>> result = view()
-    >>> 'consumer2.example.com' in result
-    False
-    >>> 'consumer3.example.com' in result
-    False
