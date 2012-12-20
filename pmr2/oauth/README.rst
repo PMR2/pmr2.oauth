@@ -601,6 +601,7 @@ Now instantiate the edit view for that profile::
 Apply the value and see that the profile is updated::
 
     >>> request = PMR2TestRequest(form={
+    ...     'form.widgets.mapping.widgets.Plone Site': u'test_current_user',
     ...     'form.widgets.mapping.widgets.Document': u'document_view',
     ...     'form.widgets.mapping-empty-marker': 1,
     ...     'form.buttons.apply': 1,
@@ -675,6 +676,7 @@ Try this again after committing it::
     >>> mapping = scopeManager.getMapping(mapping_id)
     >>> mapping['Document']
     ['document_view']
+    >>> mapping['Folder']
 
 
 ~~~~~~~~~~~~~~
@@ -799,17 +801,153 @@ Test for the functionality of the revert button also::
     ['test_current_roles']
 
 
+~~~~~~~~~~~~~~~~~~~~~~
+Using OAuth with scope
+~~~~~~~~~~~~~~~~~~~~~~
+
+To properly take advantage of OAuth, scope must be managed and used
+effectively to safeguard content owner's data.  Here we set up a new
+tokens using the default profile.::
+
+    >>> url = baseurl + '/OAuthRequestToken'
+    >>> request = SignedTestRequest(consumer=consumer1, url=url, 
+    ...     callback='oob',
+    ... )
+    >>> auth = request._auth
+    >>> browser = Browser()
+    >>> browser.addHeader('Authorization', auth)
+    >>> browser.open(url)
+    >>> toks1 = browser.contents
+    >>> tok1 = makeToken(toks1)
+    >>> tok1 = tokenManager.get(tok1.key)
+    >>> tokenManager.claimRequestToken(tok1, default_user)
+
+    >>> url = baseurl + '/OAuthGetAccessToken'
+    >>> request = SignedTestRequest(url=url, consumer=consumer1, token=tok1,
+    ...     verifier=tok1.verifier,
+    ... )
+    >>> auth = request._auth
+    >>> browser = Browser()
+    >>> browser.addHeader('Authorization', auth)
+    >>> browser.open(url)
+    >>> tok1 = browser.contents
+    >>> tok1 = makeToken(tok1)
+
+Test out some of the views::
+
+    >>> url = self.folder.absolute_url()
+    >>> request = SignedTestRequest(consumer=consumer1, token=tok1, url=url)
+    >>> auth = request._auth
+    >>> browser = Browser()
+    >>> browser.addHeader('Authorization', auth)
+    >>> browser.open(url)
+    Traceback (most recent call last):
+    ...
+    HTTPError: HTTP Error 403: Forbidden
+
+    >>> url = self.portal.absolute_url() + '/test_current_user'
+    >>> request = SignedTestRequest(consumer=consumer1, token=tok1, url=url)
+    >>> auth = request._auth
+    >>> browser = Browser()
+    >>> browser.addHeader('Authorization', auth)
+    >>> browser.open(url)
+    >>> browser.contents
+    'test_user_1_'
+
+The second token, however, will make use of the scope parameter to make
+use of the scope profile we have defined earlier::
+
+    >>> url = (baseurl +
+    ...     '/OAuthRequestToken?scope=http://nohost/Plone/test_profile')
+    >>> request = SignedTestRequest(consumer=consumer1, url=url, 
+    ...     callback='oob',
+    ... )
+    >>> auth = request._auth
+    >>> browser = Browser()
+    >>> browser.addHeader('Authorization', auth)
+    >>> browser.open(url)
+    >>> toks2 = browser.contents
+    >>> tok2 = makeToken(toks2)
+    >>> tok2 = tokenManager.get(tok2.key)
+    >>> tokenManager.claimRequestToken(tok2, default_user)
+
+    >>> url = baseurl + '/OAuthGetAccessToken'
+    >>> request = SignedTestRequest(url=url, consumer=consumer1, token=tok2,
+    ...     verifier=tok2.verifier,
+    ... )
+    >>> auth = request._auth
+    >>> browser = Browser()
+    >>> browser.addHeader('Authorization', auth)
+    >>> browser.open(url)
+    >>> tok2 = browser.contents
+    >>> tok2 = makeToken(tok2)
+
+Test out some of the views with the second token.  There will be a 
+different set of views available::
+
+    >>> url = self.folder.absolute_url()
+    >>> request = SignedTestRequest(consumer=consumer1, token=tok2, url=url)
+    >>> auth = request._auth
+    >>> browser = Browser()
+    >>> browser.addHeader('Authorization', auth)
+    >>> browser.open(url)
+
+    >>> url = self.portal.absolute_url() + '/test_current_user'
+    >>> request = SignedTestRequest(consumer=consumer1, token=tok2, url=url)
+    >>> auth = request._auth
+    >>> browser = Browser()
+    >>> browser.addHeader('Authorization', auth)
+    >>> browser.open(url)
+    Traceback (most recent call last):
+    ...
+    HTTPError: HTTP Error 403: Forbidden
+
+    >>> url = self.portal.absolute_url() + '/test_current_roles'
+    >>> request = SignedTestRequest(consumer=consumer1, token=tok2, url=url)
+    >>> auth = request._auth
+    >>> browser = Browser()
+    >>> browser.addHeader('Authorization', auth)
+    >>> browser.open(url)
+    >>> print browser.contents
+    Member
+    Authenticated
+
+As mentioned before, even with an updated profile, the previously used
+scope for a given token is retained.  The first token issued in this
+subsection had the outdated default scope which forbid access to folder
+contents, so test that this is the case by using the owner's browser to
+set the current test_profile as the default profile, then demonstrate
+that the original permissions are still intact::
+
+    >>> scopeManager.default_mapping_id
+    1
+    >>> o_browser.getControl(name='form.buttons.setdefault').click()
+    >>> scopeManager.default_mapping_id
+    2
+
+    >>> url = self.folder.absolute_url()
+    >>> request = SignedTestRequest(consumer=consumer1, token=tok1, url=url)
+    >>> auth = request._auth
+    >>> browser = Browser()
+    >>> browser.addHeader('Authorization', auth)
+    >>> browser.open(url)
+    Traceback (most recent call last):
+    ...
+    HTTPError: HTTP Error 403: Forbidden
+
+
 ---------------------------
-Other Management Interfaces
+Token Management Interfaces
 ---------------------------
 
-Finally, the user (and site managers) would need to know what tokens are
-stored for who and also the ability to revoke tokens when they no longer
-wish to retain access for the consumer.  This is where the management
-form comes in.
+The user (and site managers) would need to know what tokens are stored 
+for who and also the ability to revoke tokens when they no longer wish 
+to retain access for the consumer.  This is where the management form 
+comes in.
 
 Do note that as of this release, the URIs to the following management
-interfaces are not linked.  Site administrators may wish to add them
+interfaces are not made visible such as from the dashboard or the Site
+Setup interfaces.  Site administrators may wish to add those links 
 manually if they wish to make these functions more visible.
 
 As our test user have granted access to two tokens already, they both
