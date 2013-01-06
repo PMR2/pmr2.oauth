@@ -5,8 +5,7 @@ OAuth PAS Plug-in
 This module provides OAuth authentication for Plone via the Pluggable
 Authentication Service.
 
-To run this, we first import all the modules we need.
-::
+To run this, we first import all the modules we need::
 
     >>> import time
     >>> import urlparse
@@ -24,8 +23,7 @@ To run this, we first import all the modules we need.
     ...     (self.portal, request), name='test_current_user')
     >>> baseurl = self.portal.absolute_url()
 
-The OAuth adapter should have been set up.
-::
+The OAuth adapter should have been set up::
 
     >>> request = TestRequest()
     >>> oauthAdapter = zope.component.getMultiAdapter(
@@ -33,8 +31,7 @@ The OAuth adapter should have been set up.
     >>> oauthAdapter
     <pmr2.oauth.utility.SiteRequestOAuth1ServerAdapter object at ...>
 
-The default consumer manager should also be available via adapter.
-::
+The default consumer manager should also be available via adapter::
 
     >>> request = TestRequest()
     >>> consumerManager = zope.component.getMultiAdapter(
@@ -42,8 +39,7 @@ The default consumer manager should also be available via adapter.
     >>> consumerManager
     <pmr2.oauth.consumer.ConsumerManager object at ...>
 
-Ditto for the token manager.
-::
+Ditto for the token manager::
 
     >>> request = TestRequest()
     >>> tokenManager = zope.component.getMultiAdapter(
@@ -52,8 +48,7 @@ Ditto for the token manager.
     <pmr2.oauth.token.TokenManager object at ...>
 
 Lastly, the scope manager.  Verify that this component is registered for
-both the base generic interface and its specific interface.
-::
+both the base generic interface and its specific interface::
 
     >>> request = TestRequest()
     >>> scopeManager = zope.component.getMultiAdapter(
@@ -73,8 +68,7 @@ Consumer Registration
 ---------------------
 
 In order for a client to use the site contents, it needs to register
-onto the site.  For now we just add a consumer to the ConsumerManager.
-::
+onto the site.  For now we just add a consumer to the ConsumerManager::
 
     >>> consumer1 = Consumer('consumer1.example.com', 'consumer1-secret')
     >>> consumerManager.add(consumer1)
@@ -90,8 +84,7 @@ Consumer Requests
 
 Once the consumer is registered onto the site, it is now possible to
 use it to request token.  We can try a standard request without any
-authorization, however we should log out here first.
-::
+authorization, however we should log out here first::
 
     >>> from pmr2.oauth.browser import token
     >>> self.logout()
@@ -104,8 +97,7 @@ authorization, however we should log out here first.
 
 Now we construct a request signed with the key.  The desired request 
 token string should be generated and returned.  While the callback URL 
-is still on the portal, this is for convenience sake.
-::
+is still on the portal, this is for convenience sake::
 
     >>> timestamp = str(int(time.time()))
     >>> request = SignedTestRequest(
@@ -119,8 +111,7 @@ is still on the portal, this is for convenience sake.
     oauth_token_secret=...&oauth_token=...&oauth_callback_confirmed=true
     >>> atoken = makeToken(atokenstr)
 
-Try again using a browser, but try an oob callback.
-::
+Try again using a browser, but try an oob callback::
 
     >>> url = baseurl + '/OAuthRequestToken'
     >>> timestamp = str(int(time.time()))
@@ -151,8 +142,7 @@ authentication surrounding this.
 Before that though, see if the form itself will render the error message
 for an unknown token (we will log our local user back in first).  Also,
 we will treat our page as a subform such that the rest of the Plone
-templates is not rendered.
-::
+templates is not rendered::
 
     >>> from Products.PloneTestCase.ptc import portal_owner
     >>> from Products.PloneTestCase.ptc import default_user
@@ -169,8 +159,7 @@ templates is not rendered.
     >>> 'type="submit"' in result
     False
 
-Also that the form is rendered for an authorized token.
-::
+Also that the form is rendered for an authorized token::
 
     >>> request = TestRequest(form={
     ...     'oauth_token': atoken.key,
@@ -183,8 +172,7 @@ Also that the form is rendered for an authorized token.
     True
 
 Now we do the test with the test browser class.  First we see that the
-browser is currently not logged in.
-::
+browser is currently not logged in::
 
     >>> u_browser = Browser()
     >>> u_browser.open(baseurl + '/test_current_user')
@@ -192,16 +180,14 @@ browser is currently not logged in.
     Anonymous User
 
 Trying to view the token authorization page should result in redirection
-to login form in a vanilla site.
-::
+to login form in a vanilla site::
 
     >>> u_browser.open(baseurl + '/OAuthAuthorizeToken?oauth_token=test')
     >>> 'credentials_cookie_auth' in u_browser.url
     True
 
 So we log in, and try again.  The page should render, but the token
-provided was invalid so we will receive a token invalid page.
-::
+provided was invalid so we will receive a token invalid page::
 
     >>> auth_baseurl = baseurl + '/OAuthAuthorizeToken'
     >>> u_browser.open(baseurl + '/login')
@@ -221,8 +207,7 @@ provided was invalid so we will receive a token invalid page.
 
 Now we use the token string returned by the token request initiated a
 bit earlier.  Two confirmation button should be visible along with the
-name of the consumer, along with its identity.
-::
+name of the consumer, along with its identity::
 
     >>> u_browser.open(auth_baseurl + '?oauth_token=' + atoken.key)
     >>> 'Grant access' in u_browser.contents
@@ -236,8 +221,7 @@ We can approve this token by selecting the 'Grant access' button.  Since
 no `xoauth_displayname` was specified, the browser should have been
 redirected to the callback URL with the token and verifier specified by
 the consumer, such that the consumer can request the access token with 
-it.
-::
+it::
 
     >>> u_browser.getControl(name='form.buttons.approve').click()
     >>> callback_baseurl = baseurl + '/test_oauth_callback?'
@@ -255,16 +239,14 @@ verifier associated with this token, but since we control the consumer
 here, we can defer this till a bit later.
 
 On the provider side, the request token should be updated to include the 
-id of the user that performed the authorization.
-::
+id of the user that performed the authorization::
 
     >>> tokenManager.get(atoken_key).user
     'test_user_1_'
 
 Going to do the same to the second request token with an oob callback.
 The difference is, the user will be shown the verification code and will
-be asked to supply it to the consumer manually.
-::
+be asked to supply it to the consumer manually::
 
     >>> u_browser.open(auth_baseurl + '?oauth_token=' + btoken.key)
     >>> u_browser.getControl(name='form.buttons.approve').click()
@@ -272,8 +254,7 @@ be asked to supply it to the consumer manually.
     True
 
 We are going to extract the token verifier from the token manager and
-see that it's in the contents.
-::
+see that it's in the contents::
 
     >>> tmpToken = tokenManager.get(btoken.key)
     >>> btoken_verifier = tmpToken.verifier
@@ -283,8 +264,7 @@ see that it's in the contents.
 Of course the user should have the opportunity to deny the token.  We
 can create tokens manually and let the user deny it.  The token would
 then be purged, and user will be redirected back to the callback,
-which the consumer will then handle this denial.
-::
+which the consumer will then handle this denial::
 
     >>> testtok = tokenManager._generateBaseToken(consumer1.key)
     >>> testtok.callback = baseurl + '/test_oauth_callback?'
@@ -297,8 +277,7 @@ which the consumer will then handle this denial.
     >>> tokenManager.get(testtok) is None
     True
 
-In the case of a rejected oob token, a message will be displayed.
-::
+In the case of a rejected oob token, a message will be displayed::
 
     >>> testtok = tokenManager._generateBaseToken(consumer1.key)
     >>> testtok.callback = 'oob'
@@ -322,8 +301,7 @@ previous step, construction of the final request to acquire the
 authorized token can proceed.
 
 Trying to request an access token without a supplying a valid token will
-get you this (log back out first).
-::
+get you this (log back out first)::
 
     >>> self.logout()
     >>> timestamp = str(int(time.time()))
@@ -338,8 +316,7 @@ get you this (log back out first).
     BadRequest...
 
 Now for the token, but let's try to request an access token without the
-correct verifier assigned.
-::
+correct verifier assigned::
 
     >>> timestamp = str(int(time.time()))
     >>> request = SignedTestRequest(
@@ -355,8 +332,7 @@ correct verifier assigned.
 
 Okay, now do this properly with the verifier provided, as the consumer
 just accessed the callback URL of the consumer to supply it with the
-correct verifier.
-::
+correct verifier::
 
     >>> timestamp = str(int(time.time()))
     >>> request = SignedTestRequest(
@@ -372,8 +348,7 @@ correct verifier.
     >>> access_token = makeToken(accesstokenstr)
 
 After verification, the old token should have been discarded and cannot
-be used again to request a new token.
-::
+be used again to request a new token::
 
     >>> timestamp = str(int(time.time()))
     >>> request = SignedTestRequest(
@@ -388,8 +363,7 @@ be used again to request a new token.
     ...
     Forbidden...
 
-Now try again using the browser.
-::
+Now try again using the browser::
 
     >>> url = baseurl + '/OAuthGetAccessToken'
     >>> request = SignedTestRequest(
@@ -414,8 +388,7 @@ Using OAuth Tokens
 ------------------
 
 This is basic auth, which we want to avoid since consumers would have to
-retain (thus know) the user/password combination.
-::
+retain (thus know) the user/password combination::
 
     >>> baseurl = self.portal.absolute_url()
     >>> browser = Browser()
@@ -427,8 +400,7 @@ retain (thus know) the user/password combination.
 
 For the OAuth testing request, we need to generate the authorization
 header proper, so we instantiate a signed request object and use it to
-build this string.
-::
+build this string::
 
     >>> url = baseurl + '/test_current_user'
     >>> request = SignedTestRequest(
@@ -448,8 +420,7 @@ There is one more security consideration that needs to be satisified
 still - the scope.
 
 For now we omit its restrictions by overriding some of the fields
-through unconventional injection of values.
-::
+through unconventional injection of values::
 
     >>> scopeManager._mappings[scopeManager.default_mapping_id] = {
     ...     'Plone Site': ['test_current_user', 'test_current_roles'],
@@ -460,8 +431,7 @@ through unconventional injection of values.
     >>> print browser.contents
     test_user_1_
 
-Try the roles view also, since it is also permitted.
-::
+Try the roles view also, since it is also permitted::
 
     >>> url = baseurl + '/test_current_roles'
     >>> request = SignedTestRequest(
@@ -481,8 +451,7 @@ If a client were to access a content type object without specifying a
 view, typically the default view will be resolved.  If this is included
 in the list of allowed names for the content type, the scope manager
 will permit access.  Again a brute forced approach is taken to work
-around scope manager restrictions.
-::
+around scope manager restrictions::
 
     >>> scopeManager._mappings[scopeManager.default_mapping_id] = {
     ...     'Plone Site': ['test_current_user', 'test_current_roles'],
@@ -517,8 +486,7 @@ Setup interfaces.  Site administrators may wish to add those links
 manually if they wish to make these functions more visible.
 
 As our test user have granted access to two tokens already, they both
-should show up if the listing page is viewed.
-::
+should show up if the listing page is viewed::
 
     >>> from pmr2.oauth.browser import user
     >>> self.login(default_user)
@@ -531,8 +499,7 @@ should show up if the listing page is viewed.
     True
 
 All the required data are present in the form.  Let's try to remove one
-of the tokens using the test browser.
-::
+of the tokens using the test browser::
 
     >>> u_browser.open(baseurl + '/issued_oauth_tokens')
     >>> u_browser.getControl(name="form.widgets.key").controls[0].click()
@@ -544,9 +511,8 @@ of the tokens using the test browser.
     True
 
 Same deal for consumers, we can open the consumer management form and
-we should see the single consumer that had been added earlier.  Site
-managers can access this page at `${portal_url}/manage-oauth-consumers`.
-::
+we should see the single consumer that had been added earlier.  This
+page can be accessed at `${portal_url}/manage-oauth-consumers`::
 
     >>> from pmr2.oauth.browser import consumer
     >>> request = TestRequest()
@@ -557,8 +523,7 @@ managers can access this page at `${portal_url}/manage-oauth-consumers`.
 
 We can try to add a few consumers using the form also.  Since the client
 in this case should be a browser, we will use the authenticated test
-request class.
-::
+request class::
 
     >>> added_consumer_keys = []
     >>> from pmr2.testing.base import TestRequest as TestRequestAuthed
@@ -578,8 +543,7 @@ request class.
     >>> view.update()
     >>> added_consumer_keys.append(view._data['key'])
 
-Now the management form should show these couple new consumers.
-::
+Now the management form should show these couple new consumers::
 
     >>> request = TestRequestAuthed()
     >>> view = consumer.ConsumerManageForm(self.portal, request)
@@ -589,8 +553,7 @@ Now the management form should show these couple new consumers.
     >>> 'consumer3.example.com' in result
     True
 
-Should have no problems removing them either.
-::
+Should have no problems removing them either::
 
     >>> request = TestRequestAuthed(form={
     ...     'form.widgets.key': added_consumer_keys,
@@ -604,9 +567,9 @@ Should have no problems removing them either.
     False
 
 
--------------
-Scope Control
--------------
+----------------------------
+Scope Profile and Management
+----------------------------
 
 To properly restrict what resources can be accessed by consumers, access
 granted by an access token is limited by scope managers, which was
@@ -903,9 +866,9 @@ Test for the functionality of the revert button also::
     ['test_current_roles']
 
 
-~~~~~~~~~~~~~~~~~~~~~~
+----------------------
 Using OAuth with scope
-~~~~~~~~~~~~~~~~~~~~~~
+----------------------
 
 To properly take advantage of OAuth, scope must be managed and used
 effectively to safeguard content owner's data.  Here we set up a new
