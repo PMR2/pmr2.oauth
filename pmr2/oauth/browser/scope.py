@@ -84,6 +84,15 @@ class ContentTypeScopeManagerView(Implicit, page.SimplePage):
 
 
 class ContentTypeScopeProfileTraverseForm(form.Form, page.TraversePage):
+    # XXX split the form specific part up.
+
+    def _getProfileAndMapping(self):
+        profile = self.getContent()
+        site = getSite()
+        sm = zope.component.getMultiAdapter(
+            (site, self.request), IContentTypeScopeManager)
+        mapping = sm.getMappingByName(self.profile_name, {})
+        return profile, mapping
 
     @property
     def profile_name(self):
@@ -184,14 +193,6 @@ class ContentTypeScopeProfileDisplayForm(ContentTypeScopeProfileTraverseForm):
 
         if self.next_target:
             self.request.response.redirect(self.next_target)
-
-    def _getProfileAndMapping(self):
-        profile = self.getContent()
-        site = getSite()
-        sm = zope.component.getMultiAdapter(
-            (site, self.request), IContentTypeScopeManager)
-        mapping = sm.getMappingByName(self.profile_name, {})
-        return profile, mapping
 
     def isMappingModified(self):
         profile, mapping = self._getProfileAndMapping()
