@@ -590,7 +590,7 @@ customize them.  To do that views and forms are provided::
     <ul>
     </ul>
     <p>
-      <a href=".../add">Add Scope Profile</a>
+      <a href=".../add" id="ctsm_add_scope_profile">Add Scope Profile</a>
     </p>
     ...
 
@@ -632,7 +632,7 @@ The manager view will list this also::
       </li>
     </ul>
     <p>
-      <a href=".../add">Add Scope Profile</a>
+      <a href=".../add" id="ctsm_add_scope_profile">Add Scope Profile</a>
     </p>
     ...
 
@@ -666,6 +666,7 @@ Now instantiate the edit view for that profile::
 Apply the value and see that the profile is updated::
 
     >>> request = PMR2TestRequest(form={
+    ...     'form.widgets.description': u'Simple Test Profile',
     ...     'form.widgets.mapping.widgets.Plone Site': u'test_current_user',
     ...     'form.widgets.mapping.widgets.Document': u'document_view',
     ...     'form.widgets.mapping-empty-marker': 1,
@@ -728,20 +729,26 @@ Try this again after committing it::
     >>> view = view.publishTraverse(request, 'test_profile')
     >>> view.update()
 
+Use the newly created mapping as the default mapping::
+
     >>> request = PMR2TestRequest(form={
     ...     'form.buttons.setdefault': 1,
     ... })
     >>> view = scope.ContentTypeScopeProfileDisplayForm(context, request)
     >>> view = view.publishTraverse(request, 'test_profile')
     >>> view.update()
-
     >>> mapping_id = scopeManager.default_mapping_id
     >>> mapping_id
     1
+
+Verify that the mapping and associated metadata is saved::
+
     >>> mapping = scopeManager.getMapping(mapping_id)
     >>> mapping['Document']
     ['document_view']
     >>> mapping['Folder']
+    >>> scopeManager.getMappingMetadata(mapping_id)
+    {'description': u'Simple Test Profile'}
 
 
 ~~~~~~~~~~~~~~
@@ -864,6 +871,34 @@ Test for the functionality of the revert button also::
     >>> profile = scopeManager.getEditProfile('test_profile')
     >>> profile.mapping.get('Plone Site', False)
     ['test_current_roles']
+
+Back to the main page, and try to add a new profile::
+
+    >>> o_browser.open(baseurl + '/manage-ctsp')
+    >>> contents = o_browser.contents
+    >>> o_browser.getLink(id='ctsm_add_scope_profile').click()
+
+    >>> o_browser.getControl(name="form.widgets.name").value = 'another'
+    >>> o_browser.getControl(name="form.buttons.add").click()
+
+    >>> o_browser.getControl(name="form.buttons.edit").click()
+
+    >>> o_browser.getControl(name="form.widgets.description"
+    ...     ).value = 'Allow clients to view documents.'
+    >>> o_browser.getControl(name="form.widgets.mapping.widgets.Document"
+    ...      ).value = 'document_view'
+    >>> o_browser.getControl(name="form.buttons.apply").click()
+
+    >>> o_browser.getControl(name="form.buttons.cancel").click()
+
+    >>> o_browser.getControl(name="form.buttons.commit").click()
+
+    >>> another_id = scopeManager.getMappingId('another')
+    >>> another_mapping = scopeManager.getMapping(another_id)
+    >>> another_mapping.get('Document')
+    ['document_view']
+    >>> scopeManager.getMappingMetadata(another_id)
+    {'description': u'Allow clients to view documents.'}
 
 
 ----------------------
@@ -988,7 +1023,7 @@ that the original permissions are still intact::
     1
     >>> o_browser.getControl(name='form.buttons.setdefault').click()
     >>> scopeManager.default_mapping_id
-    2
+    3
 
     >>> url = self.folder.absolute_url()
     >>> request = SignedTestRequest(consumer=consumer1, token=tok1, url=url)

@@ -13,6 +13,7 @@
 </ul>
 <p>
   <a tal:attributes="
-          href string:${view/url_expr}/add"
+          href string:${view/url_expr}/add;
+          id string:ctsm_add_scope_profile"
      i18n:translate="">Add Scope Profile</a>
 </p>

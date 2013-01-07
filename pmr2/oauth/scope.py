@@ -167,6 +167,9 @@ class ContentTypeScopeManager(BTreeScopeManager):
         super(ContentTypeScopeManager, self).__init__()
         self._mappings = IOBTree()
 
+        # For metadata related to the above.
+        self._mappings_metadata = IOBTree()
+
         # To ease the usage of scopes, the mappings are referenced by
         # names and are called profiles which add a few useful fields to
         # allow slightly easier usage.  This separates the name from the
@@ -182,18 +185,25 @@ class ContentTypeScopeManager(BTreeScopeManager):
 
     # Main mapping related management methods.
 
-    def addMapping(self, mapping):
+    def addMapping(self, mapping, metadata=None):
         key = 0  # default?
         if len(self._mappings) > 0:
             # Can calculate the next key.
             key = self._mappings.maxKey() + 1
         self._mappings[key] = mapping
+        if metadata is not None:
+            self._mappings_metadata[key] = metadata
         return key
 
     def getMapping(self, mapping_id, default=_marker):
         result = self._mappings.get(mapping_id, default)
         if result is _marker:
             raise KeyError()
+        return result
+
+    def getMappingMetadata(self, mapping_id):
+        # As metadata is optional
+        result = self._mappings_metadata.get(mapping_id, {})
         return result
 
     def getMappingId(self, name):

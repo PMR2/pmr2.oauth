@@ -19,9 +19,7 @@
             rules using your credentials:
           </p>
 
-          <ul>
-            <li tal:content="view/scope"></li>
-          </ul>
+          <div tal:content="view/scope"></div>
         </tal:if>
 
         <tal:if tal:condition="not:view/scope">
