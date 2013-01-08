@@ -14,9 +14,9 @@
         </h1>
         <tal:if tal:condition="view/scope">
           <p i18n:translate="">
-            The site <strong tal:content="view/consumer_key"></strong> is 
-            requesting access to URIs on this site matching the following 
-            rules using your credentials:
+            The site <strong tal:content="view/consumer/title"></strong>
+            is requesting access to URIs on this site matching the
+            following rules using your credentials:
           </p>
 
           <div tal:content="view/scope"></div>
@@ -24,8 +24,8 @@
 
         <tal:if tal:condition="not:view/scope">
           <p i18n:translate="">
-            The site <strong tal:content="view/consumer_key"></strong> is 
-            requesting access to all resources on this site that are
+            The site <strong tal:content="view/consumer/title"></strong>
+            is requesting access to all resources on this site that are
             permitted by your site manager(s) using your credentials.
           </p>
         </tal:if>

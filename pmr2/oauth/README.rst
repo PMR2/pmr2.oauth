@@ -71,6 +71,7 @@ In order for a client to use the site contents, it needs to register
 onto the site.  For now we just add a consumer to the ConsumerManager::
 
     >>> consumer1 = Consumer('consumer1.example.com', 'consumer1-secret')
+    >>> consumer1.title = u'consumer1.example.com'
     >>> consumerManager.add(consumer1)
     >>> consumer1 == consumerManager.get('consumer1.example.com')
     True
@@ -214,7 +215,7 @@ name of the consumer, along with its identity::
     True
     >>> 'Deny access' in u_browser.contents
     True
-    >>> 'The site <strong>' + consumer1.key + '</strong>' in u_browser.contents
+    >>> 'The site <strong>consumer1.example.com</strong>' in u_browser.contents
     True
 
 We can approve this token by selecting the 'Grant access' button.  Since

@@ -142,7 +142,6 @@ class AuthorizeTokenForm(form.PostForm, BaseTokenPage):
         u'Token has been denied.')
     token = None
     consumer = None
-    consumer_key = ''
     description = ''
     verifier = ''
     statusTemplate = ViewPageTemplateFile(path('authorize_status.pt'))
@@ -174,7 +173,6 @@ class AuthorizeTokenForm(form.PostForm, BaseTokenPage):
         consumer = self._checkConsumer(token.consumer_key)
         self.token = token
         self.consumer = consumer
-        self.consumer_key = consumer.key
 
     def update(self):
         """\
