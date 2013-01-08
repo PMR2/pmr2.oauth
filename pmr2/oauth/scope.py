@@ -201,9 +201,8 @@ class ContentTypeScopeManager(BTreeScopeManager):
             raise KeyError()
         return result
 
-    def getMappingMetadata(self, mapping_id):
-        # As metadata is optional
-        result = self._mappings_metadata.get(mapping_id, {})
+    def getMappingMetadata(self, mapping_id, default=None):
+        result = self._mappings_metadata.get(mapping_id, default)
         return result
 
     def getMappingId(self, name):

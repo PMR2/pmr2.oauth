@@ -14,17 +14,17 @@
         </h1>
         <tal:if tal:condition="view/scope">
           <p i18n:translate="">
-            The site <strong tal:content="view/consumer/title"></strong>
-            is requesting access to URIs on this site matching the
-            following rules using your credentials:
+            <strong tal:content="view/consumer/title"></strong>
+            is requesting access to the following types of resources
+            using your credentials:
           </p>
 
-          <div tal:content="view/scope"></div>
+          <div tal:content="structure view/scope"></div>
         </tal:if>
 
         <tal:if tal:condition="not:view/scope">
           <p i18n:translate="">
-            The site <strong tal:content="view/consumer/title"></strong>
+            <strong tal:content="view/consumer/title"></strong>
             is requesting access to all resources on this site that are
             permitted by your site manager(s) using your credentials.
           </p>

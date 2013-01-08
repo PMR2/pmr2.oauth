@@ -287,9 +287,17 @@ class IContentTypeScopeProfile(zope.interface.Interface):
     Interface for the scope profile and editor.
     """
 
+    title = zope.schema.TextLine(
+        title=_(u'Title'),
+        description=_(
+            u'Brief description about this scope profile.'),
+        required=True,
+    )
+
     description = zope.schema.Text(
         title=_(u'Description'),
-        description=_(u'A description of the rights granted by this scope.'),
+        description=_(
+            u'Detailed description of the rights granted by this scope.'),
         required=False,
     )
 

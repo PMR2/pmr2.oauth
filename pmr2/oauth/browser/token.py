@@ -208,11 +208,12 @@ class AuthorizeTokenForm(form.PostForm, BaseTokenPage):
         return super(AuthorizeTokenForm, self).render()
 
     def scope(self):
-        # XXX make this hook into the scope manager such that subclasses
-        # can implement more friendly renderings of requested resources
-        # in a more friendly way so that these views don't need to be
-        # customized.
-        return ''
+        sm = zope.component.getMultiAdapter((self.context, self.request),
+            IScopeManager)
+        view = zope.component.getMultiAdapter((sm, self.request),
+            name='token_scope_view')
+        view.omit_index = True
+        return view()
 
     @button.buttonAndHandler(_('Grant access'), name='approve')
     def handleApprove(self, action):
@@ -235,6 +236,7 @@ class AuthorizeTokenForm(form.PostForm, BaseTokenPage):
         if not self.token.callback == 'oob':
             callback_url = self.token.get_callback_url()
             # XXX here is where the callback URL will fail.
+            # TODO write callback manager (or attach one to the client)
             return self.request.response.redirect(callback_url)
         # handle oob
         self.verifier = self.token.verifier
@@ -249,6 +251,9 @@ class AuthorizeTokenForm(form.PostForm, BaseTokenPage):
         tm = zope.component.getMultiAdapter((self.context, self.request),
             ITokenManager)
         tm.remove(token_key)
+        sm = zope.component.getMultiAdapter((self.context, self.request),
+            IScopeManager)
+        sm.popScope(token_key, None)
         if not self.token.callback == 'oob':
             callback_url = self.token.get_callback_url()
             return self.request.response.redirect(callback_url)

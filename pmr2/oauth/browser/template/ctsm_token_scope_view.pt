@@ -1,0 +1,34 @@
+<tal:tal xmlns:tal="http://xml.zope.org/namespaces/tal"
+      i18n:domain="pmr2.oauth">
+  <dl>
+    <tal:loop tal:repeat="profile view/profiles">
+      <dt tal:content="profile/title">Document texts</dt>
+      <dd>
+        <p tal:content="profile/description">
+          Complete access to document texts for all pages.</p>
+      </dd>
+    </tal:loop>
+  </dl>
+
+  <dl class="collapsible collapsedOnLoad">
+    <dt class="collapsibleHeader" i18n:translate="">Details</dt>
+    <dd class="collapsibleContent">
+      <p i18n:translate="">
+        The following is a detailed listing of all subpaths available
+        per content type for tokens using this set of scope profiles.
+      </p>
+      <tal:loop tal:repeat="mapping view/mappings">
+        <dl>
+          <dt tal:content="mapping/portal_type">Document</dt>
+          <dd>
+            <ul>
+              <tal:loop tal:repeat="subpath mapping/subpaths">
+                <li tal:content="subpath">document_view</li>
+              </tal:loop>
+            </ul>
+          </dd>
+        </dl>
+      </tal:loop>
+    </dd>
+  </dl>
+</tal:tal>

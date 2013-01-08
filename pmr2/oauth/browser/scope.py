@@ -147,7 +147,10 @@ class ContentTypeScopeProfileDisplayForm(ContentTypeScopeProfileTraverseForm):
         sm = zope.component.getMultiAdapter(
             (site, self.request), IContentTypeScopeManager)
         profile, original = self._getProfileAndMapping()
-        metadata = {'description': profile.description}
+        metadata = {
+            'title': profile.title,
+            'description': profile.description,
+        }
         new_mapping = profile.mapping
         new_id = sm.addMapping(new_mapping, metadata)
         sm.setMappingNameToId(self.profile_name, new_id)
@@ -245,3 +248,53 @@ class ContentTypeScopeProfileAddForm(form.AddForm):
     def nextURL(self):
         return '/'.join([self.context.absolute_url(), 
             self.context.__name__, 'view', self._data['name'],])
+
+
+class TokenCTScopeView(page.SimplePage):
+
+    template = ViewPageTemplateFile(path('ctsm_token_scope_view.pt'))
+    missing_metadata = {
+        'title': _(u'<Undefined Mapping Type>'),
+        'description': u'',
+    }
+
+    def update(self):
+        token_key = self.request.get('oauth_token')
+        if not token_key:
+            raise NotFound(self.context, '')
+
+        site = getSite()
+        sm = zope.component.getMultiAdapter(
+            (site, self.request), IContentTypeScopeManager)
+        # scopes for this manager is a set of mapping_ids.
+        mapping_ids = sm.getScope(token_key, None)
+
+        if not mapping_ids:
+            # How'd this happen?
+            raise NotFound(self.context, '')
+
+        # merge the mappings and the profiles.
+        all_maps = {}
+        mapping_metadata = []
+        mapping_keys = ('portal_type', 'subpaths')
+        for mapping_id in mapping_ids:
+
+            # mappings
+            mapping = sm.getMapping(mapping_id)
+            for pt, subpaths in mapping.iteritems():
+                if not subpaths:
+                    continue
+                if not pt in all_maps:
+                    all_maps[pt] = []
+                all_maps[pt].extend(subpaths)
+
+            # profiles
+            metadata = sm.getMappingMetadata(mapping_id)
+            if not metadata:
+                metadata = self.missing_metadata
+            mapping_metadata.append(metadata)
+
+        self.mappings = [dict(zip(mapping_keys, (k, sorted(list(set(p))))))
+                         for k, p in sorted(all_maps.items())]
+        self.profiles = sorted(mapping_metadata,
+            lambda a, b: cmp(a['title'], b['title']))

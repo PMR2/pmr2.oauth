@@ -35,6 +35,22 @@
       permission="cmf.SetOwnProperties"
       />
 
+  <!-- content type token scope view -->
+
+  <browser:page
+      for="*"
+      name="ctsm_token_scope_view"
+      class=".scope.TokenCTScopeView"
+      permission="zope2.View"
+      />
+
+  <browser:page
+      for="..interfaces.IContentTypeScopeManager"
+      name="token_scope_view"
+      class=".scope.TokenCTScopeView"
+      permission="zope2.View"
+      />
+
   <!-- site manager views to manage consumers -->
 
   <browser:page

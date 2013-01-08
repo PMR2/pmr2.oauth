@@ -215,7 +215,7 @@ name of the consumer, along with its identity::
     True
     >>> 'Deny access' in u_browser.contents
     True
-    >>> 'The site <strong>consumer1.example.com</strong>' in u_browser.contents
+    >>> '<strong>consumer1.example.com</strong>' in u_browser.contents
     True
 
 We can approve this token by selecting the 'Grant access' button.  Since
@@ -267,22 +267,24 @@ can create tokens manually and let the user deny it.  The token would
 then be purged, and user will be redirected back to the callback,
 which the consumer will then handle this denial::
 
-    >>> testtok = tokenManager._generateBaseToken(consumer1.key)
-    >>> testtok.callback = baseurl + '/test_oauth_callback?'
-    >>> testtok.set_verifier()
-    >>> tokenManager.add(testtok)
+    >>> testtok = tokenManager.generateRequestToken(consumer1.key,
+    ...     baseurl + '/test_oauth_callback?')
+    >>> scopeManager.requestScope(testtok.key, None)
+    True
     >>> u_browser.open(auth_baseurl + '?oauth_token=' + testtok.key)
     >>> u_browser.getControl(name='form.buttons.deny').click()
     >>> u_browser.url == testtok.get_callback_url()
     True
     >>> tokenManager.get(testtok) is None
     True
+    >>> scopeManager.getScope(testtok.key, None) is None
+    True
 
 In the case of a rejected oob token, a message will be displayed::
 
-    >>> testtok = tokenManager._generateBaseToken(consumer1.key)
-    >>> testtok.callback = 'oob'
-    >>> tokenManager.add(testtok)
+    >>> testtok = tokenManager.generateRequestToken(consumer1.key, 'oob')
+    >>> scopeManager.requestScope(testtok.key, None)
+    True
     >>> u_browser.open(auth_baseurl + '?oauth_token=' + testtok.key)
     >>> u_browser.getControl(name='form.buttons.deny').click()
     >>> u_browser.url.startswith(baseurl)
@@ -290,6 +292,8 @@ In the case of a rejected oob token, a message will be displayed::
     >>> 'Token has been denied.' in u_browser.contents
     True
     >>> tokenManager.get(testtok) is None
+    True
+    >>> scopeManager.getScope(testtok.key, None) is None
     True
 
 
@@ -667,7 +671,8 @@ Now instantiate the edit view for that profile::
 Apply the value and see that the profile is updated::
 
     >>> request = PMR2TestRequest(form={
-    ...     'form.widgets.description': u'Simple Test Profile',
+    ...     'form.widgets.title': u'Test current user',
+    ...     'form.widgets.description': u'See current user information.',
     ...     'form.widgets.mapping.widgets.Plone Site': u'test_current_user',
     ...     'form.widgets.mapping.widgets.Document': u'document_view',
     ...     'form.widgets.mapping-empty-marker': 1,
@@ -748,8 +753,11 @@ Verify that the mapping and associated metadata is saved::
     >>> mapping['Document']
     ['document_view']
     >>> mapping['Folder']
-    >>> scopeManager.getMappingMetadata(mapping_id)
-    {'description': u'Simple Test Profile'}
+    >>> scopeManager.getMappingMetadata(mapping_id) == {
+    ...     'title': u'Test current user',
+    ...     'description': u'See current user information.',
+    ... }
+    True
 
 
 ~~~~~~~~~~~~~~
@@ -884,10 +892,14 @@ Back to the main page, and try to add a new profile::
 
     >>> o_browser.getControl(name="form.buttons.edit").click()
 
+    >>> o_browser.getControl(name="form.widgets.title"
+    ...     ).value = 'Access document contents'
     >>> o_browser.getControl(name="form.widgets.description"
     ...     ).value = 'Allow clients to view documents.'
     >>> o_browser.getControl(name="form.widgets.mapping.widgets.Document"
     ...      ).value = 'document_view'
+    >>> o_browser.getControl(name="form.widgets.mapping.widgets.Plone Site"
+    ...      ).value = 'test_current_user'
     >>> o_browser.getControl(name="form.buttons.apply").click()
 
     >>> o_browser.getControl(name="form.buttons.cancel").click()
@@ -898,8 +910,11 @@ Back to the main page, and try to add a new profile::
     >>> another_mapping = scopeManager.getMapping(another_id)
     >>> another_mapping.get('Document')
     ['document_view']
-    >>> scopeManager.getMappingMetadata(another_id)
-    {'description': u'Allow clients to view documents.'}
+    >>> scopeManager.getMappingMetadata(another_id) == {
+    ...     'title': u'Access document contents',
+    ...     'description': u'Allow clients to view documents.',
+    ... }
+    True
 
 
 ----------------------
@@ -1035,3 +1050,114 @@ that the original permissions are still intact::
     Traceback (most recent call last):
     ...
     HTTPError: HTTP Error 403: Forbidden
+
+
+~~~~~~~~~~~~~~~~~~~~~~
+Client specified scope
+~~~~~~~~~~~~~~~~~~~~~~
+
+Clients can specify the scope profiles that will be checked against when
+accessing the contents of the resource owner.  These scope profiles will
+be used instead of the default one.
+
+If a specific scope was requested, the title, description and list of
+subpaths permitted per each view will be made visible to the resource
+owner::
+
+    >>> scopetok1 = tokenManager.generateRequestToken(consumer1.key, 'oob')
+    >>> scopeManager.requestScope(scopetok1.key,
+    ...     'http://nohost/Plone/scope/another')
+    True
+    >>> u_browser.open(auth_baseurl + '?oauth_token=' + scopetok1.key)
+    >>> print u_browser.contents
+    <...
+    <dl>
+      <dt>Access document contents</dt>
+      <dd>
+        <p>Allow clients to view documents.</p>
+      </dd>
+    </dl>
+    ...
+      <dd...
+    ...
+        <p>
+          The following is a detailed listing of all subpaths available
+          per content type for tokens using this set of scope profiles.
+        </p>
+        <dl>
+          <dt>Document</dt>
+          <dd>
+            <ul>
+              <li>document_view</li>
+            </ul>
+          </dd>
+        </dl>
+        <dl>
+          <dt>Plone Site</dt>
+          <dd>
+            <ul>
+              <li>test_current_user</li>
+            </ul>
+          </dd>
+        </dl>
+      </dd>
+    ...
+
+Multiple scopes can be specified.  For the content type scope manager,
+the scope argument is a list of comma-separated urls with paths ending
+with a valid profile identifier.  If multiple profiles are specified,
+the mappings will be merged together with the descriptions appropriately
+updated::
+
+    >>> scopetok2 = tokenManager.generateRequestToken(consumer1.key, 'oob')
+    >>> scopeManager.requestScope(scopetok2.key,
+    ...     'http://nohost/Plone/scope/another,'
+    ...     'http://nohost/Plone/scope/test_profile')
+    True
+    >>> u_browser.open(auth_baseurl + '?oauth_token=' + scopetok2.key)
+    >>> print u_browser.contents
+    <...
+    <dl>
+      <dt>Access document contents</dt>
+      <dd>
+        <p>Allow clients to view documents.</p>
+      </dd>
+      <dt>Test current user</dt>
+      <dd>
+        <p>See current user information.</p>
+      </dd>
+    </dl>
+    ...
+      <dd...
+    ...
+        <p>
+          The following is a detailed listing of all subpaths available
+          per content type for tokens using this set of scope profiles.
+        </p>
+        <dl>
+          <dt>Document</dt>
+          <dd>
+            <ul>
+              <li>document_view</li>
+            </ul>
+          </dd>
+        </dl>
+        <dl>
+          <dt>Folder</dt>
+          <dd>
+            <ul>
+              <li>folder_listing</li>
+            </ul>
+          </dd>
+        </dl>
+        <dl>
+          <dt>Plone Site</dt>
+          <dd>
+            <ul>
+              <li>test_current_roles</li>
+              <li>test_current_user</li>
+            </ul>
+          </dd>
+        </dl>
+      </dd>
+    ...
