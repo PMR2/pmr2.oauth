@@ -269,21 +269,33 @@ class TokenCTScopeView(page.SimplePage):
         'description': u'',
     }
 
+    @property
+    def label(self):
+        return _(u'Token Scope Information')
+
+    def getTokenKey(self):
+        return self.request.get('oauth_token')
+
+    def getMappingIds(self, token_key):
+        site = getSite()
+        sm = zope.component.getMultiAdapter(
+            (site, self.request), IContentTypeScopeManager)
+        # scopes for this manager is a set of mapping_ids.
+        return sm.getScope(token_key, None)
+
     def update(self):
         self.request['disable_border'] = True
-        token_key = self.request.get('oauth_token')
+        token_key = self.getTokenKey()
         if not token_key:
+            raise NotFound(self.context, '')
+
+        mapping_ids = self.getMappingIds(token_key)
+        if not mapping_ids:
             raise NotFound(self.context, '')
 
         site = getSite()
         sm = zope.component.getMultiAdapter(
             (site, self.request), IContentTypeScopeManager)
-        # scopes for this manager is a set of mapping_ids.
-        mapping_ids = sm.getScope(token_key, None)
-
-        if not mapping_ids:
-            # How'd this happen?
-            raise NotFound(self.context, '')
 
         # merge the mappings and the profiles.
         all_maps = {}

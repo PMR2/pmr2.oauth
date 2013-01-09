@@ -25,7 +25,11 @@
                       value t/key;
                       id string:form-widgets-key-${repeat/t/number};
                   "
-              /> <span tal:content="t/consumer_key">example.com</span>
+              /> <span tal:content="t/consumer_title">example.com</span> <a
+                  tal:attributes="
+                      href string:${view/url_expr}/view/${t/key};
+                  "
+              ><span i18n:translate="">[details]</span></a>
             </li>
           </tal:loop>
         </ul>

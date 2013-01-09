@@ -1245,3 +1245,34 @@ the second::
     >>> browser.open(url)
     >>> 'Welcome to Plone' in browser.contents
     True
+
+Users can review the token details::
+
+    >>> u_browser.open(baseurl + '/issued_oauth_tokens')
+    >>> u_browser.getLink('[details]').click()
+    >>> print u_browser.contents
+    <...
+    The token was granted to <strong>consumer1.example.com</strong>
+    with the following rights:
+    ...
+
+If user revokes the second token, previous example will cease to work::
+
+    >>> u_browser.open(baseurl + '/issued_oauth_tokens')
+    >>> u_browser.getControl(name="form.widgets.key").controls[-1].click()
+    >>> u_browser.getControl(name='form.buttons.revoke').click()
+
+    >>> url = baseurl
+    >>> request = SignedTestRequest(consumer=consumer1, token=asto2, url=url)
+    >>> auth = request._auth
+    >>> browser = Browser()
+    >>> browser.addHeader('Authorization', auth)
+    >>> browser.open(url)
+    Traceback (most recent call last):
+    ...
+    HTTPError: HTTP Error 403: Forbidden
+
+With the scope associated with the token removed also::
+
+    >>> scopeManager.getAccessScope(asto2.key, None) is None
+    True

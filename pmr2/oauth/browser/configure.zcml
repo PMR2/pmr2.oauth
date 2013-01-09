@@ -28,10 +28,17 @@
 
   <!-- user views to manage own tokens -->
 
-  <browser:page
+  <browser:view
       for="Products.CMFPlone.interfaces.siteroot.IPloneSiteRoot"
       name="issued_oauth_tokens"
-      class=".user.UserTokenForm"
+      class=".user.UserTokenListView"
+      permission="cmf.SetOwnProperties"
+      />
+
+  <browser:page
+      for=".user.UserTokenListView"
+      name="view"
+      class=".user.UserTokenDetailsView"
       permission="cmf.SetOwnProperties"
       />
 

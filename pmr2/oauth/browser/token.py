@@ -4,6 +4,7 @@ import zope.component
 import zope.interface
 from zope.app.component.hooks import getSite
 from zope.publisher.browser import BrowserPage
+from zope.publisher.interfaces import NotFound
 
 from zExceptions import BadRequest
 from zExceptions import Forbidden
@@ -174,6 +175,16 @@ class AuthorizeTokenForm(form.PostForm, BaseTokenPage):
         self.token = token
         self.consumer = consumer
 
+        sm = zope.component.getMultiAdapter((self.context, self.request),
+            IScopeManager)
+        view = zope.component.getMultiAdapter((sm, self.request),
+            name='token_scope_view')
+        view.omit_index = True
+        try:
+            self.scope = view()
+        except NotFound:
+            raise TokenInvalidError()
+
     def update(self):
         """\
         We do need an actual user, not sure which permission level will
@@ -206,14 +217,6 @@ class AuthorizeTokenForm(form.PostForm, BaseTokenPage):
         if self.verifier:
             return self.verifierTemplate()
         return super(AuthorizeTokenForm, self).render()
-
-    def scope(self):
-        sm = zope.component.getMultiAdapter((self.context, self.request),
-            IScopeManager)
-        view = zope.component.getMultiAdapter((sm, self.request),
-            name='token_scope_view')
-        view.omit_index = True
-        return view()
 
     @button.buttonAndHandler(_('Grant access'), name='approve')
     def handleApprove(self, action):
