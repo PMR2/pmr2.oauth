@@ -54,6 +54,13 @@ class ContentTypeScopeManagerView(Implicit, page.SimplePage):
 
     template = ViewPageTemplateFile(path('ctsm_view.pt'))
 
+    def update(self):
+        self.request['disable_border'] = True
+
+    @property
+    def label(self):
+        return _(u'Content Type Scope Manager')
+
     @property
     def url_expr(self):
         # URL expression for this view.
@@ -234,6 +241,10 @@ class ContentTypeScopeProfileAddForm(form.AddForm):
     
     fields = field.Fields(IContentTypeScopeProfileAdd)
 
+    def update(self):
+        self.request['disable_border'] = True
+        super(ContentTypeScopeProfileAddForm, self).update()
+
     def create(self, data):
         result = ContentTypeScopeProfile()
         self._data = data
@@ -259,6 +270,7 @@ class TokenCTScopeView(page.SimplePage):
     }
 
     def update(self):
+        self.request['disable_border'] = True
         token_key = self.request.get('oauth_token')
         if not token_key:
             raise NotFound(self.context, '')

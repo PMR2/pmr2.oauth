@@ -1161,3 +1161,87 @@ updated::
         </dl>
       </dd>
     ...
+
+To test that the permissions function as they are, have the user approve
+both those tokens::
+
+    >>> u_browser.open(auth_baseurl + '?oauth_token=' + scopetok1.key)
+    >>> u_browser.getControl(name='form.buttons.approve').click()
+    >>> u_browser.open(auth_baseurl + '?oauth_token=' + scopetok2.key)
+    >>> u_browser.getControl(name='form.buttons.approve').click()
+
+Then have the client request the access token for bot those tokens::
+
+    >>> v = tokenManager.get(scopetok1.key).verifier
+    >>> t = str(int(time.time()))
+    >>> request = SignedTestRequest(
+    ...     consumer=consumer1, token=scopetok1, verifier=v, timestamp=t)
+    >>> atp = token.GetAccessTokenPage(self.portal, request)
+    >>> asto1 = makeToken(atp())
+
+    >>> v = tokenManager.get(scopetok2.key).verifier
+    >>> t = str(int(time.time()))
+    >>> request = SignedTestRequest(
+    ...     consumer=consumer1, token=scopetok2, verifier=v, timestamp=t)
+    >>> atp = token.GetAccessTokenPage(self.portal, request)
+    >>> asto2 = makeToken(atp())
+
+Now test access using the first token.  The test_current_roles page is
+not one of the approved links for the site root::
+
+    >>> url = baseurl + '/test_current_roles'
+    >>> request = SignedTestRequest(consumer=consumer1, token=asto1, url=url)
+    >>> auth = request._auth
+    >>> browser = Browser()
+    >>> browser.addHeader('Authorization', auth)
+    >>> browser.open(url)
+    Traceback (most recent call last):
+    ...
+    HTTPError: HTTP Error 403: Forbidden
+
+Document view is, however::
+
+    >>> url = baseurl + '/front-page/document_view'
+    >>> request = SignedTestRequest(consumer=consumer1, token=asto1, url=url)
+    >>> auth = request._auth
+    >>> browser = Browser()
+    >>> browser.addHeader('Authorization', auth)
+    >>> browser.open(url)
+    >>> 'Welcome to Plone' in browser.contents
+    True
+
+The "default" view should work too in this particular case as the object
+resolution will need to do this to give expected results::
+
+    >>> url = baseurl
+    >>> request = SignedTestRequest(consumer=consumer1, token=asto1, url=url)
+    >>> auth = request._auth
+    >>> browser = Browser()
+    >>> browser.addHeader('Authorization', auth)
+    >>> browser.open(url)
+    >>> 'Welcome to Plone' in browser.contents
+    True
+
+Now for the second token::
+
+    >>> url = baseurl + '/test_current_roles'
+    >>> request = SignedTestRequest(consumer=consumer1, token=asto2, url=url)
+    >>> auth = request._auth
+    >>> browser = Browser()
+    >>> browser.addHeader('Authorization', auth)
+    >>> browser.open(url)
+    >>> print browser.contents
+    Member
+    Authenticated
+
+Requests that worked with the first set of scopes should also work for
+the second::
+
+    >>> url = baseurl
+    >>> request = SignedTestRequest(consumer=consumer1, token=asto2, url=url)
+    >>> auth = request._auth
+    >>> browser = Browser()
+    >>> browser.addHeader('Authorization', auth)
+    >>> browser.open(url)
+    >>> 'Welcome to Plone' in browser.contents
+    True
