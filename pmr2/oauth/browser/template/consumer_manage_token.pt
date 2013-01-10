@@ -17,20 +17,31 @@
           checkboxes associated with each consumer you would like removed,
           then activate the remove button.
         </p>
-        <ul>
+        <table>
+          <thead>
+            <tr>
+              <th i18n:translate=""></th>
+              <th i18n:translate="">Key</th>
+              <th i18n:translate="">Secret</th>
+              <th i18n:translate="">Title</th>
+            <tr>
+          </thead>
+          <tbody>
           <tal:loop repeat="t view/consumers">
-            <li>
-              <input name="form.widgets.key" type="checkbox" 
+            <tr>
+              <td><input name="form.widgets.key" type="checkbox" 
                   tal:attributes="
                       value t/key;
                       id string:form-widgets-key-${repeat/t/number};
                   "
-              /> <span tal:content="t/key">example.com</span> - <span 
-                tal:content="t/secret">secret</span> - <span
-                tal:content="t/title">title</span>
-            </li>
+              /></td>
+              <td tal:content="t/key">example.com</td>
+              <td tal:content="t/secret">secret</td>
+              <td tal:content="t/title">title</td>
+            </tr>
           </tal:loop>
-        </ul>
+          </tbody>
+        </table>
         <p>
           <a tal:attributes="
                   href string:${view/context/absolute_url}/add-oauth-consumer"
