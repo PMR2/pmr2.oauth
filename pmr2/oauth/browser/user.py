@@ -2,6 +2,7 @@ import zope.component
 import zope.interface
 from zope.publisher.browser import BrowserPage
 from zope.app.component.hooks import getSite
+from zope.publisher.interfaces import NotFound
 
 from z3c.form import button
 
@@ -33,6 +34,7 @@ class BaseUserTokenForm(form.PostForm):
         return '%s/%s' % (self.context.absolute_url(), self.__name__)
 
     def getUser(self):
+        # Returns the current user, or the target user.
         raise NotImplemented
 
     def getTokens(self):
@@ -64,6 +66,7 @@ class BaseUserTokenForm(form.PostForm):
         # widgets
         # TODO use widgets?
 
+        current_user = self.getUser()
         valid = self.getTokens()
         removed = error = 0
         keys = self.request.form.get('form.widgets.key', [])
@@ -75,9 +78,14 @@ class BaseUserTokenForm(form.PostForm):
             ITokenManager)
         sm = zope.component.getMultiAdapter((self.context, self.request),
             IScopeManager)
+
         for k in keys:
+            token = tm.get(k)
+            if token is None or not token.user == current_user:
+                error = 1
+                continue
+
             try:
-                # XXX verify owner matches user.
                 tm.remove(k)
                 sm.delAccessScope(k, None)
                 removed += 1
@@ -121,7 +129,6 @@ class UserTokenDetailsView(page.TraversePage, TokenCTScopeView):
     template = ViewPageTemplateFile(path('user_token_scope_view.pt'))
 
     def getTokenKey(self):
-        # XXX verify owner matches user.
         if not self.traverse_subpath or len(self.traverse_subpath) > 1:
             return None
         return self.traverse_subpath[0]
@@ -134,11 +141,22 @@ class UserTokenDetailsView(page.TraversePage, TokenCTScopeView):
         return sm.getAccessScope(token_key, None)
 
     def update(self):
-        super(UserTokenDetailsView, self).update()
         site = getSite()
         tm = zope.component.getMultiAdapter(
             (site, self.request), ITokenManager)
         cm = zope.component.getMultiAdapter(
             (site, self.request), IConsumerManager)
-        token = tm.getAccessToken(self.getTokenKey())
+        token_key = self.getTokenKey()
+        token = tm.getAccessToken(token_key)
+
+        mt = getToolByName(self.context, 'portal_membership')
+        current_user = mt.getAuthenticatedMember().id
+
+        if token is None or not token.user == current_user:
+            raise NotFound(self.context, token_key)
+
         self.consumer_title = cm.get(token.consumer_key).title
+
+        # Set the scope attributes only after this token is found for
+        # this user.
+        super(UserTokenDetailsView, self).update()

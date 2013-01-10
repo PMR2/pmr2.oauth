@@ -1256,6 +1256,15 @@ Users can review the token details::
     with the following rights:
     ...
 
+A different user, however, should _not_ be able to access or verify the
+existence of this token.  Even if they are administrators - a different
+view should be provided for them to manage tokens belonging to others::
+
+    >>> o_browser.open(u_browser.url)
+    Traceback (most recent call last):
+    ...
+    HTTPError: HTTP Error 404: Not Found
+
 If user revokes the second token, previous example will cease to work::
 
     >>> u_browser.open(baseurl + '/issued_oauth_tokens')
@@ -1276,3 +1285,48 @@ With the scope associated with the token removed also::
 
     >>> scopeManager.getAccessScope(asto2.key, None) is None
     True
+
+Likewise, users can only remove tokens they personally own using the
+user specific form.
+
+Naturally, logged out users should not be able to do anything (even if
+a security misconfiguration allow them access to this form)::
+
+    >>> self.logout()
+    >>> request = TestRequest(form={
+    ...     'form.widgets.key': [asto1.key],
+    ...     'form.buttons.revoke': 1,
+    ... })
+    >>> view = user.UserTokenForm(self.portal, request)
+    >>> view.update()
+    >>> tokenManager.getAccessToken(asto1.key).key == asto1.key
+    True
+
+A newly created user cannot revoke this either::
+
+    >>> self.portal.acl_users.userFolderAddUser('test_user_2_',
+    ...     default_password, ['Member'], [])
+    >>> self.login('test_user_2_')
+    >>> request = TestRequest(form={
+    ...     'form.widgets.key': [asto1.key],
+    ...     'form.buttons.revoke': 1,
+    ... })
+    >>> view = user.UserTokenForm(self.portal, request)
+    >>> view.update()
+    >>> tokenManager.getAccessToken(asto1.key).key == asto1.key
+    True
+
+Only the correct user can revoke this token::
+
+    >>> self.logout()
+    >>> self.login(default_user)
+    >>> request = TestRequest(form={
+    ...     'form.widgets.key': [asto1.key],
+    ...     'form.buttons.revoke': 1,
+    ... })
+    >>> view = user.UserTokenForm(self.portal, request)
+    >>> view.update()
+    >>> tokenManager.getAccessToken(asto1.key).key == asto1.key
+    Traceback (most recent call last):
+    ...
+    TokenInvalidError: 'no such access token.'

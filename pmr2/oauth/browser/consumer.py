@@ -84,7 +84,7 @@ class ConsumerManageForm(form.PostForm):
 
         # manually do everything since we are not using the built-in
         # widgets
-        # TODO use widgets?
+        # TODO build/use widgets?
         # removing consumers does not remove corresponding tokens that 
         # were issued previous to this, although the tokens will cease
         # to work without the corresponding secret.

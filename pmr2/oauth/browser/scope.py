@@ -91,7 +91,7 @@ class ContentTypeScopeManagerView(Implicit, page.SimplePage):
 
 
 class ContentTypeScopeProfileTraverseForm(form.Form, page.TraversePage):
-    # XXX split the form specific part up.
+    # TODO split the form specific part up.
 
     def _getProfileAndMapping(self):
         profile = self.getContent()
@@ -207,7 +207,7 @@ class ContentTypeScopeProfileDisplayForm(ContentTypeScopeProfileTraverseForm):
     def isMappingModified(self):
         profile, mapping = self._getProfileAndMapping()
 
-        # XXX I would like some way to compare the two profiles in a
+        # TODO I would like some way to compare the two profiles in a
         # sane way but only using active types and types that have
         # stuff assigned.  So for now just use this naive method.
         return not profile.mapping == mapping
