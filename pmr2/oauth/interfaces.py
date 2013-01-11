@@ -99,6 +99,13 @@ class IConsumer(zope.interface.Interface):
         required=False,
     )
 
+    domain = zope.schema.TextLine(
+        title=_(u'Domain name'),
+        description=_(u'The domain that is permitted to receive redirection '
+                       'requests.'),
+        required=False,
+    )
+
     def validate():
         """
         Self validation.
@@ -451,16 +458,23 @@ class ITokenManager(zope.interface.Interface):
 # Other management interfaces
 
 class ICallbackManager(zope.interface.Interface):
-    """\
+    """
     Callback manager.
 
-    Can be used by token managers to check whether a callback is
-    acceptable.
+    Used to verify the validity of callback URIs.
     """
 
-    def check(callback):
-        """\
-        Check that this callback is valid.
+    def validate(consumer, token):
+        """
+        Check that the callbacks are valid against both the consumer and
+        the token.  A more thorough implementation should allow multiple
+        hosts for consumers, matching against the tokens issued, instead
+        of just relying on the helper attribute provided by consumer.
+
+        token
+            The token to validate against.
+        consumer
+            The consumer to validate against.
         """
 
 

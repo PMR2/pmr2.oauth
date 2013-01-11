@@ -28,6 +28,7 @@ class ConsumerAddForm(form.AddForm):
         # key should be generated.
         # secret should be generated.
         'title',
+        'domain',
     )
 
     def update(self):
@@ -40,7 +41,7 @@ class ConsumerAddForm(form.AddForm):
         data['key'] = key = random_string(24)
         data['secret'] = secret = random_string(24)
         self._data = data
-        return Consumer(key, secret, data['title'])
+        return Consumer(key, secret, data['title'], data['domain'])
 
     def add(self, obj):
         cm = zope.component.getMultiAdapter(

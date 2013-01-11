@@ -9,7 +9,7 @@ from zope.app.component.hooks import getSite
 
 from Products.CMFCore.utils import getToolByName
 
-from pmr2.oauth.interfaces import TokenInvalidError
+from pmr2.oauth.interfaces import TokenInvalidError, ICallbackManager
 from pmr2.oauth.interfaces import IOAuthAdapter, INonceManager
 from pmr2.oauth.interfaces import IConsumerManager, ITokenManager
 
@@ -31,6 +31,8 @@ class SiteRequestOAuth1ServerAdapter(oauthlib.oauth1.Server):
             (site, request), IConsumerManager)
         self.tokenManager = zope.component.getMultiAdapter(
             (site, request), ITokenManager)
+        self.callbackManager = zope.component.getMultiAdapter(
+            (site, request), ICallbackManager)
         # Optional at this point.
         self.nonceManager = zope.component.queryMultiAdapter(
             (site, request), INonceManager)
@@ -292,9 +294,13 @@ class SiteRequestOAuth1ServerAdapter(oauthlib.oauth1.Server):
     def validate_redirect_uri(self, client_key, redirect_uri):
         # Redirect URI will be external, verify that it is in the
         # same format as it was registered for the consumer.
-        # Zope also does this internally, will need to adjust the
-        # token authorization form.
-        return True
+        if redirect_uri is None:
+            # Most requests will not have this defined.
+            return True
+
+        # Only the token request will have this
+        consumer = self.consumerManager.getValidated(client_key)
+        return self.callbackManager.validate(consumer, redirect_uri)
 
     def validate_requested_realm(self, client_key, realm):
         # Realms are not handled.

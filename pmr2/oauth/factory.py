@@ -1,10 +1,10 @@
 from zope.annotation import factory as za_factory
 
 def factory(cls, key=None):
-    """\
+    """
     This specialized annotation factory returns a factory that accepts
     the request attribute such that different layers can be applied to
-    acquire the intended `ConsumerManager`.
+    acquire the intended managers.
     """
 
     original = za_factory(cls, key)

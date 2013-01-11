@@ -3,6 +3,13 @@
     xmlns:browser="http://namespaces.zope.org/browser"
     >
 
+  <adapter
+      for="*
+           pmr2.testing.base.IPMR2TestRequest"
+      factory=".adapter.TestCallbackManager"
+      provides="pmr2.oauth.interfaces.ICallbackManager"
+      />
+
   <browser:page
       for="*"
       name="test_current_user"

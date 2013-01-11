@@ -476,6 +476,67 @@ around scope manager restrictions::
     True
 
 
+-------------------
+Callback Management
+-------------------
+
+Callbacks need to be verified.  If an attacker were to obtain the client
+key and secrets, it can be used illegitimately to trick resource owners
+into giving access.  This can be trivially done using an out of band
+client key and associated secret extracted from a client application.
+For this reason, such client keys for oob usage MUST NOT provide a
+domain name.  Alternatively, they could be unintentionally leaked, and
+if the key does not have any restrictions on where the callback can lead
+to, it then can also be used in the same manner.
+
+Previously we had use a callback URL that is will redirect to the same
+Plone instance.  By default this will not pose any security issues as no
+information leakage is possible under normal circumstances.  In practice
+this will not happen, because a rediction to an external site must be
+done in order to propagate the value of the token verifier, and by
+default the response redirector will check whether this redirect is
+trusted, and it is not unless otherwise stated.
+
+If a client makes a request for a request token with a callback outside
+of their domain name, the request will fail::
+
+    >>> url = baseurl + '/OAuthRequestToken'
+    >>> timestamp = str(int(time.time()))
+    >>> request = SignedTestRequest(
+    ...     consumer=consumer1, 
+    ...     url=url,
+    ...     callback='http://www.example.com/oauth_callback',
+    ... )
+    >>> auth = request._auth
+    >>> browser = Browser()
+    >>> browser.addHeader('Authorization', auth)
+    >>> browser.open(url)
+    Traceback (most recent call last):
+    ...
+    HTTPError: HTTP Error 400: Bad Request
+
+An appropriate domain name assigned to the client will then permit the
+above request::
+
+    >>> consumer1.domain = u'www.example.com'
+    >>> browser.open(url)
+    >>> print browser.contents
+    oauth_token_secret=...&oauth_token=...
+
+If for whatever reason a request token with a callback that no longer
+matches the current domain belonging to the client, the redirect would
+then fail to work for the resource owner.::
+
+    >>> cbtok1 = tokenManager.generateRequestToken(consumer1.key,
+    ...     'http://service.example.com/oauth')
+    >>> scopeManager.requestScope(cbtok1.key, None)
+    True
+    >>> u_browser.open(auth_baseurl + '?oauth_token=' + cbtok1.key)
+    >>> u_browser.getControl(name='form.buttons.approve').click()
+    >>> 'Callback is not approved for the client.' in u_browser.contents
+    True
+
+
 ---------------------------
 Token Management Interfaces
 ---------------------------

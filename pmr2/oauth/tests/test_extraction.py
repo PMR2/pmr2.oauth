@@ -20,6 +20,8 @@ from pmr2.oauth.tests.base import IOAuthTestLayer
 from pmr2.oauth.tests.base import TestRequest
 from pmr2.oauth.tests.base import SignedTestRequest
 
+from pmr2.oauth.tests.adapter import TestCallbackManager
+
 
 def mock_factory(cls):
     instance = cls()
@@ -41,6 +43,8 @@ class TestExtraction(unittest.TestCase):
             cmf, (Interface, IOAuthTestLayer,), IConsumerManager)
         zope.component.provideAdapter(
             tmf, (Interface, IOAuthTestLayer,), ITokenManager)
+        zope.component.provideAdapter(
+            TestCallbackManager, (Interface, IOAuthTestLayer), ICallbackManager)
         zope.component.provideAdapter(SiteRequestOAuth1ServerAdapter,
             (Interface, IOAuthTestLayer,), IOAuthAdapter)
 
@@ -48,6 +52,8 @@ class TestExtraction(unittest.TestCase):
             (object, TestRequest()), IConsumerManager)
         self.tokenManager = zope.component.getMultiAdapter(
             (object, TestRequest()), ITokenManager)
+        self.callbackManager = zope.component.getMultiAdapter(
+            (object, TestRequest()), ICallbackManager)
 
     def createPlugin(self):
         from pmr2.oauth.tests.utility import MockPAS

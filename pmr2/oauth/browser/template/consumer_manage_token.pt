@@ -24,6 +24,7 @@
               <th i18n:translate="">Key</th>
               <th i18n:translate="">Secret</th>
               <th i18n:translate="">Title</th>
+              <th i18n:translate="">Domain</th>
             <tr>
           </thead>
           <tbody>
@@ -35,9 +36,10 @@
                       id string:form-widgets-key-${repeat/t/number};
                   "
               /></td>
-              <td tal:content="t/key">example.com</td>
-              <td tal:content="t/secret">secret</td>
-              <td tal:content="t/title">title</td>
+              <td tal:content="t/key">client_key</td>
+              <td tal:content="t/secret">client_secret</td>
+              <td tal:content="t/title">Example application</td>
+              <td tal:content="t/domain">example.com</td>
             </tr>
           </tal:loop>
           </tbody>

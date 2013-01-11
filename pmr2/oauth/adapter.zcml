@@ -30,6 +30,13 @@
       provides=".interfaces.IContentTypeScopeManager"
       />
 
+  <adapter
+      for="*
+           *"
+      factory=".callback.CallbackManager"
+      provides=".interfaces.ICallbackManager"
+      />
+
   <!-- 
     Provide a direct bridge between the profile to be edited to the
     interface used by the form.
