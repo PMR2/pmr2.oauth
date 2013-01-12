@@ -80,9 +80,17 @@ class RequestTokenPage(BaseTokenPage):
     def update(self):
         oauth1 = self.getOAuth1()
 
+        # NOTE Currently it is impossible to disable callback validation
+        # in oauthlib, so verify that callback is really provided.
+        if not oauth1.callback_uri:
+            raise BadRequest()
+
         # This is an 8-bit protocol, so we cast the oauthlib request
         # parameters into something we would expect from the http spec.
-        # If this dies in a fire it is not my problem.
+        # Yes, I am aware something about unicode literals in Python 3,
+        # but this transition period is just a giant pita.
+        # If these kind of casting dies in a fire I don't really care
+        # because these should all be ascii for simplicity.
         consumer_key = str(oauth1.client_key)
         callback = str(oauth1.callback_uri)
 
@@ -109,9 +117,6 @@ class GetAccessTokenPage(BaseTokenPage):
     def update(self):
         oauth1 = self.getOAuth1()
 
-        # This is an 8-bit protocol, so we cast the oauthlib request
-        # parameters into something we would expect from the http spec.
-        # If this dies in a fire it is not my problem.
         consumer_key = str(oauth1.client_key)
         token_key = str(oauth1.resource_owner_key)
         verifier = str(oauth1.verifier)

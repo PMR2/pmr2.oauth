@@ -536,6 +536,37 @@ then fail to work for the resource owner.::
     >>> 'Callback is not approved for the client.' in u_browser.contents
     True
 
+Lastly, check that the request token will fail when the oauth_callback
+parameter is missing::
+
+    >>> url = baseurl + '/OAuthRequestToken'
+    >>> timestamp = str(int(time.time()))
+    >>> request = SignedTestRequest(
+    ...     consumer=consumer1, 
+    ...     url=url,
+    ...     callback='',
+    ... )
+    >>> auth = request._auth
+    >>> browser = Browser()
+    >>> browser.addHeader('Authorization', auth)
+    >>> browser.open(url)
+    Traceback (most recent call last):
+    ...
+    HTTPError: HTTP Error 400: Bad Request
+
+One last test, with just the raw class this time::
+
+    >>> timestamp = str(int(time.time()))
+    >>> request = SignedTestRequest(
+    ...     consumer=consumer1, 
+    ...     callback='',
+    ... )
+    >>> rt = token.RequestTokenPage(self.portal, request)
+    >>> rt.update()
+    Traceback (most recent call last):
+    ...
+    BadRequest
+
 
 ---------------------------
 Token Management Interfaces
