@@ -98,7 +98,7 @@ class ContentTypeScopeProfileTraverseForm(form.Form, page.TraversePage):
         site = getSite()
         sm = zope.component.getMultiAdapter(
             (site, self.request), IContentTypeScopeManager)
-        mapping = sm.getMappingByName(self.profile_name, {})
+        mapping = sm.getMappingByName(self.profile_name, default={})
         return profile, mapping
 
     @property
@@ -159,7 +159,7 @@ class ContentTypeScopeProfileDisplayForm(ContentTypeScopeProfileTraverseForm):
             'description': profile.description,
         }
         new_mapping = profile.mapping
-        new_id = sm.addMapping(new_mapping, metadata)
+        new_id = sm.addMapping(new_mapping, metadata=metadata)
         sm.setMappingNameToId(self.profile_name, new_id)
 
         self.next_target = '/'.join([self.context.absolute_url(), 

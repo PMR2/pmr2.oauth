@@ -287,7 +287,7 @@ class ContentTypeScopeManager(BTreeScopeManager):
         mappings = self.resolveMapping(client_key, access_key)
         # multiple rights were requested, check through all of them.
         for mapping_id in mappings:
-            mapping = self.getMapping(mapping_id, {})
+            mapping = self.getMapping(mapping_id, default={})
             result = self.validateTargetWithMapping(accessed, name, mapping)
             if result:
                 return result

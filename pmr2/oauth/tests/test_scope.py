@@ -100,7 +100,7 @@ class CTSMMappingTestCase(unittest.TestCase):
 
     def test_0100_get_mapping(self):
         self.assertRaises(KeyError, self.sm.getMapping, 1)
-        self.assertEqual(self.sm.getMapping(1, 'test'), 'test')
+        self.assertEqual(self.sm.getMapping(1, default='test'), 'test')
 
     def test_0101_add_get_mapping(self):
         self.assertEqual(self.sm.addMapping('test'), 1)
@@ -197,7 +197,7 @@ class CTSMEditingTestCase(unittest.TestCase):
 
         self.sm.delMappingName('file')
         self.assertEqual(self.sm.getEditProfile('file'), None)
-        self.assertEqual(self.sm.getMappingByName('file', None), None)
+        self.assertEqual(self.sm.getMappingByName('file', default=None), None)
 
 class CTSMPloneIntegrationTestCase(ptc.PloneTestCase):
     """
