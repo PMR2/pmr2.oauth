@@ -505,7 +505,7 @@ of their domain name, the request will fail::
     >>> request = SignedTestRequest(
     ...     consumer=consumer1, 
     ...     url=url,
-    ...     callback='http://www.example.com/oauth_callback',
+    ...     callback='http://www.example.com/plone/test_oauth_callback',
     ... )
     >>> auth = request._auth
     >>> browser = Browser()
@@ -522,19 +522,45 @@ above request::
     >>> browser.open(url)
     >>> print browser.contents
     oauth_token_secret=...&oauth_token=...
+    >>> wwwtoken = makeToken(browser.contents)
 
 If for whatever reason a request token with a callback that no longer
 matches the current domain belonging to the client, the redirect would
 then fail to work for the resource owner.::
 
-    >>> cbtok1 = tokenManager.generateRequestToken(consumer1.key,
-    ...     'http://service.example.com/oauth')
-    >>> scopeManager.requestScope(cbtok1.key, None)
+    >>> servtoken = tokenManager.generateRequestToken(consumer1.key,
+    ...     'http://service.example.com/plone/test_oauth_callback')
+    >>> scopeManager.requestScope(servtoken.key, None)
     True
-    >>> u_browser.open(auth_baseurl + '?oauth_token=' + cbtok1.key)
+    >>> u_browser.open(auth_baseurl + '?oauth_token=' + servtoken.key)
     >>> u_browser.getControl(name='form.buttons.approve').click()
     >>> 'Callback is not approved for the client.' in u_browser.contents
     True
+
+On the other hand, the user should encounter no issues when accepting a
+token with an approved callback url::
+
+    >>> u_browser.open(auth_baseurl + '?oauth_token=' + wwwtoken.key)
+    >>> u_browser.getControl(name='form.buttons.approve').click()
+
+With the user successfully redirected to the client's host, who then
+will receive the token id with its associated verifier::
+
+    >>> print u_browser.url
+    http://www.example.com/plone/test_oauth_callback?...
+    >>> print u_browser.contents
+    Verifier: ...
+    Token: ...
+
+Now if the client's domain is updated to accept wildcard sub-domains,
+the manually generated token will be abled to be processed and also
+be redirected::
+
+    >>> consumer1.domain = u'*.example.com'
+    >>> u_browser.open(auth_baseurl + '?oauth_token=' + servtoken.key)
+    >>> u_browser.getControl(name='form.buttons.approve').click()
+    >>> print u_browser.url
+    http://service.example.com/plone/test_oauth_callback?...
 
 Lastly, check that the request token will fail when the oauth_callback
 parameter is missing::
