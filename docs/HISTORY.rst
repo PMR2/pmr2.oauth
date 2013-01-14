@@ -6,16 +6,34 @@ Changelog
 0.4 - Unreleased
 ----------------
 
-Major architectural changes:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Major architectural changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * Removal of python-oauth2 and use oauthlib.  Significant changes to the
   PAS OAuthPlugin, including the removal of all private methods, removal
   of the OAuthUtility, with nearly all authentication and verification
   functions moved into the adapter that was developed as an extension to
   the new library.
-* Scope manager completely redefined to accept string identifiers to
-  decouple them from tokens.  String identifiers are the client_key
-  (consumer) and access_key (access token).
+* Scope manager completely redefined to accept any identifiers, which
+  can be client (consumer), temporary or access keys.  Specific
+  implementations can then make use of this change.
+* Default scope manager no longer manages permitted URIs based directly
+  on regex, but views and subpaths within specific content types.
+* Consumer keys now randomly generated.  For identification purposes the
+  title and domain fields are introduced.  Domain field serves an
+  additional purpose.
+
+~~~~~~~~~~~~
+New features
+~~~~~~~~~~~~
+
+* Introduction of callback manager.  This manages permitted targets for
+  callbacks, so that resource owners will not be redirected to untrusted
+  hosts especially for oob clients.
+* Default scope manager provides the concept of scope profiles, which
+  are concise representations of access that will be granted by the
+  resource owner to clients.
 
 -----------------
 0.3a - 2012-11-23
