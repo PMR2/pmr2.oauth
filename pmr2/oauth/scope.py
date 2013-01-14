@@ -56,7 +56,7 @@ class BaseScopeManager(object):
 
         raise NotImplementedError()
 
-    def validate(self, client_key, access_key, **kw):
+    def validate(self, request, client_key, access_key, **kw):
         """
         See IScopeManager
         """
@@ -278,7 +278,7 @@ class ContentTypeScopeManager(BTreeScopeManager):
         self.setScope(request_key, result)
         return True
 
-    def validate(self, client_key, access_key,
+    def validate(self, request, client_key, access_key,
             accessed, container, name, value):
         """
         See IScopeManager.

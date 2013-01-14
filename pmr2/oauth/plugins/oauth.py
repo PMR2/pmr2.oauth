@@ -110,7 +110,7 @@ class OAuthPlugin(BasePlugin):
             # This normally shouldn't happen...
             return
         
-        scopeValidity = scopeManager.validate(client_key, access_key, 
+        scopeValidity = scopeManager.validate(request, client_key, access_key, 
             accessed=accessed,
             container=container,
             name=name,

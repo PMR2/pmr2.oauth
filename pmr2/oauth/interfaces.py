@@ -220,10 +220,14 @@ class IScopeManager(zope.interface.Interface):
         `self.getScope(request_key)` if this was successful.
         """
 
-    def validate(client_key, access_key, accessed, container, name, value):
+    def validate(request, client_key, access_key,
+            accessed, container, name, value):
         """
         Validate the scope against the given context with the given
         client and owner.
+
+        request
+            the request object.
 
         client_key
             the client (consumer) key.

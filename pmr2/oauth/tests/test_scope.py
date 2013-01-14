@@ -312,14 +312,16 @@ class CTSMValidateTestCase(ptc.PloneTestCase):
         # Should there be something to automatically revoke it?
         # Probably?
 
-        self.assertFalse(self.sm.validate('', akey, self.folder,
+        request = base.TestRequest()
+
+        self.assertFalse(self.sm.validate(request, '', akey, self.folder,
             self.portal, 'document_view', object()))
-        self.assertTrue(self.sm.validate('', akey, self.folder,
+        self.assertTrue(self.sm.validate(request, '', akey, self.folder,
             self.portal, 'folder_contents', object()))
 
-        self.assertFalse(self.sm.validate('', akey, self.folder_add,
+        self.assertFalse(self.sm.validate(request, '', akey, self.folder_add,
             self.portal, 'addFolder', object()))
-        self.assertTrue(self.sm.validate('', akey, self.folder_add,
+        self.assertTrue(self.sm.validate(request, '', akey, self.folder_add,
             self.portal, 'addFile', object()))
 
         # TODO test cases where mappings have been purged but the
