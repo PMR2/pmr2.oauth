@@ -128,6 +128,7 @@ class SiteRequestOAuth1ServerAdapter(oauthlib.oauth1.Server):
         return self.verify_request(
             require_resource_owner=True,
             require_verifier=False,
+            require_callback=False,
         )
 
     def verify_request_token_request(self):
@@ -138,6 +139,7 @@ class SiteRequestOAuth1ServerAdapter(oauthlib.oauth1.Server):
         return self.verify_request(
             require_resource_owner=False, 
             require_verifier=False,
+            require_callback=True,
         )
 
     def verify_access_token_request(self):
@@ -148,13 +150,15 @@ class SiteRequestOAuth1ServerAdapter(oauthlib.oauth1.Server):
         return self.verify_request(
             require_resource_owner=True, 
             require_verifier=True,
+            require_callback=False,
         )
 
     # Overrides
 
     def verify_request(self, uri=None, http_method=None, body=None,
             headers=None, require_resource_owner=True, require_verifier=False,
-            require_realm=False, required_realm=None):
+            require_realm=False, required_realm=None, require_callback=False,
+            *a, **kw):
         """
         Essentially a clone of the parent class, but the default 
         parameters will be from this class.
