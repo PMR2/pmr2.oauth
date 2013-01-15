@@ -26,7 +26,7 @@ setup(name='pmr2.oauth',
       install_requires=[
           'setuptools',
           # -*- Extra requirements: -*-
-          'oauthlib',
+          'oauthlib<0.4',
           'zope.testing',
           'zope.component',
           'zope.interface',
