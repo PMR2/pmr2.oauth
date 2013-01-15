@@ -243,8 +243,13 @@ class ContentTypeScopeManager(BTreeScopeManager):
         profile = self.getEditProfile(name)
         if not (IContentTypeScopeProfile.providedBy(profile)):
             raise KeyError('edit profile does not exist')
-        mapping = profile.mapping
-        self.setMappingNameToId(name, self.addMapping(mapping))
+        metadata = {
+            'title': profile.title,
+            'description': profile.description,
+        }
+        new_mapping = profile.mapping
+        new_id = self.addMapping(new_mapping, metadata=metadata)
+        self.setMappingNameToId(name, new_id)
 
     def getEditProfileNames(self):
         return self._edit_mappings.keys()
@@ -365,6 +370,8 @@ class ContentTypeScopeProfile(Persistent):
 
     zope.interface.implements(IContentTypeScopeProfile)
 
+    title = fieldproperty.FieldProperty(
+        IContentTypeScopeProfile['title'])
     description = fieldproperty.FieldProperty(
         IContentTypeScopeProfile['description'])
     mapping = fieldproperty.FieldProperty(IContentTypeScopeProfile['mapping'])

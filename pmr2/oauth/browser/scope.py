@@ -153,14 +153,7 @@ class ContentTypeScopeProfileDisplayForm(ContentTypeScopeProfileTraverseForm):
         site = getSite()
         sm = zope.component.getMultiAdapter(
             (site, self.request), IContentTypeScopeManager)
-        profile, original = self._getProfileAndMapping()
-        metadata = {
-            'title': profile.title,
-            'description': profile.description,
-        }
-        new_mapping = profile.mapping
-        new_id = sm.addMapping(new_mapping, metadata=metadata)
-        sm.setMappingNameToId(self.profile_name, new_id)
+        sm.commitEditProfile(self.profile_name)
 
         self.next_target = '/'.join([self.context.absolute_url(), 
             self.context.__name__, 'view', self.profile_name,])
