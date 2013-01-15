@@ -198,12 +198,10 @@ class ContentTypeScopeProfileDisplayForm(ContentTypeScopeProfileTraverseForm):
             self.request.response.redirect(self.next_target)
 
     def isMappingModified(self):
-        profile, mapping = self._getProfileAndMapping()
-
-        # TODO I would like some way to compare the two profiles in a
-        # sane way but only using active types and types that have
-        # stuff assigned.  So for now just use this naive method.
-        return not profile.mapping == mapping
+        site = getSite()
+        sm = zope.component.getMultiAdapter(
+            (site, self.request), IContentTypeScopeManager)
+        return sm.isProfileModified(self.profile_name)
 
 
 class ContentTypeScopeProfileEditForm(form.EditForm,

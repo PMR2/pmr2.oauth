@@ -254,6 +254,24 @@ class ContentTypeScopeManager(BTreeScopeManager):
     def getEditProfileNames(self):
         return self._edit_mappings.keys()
 
+    def isProfileModified(self, name):
+        # TODO I would like some way to compare the two profiles in a
+        # sane way but only using active types and types that have
+        # stuff assigned.  So for now just use this naive method.
+        profile = self.getEditProfile(name)
+        try:
+            mapping_id = self.getMappingId(name)
+            mapping = self.getMapping(mapping_id)
+            metadata = self.getMappingMetadata(mapping_id, {})
+        except KeyError:
+            # If profile exists, no associated ID, definitely modified.
+            return True
+
+        return not (profile.mapping == mapping and 
+            profile.title == metadata.get('title') and
+            profile.description == metadata.get('description')
+        )
+
     # Scope handling.
 
     def requestScope(self, request_key, raw_scope):
