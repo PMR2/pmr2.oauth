@@ -594,102 +594,6 @@ One last test, with just the raw class this time::
     BadRequest
 
 
----------------------------
-Token Management Interfaces
----------------------------
-
-The user (and site managers) would need to know what tokens are stored 
-for who and also the ability to revoke tokens when they no longer wish 
-to retain access for the consumer.  This is where the management form 
-comes in.
-
-Do note that as of this release, the URIs to the following management
-interfaces are not made visible such as from the dashboard or the Site
-Setup interfaces.  Site administrators may wish to add those links 
-manually if they wish to make these functions more visible.
-
-As our test user have granted access to two tokens already, they both
-should show up if the listing page is viewed::
-
-    >>> from pmr2.oauth.browser import user
-    >>> self.login(default_user)
-    >>> request = TestRequest()
-    >>> view = user.UserTokenForm(self.portal, request)
-    >>> result = view()
-    >>> access_token.key in result
-    True
-    >>> 'consumer1.example.com' in result
-    True
-
-All the required data are present in the form.  Let's try to remove one
-of the tokens using the test browser::
-
-    >>> u_browser.open(baseurl + '/issued_oauth_tokens')
-    >>> u_browser.getControl(name="form.widgets.key").controls[0].click()
-    >>> u_browser.getControl(name='form.buttons.revoke').click()
-    >>> len(tokenManager.getTokensForUser(default_user))
-    1
-    >>> result = u_browser.contents
-    >>> 'Access successfully removed' in result
-    True
-
-Same deal for consumers, we can open the consumer management form and
-we should see the single consumer that had been added earlier.  This
-page can be accessed at `${portal_url}/manage-oauth-consumers`::
-
-    >>> from pmr2.oauth.browser import consumer
-    >>> request = TestRequest()
-    >>> view = consumer.ConsumerManageForm(self.portal, request)
-    >>> result = view()
-    >>> 'consumer1.example.com' in result
-    True
-
-We can try to add a few consumers using the form also.  Since the client
-in this case should be a browser, we will use the authenticated test
-request class::
-
-    >>> added_consumer_keys = []
-    >>> from pmr2.testing.base import TestRequest as TestRequestAuthed
-    >>> request = TestRequestAuthed(form={
-    ...     'form.widgets.title': 'consumer2.example.com',
-    ...     'form.buttons.add': 1,
-    ... })
-    >>> view = consumer.ConsumerAddForm(self.portal, request)
-    >>> view.update()
-    >>> added_consumer_keys.append(view._data['key'])
-
-    >>> request = TestRequestAuthed(form={
-    ...     'form.widgets.title': 'consumer3.example.com',
-    ...     'form.buttons.add': 1,
-    ... })
-    >>> view = consumer.ConsumerAddForm(self.portal, request)
-    >>> view.update()
-    >>> added_consumer_keys.append(view._data['key'])
-
-Now the management form should show these couple new consumers::
-
-    >>> request = TestRequestAuthed()
-    >>> view = consumer.ConsumerManageForm(self.portal, request)
-    >>> result = view()
-    >>> 'consumer2.example.com' in result
-    True
-    >>> 'consumer3.example.com' in result
-    True
-
-Should have no problems removing them either::
-
-    >>> request = TestRequestAuthed(form={
-    ...     'form.widgets.key': added_consumer_keys,
-    ...     'form.buttons.remove': 1,
-    ... })
-    >>> view = consumer.ConsumerManageForm(self.portal, request)
-    >>> result = view()
-    >>> 'consumer2.example.com' in result
-    False
-    >>> 'consumer3.example.com' in result
-    False
-
-
 ----------------------------
 Scope Profile and Management
 ----------------------------
@@ -1364,7 +1268,48 @@ the second::
     >>> 'Welcome to Plone' in browser.contents
     True
 
-Users can review the token details::
+
+---------------------------
+Token Management Interfaces
+---------------------------
+
+The user (and site managers) would need to know what tokens are stored 
+for who and also the ability to revoke tokens when they no longer wish 
+to retain access for the consumer.  This is where the management form 
+comes in.
+
+Do note that as of this release, the URIs to the following management
+interfaces are not made visible such as from the dashboard or the Site
+Setup interfaces.  Site administrators may wish to add those links 
+manually if they wish to make these functions more visible.
+
+As our test user have granted access a few tokens already, they will all
+should show up if the listing page is accessed::
+
+    >>> from pmr2.oauth.browser import user
+    >>> self.login(default_user)
+    >>> request = TestRequest()
+    >>> view = user.UserTokenForm(self.portal, request)
+    >>> result = view()
+    >>> access_token.key in result
+    True
+    >>> 'consumer1.example.com' in result
+    True
+
+All the required data are present in the form.  Let's try to remove one
+of the tokens using the test browser::
+
+    >>> t_count = len(tokenManager.getTokensForUser(default_user))
+    >>> u_browser.open(baseurl + '/issued_oauth_tokens')
+    >>> u_browser.getControl(name="form.widgets.key").controls[0].click()
+    >>> u_browser.getControl(name='form.buttons.revoke').click()
+    >>> len(tokenManager.getTokensForUser(default_user)) == t_count - 1
+    True
+    >>> result = u_browser.contents
+    >>> 'Access successfully removed' in result
+    True
+
+Users can also review the token details::
 
     >>> u_browser.open(baseurl + '/issued_oauth_tokens')
     >>> u_browser.getLink('[details]').click()
@@ -1374,16 +1319,8 @@ Users can review the token details::
     with the following rights:
     ...
 
-A different user, however, should _not_ be able to access or verify the
-existence of this token.  Even if they are administrators - a different
-view should be provided for them to manage tokens belonging to others::
-
-    >>> o_browser.open(u_browser.url)
-    Traceback (most recent call last):
-    ...
-    HTTPError: HTTP Error 404: Not Found
-
-If user revokes the second token, previous example will cease to work::
+If user revokes the token, the example associated with that token will
+cease to work::
 
     >>> u_browser.open(baseurl + '/issued_oauth_tokens')
     >>> u_browser.getControl(name="form.widgets.key").controls[-1].click()
@@ -1404,8 +1341,20 @@ With the scope associated with the token removed also::
     >>> scopeManager.getAccessScope(asto2.key, None) is None
     True
 
-Likewise, users can only remove tokens they personally own using the
-user specific form.
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Token access/removal rights
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Users can only remove tokens they personally own using the user specific
+form; even if they are administrators - a management level view should
+be provided to manage tokens belonging to other users::
+
+    >>> u_browser.getLink('[details]').click()
+    >>> o_browser.open(u_browser.url)
+    Traceback (most recent call last):
+    ...
+    HTTPError: HTTP Error 404: Not Found
 
 Naturally, logged out users should not be able to do anything (even if
 a security misconfiguration allow them access to this form)::
@@ -1448,3 +1397,80 @@ Only the correct user can revoke this token::
     Traceback (most recent call last):
     ...
     TokenInvalidError: 'no such access token.'
+
+
+------------------------------
+Consumer Management Interfaces
+------------------------------
+
+For consumers, we can open the consumer management form and we should
+see the single consumer that had been added earlier.  This page can be
+accessed via `${portal_url}/manage-oauth-consumers`::
+
+    >>> from pmr2.oauth.browser import consumer
+    >>> request = TestRequest()
+    >>> view = consumer.ConsumerManageForm(self.portal, request)
+    >>> result = view()
+    >>> 'consumer1.example.com' in result
+    True
+
+We can try to add a few consumers using the form also.  Since the client
+in this case should be a browser, we will use the authenticated test
+request class::
+
+    >>> added_consumer_keys = []
+    >>> from pmr2.testing.base import TestRequest as TestRequestAuthed
+    >>> request = TestRequestAuthed(form={
+    ...     'form.widgets.title': 'consumer2.example.com',
+    ...     'form.buttons.add': 1,
+    ... })
+    >>> view = consumer.ConsumerAddForm(self.portal, request)
+    >>> view.update()
+    >>> added_consumer_keys.append(view._data['key'])
+
+    >>> request = TestRequestAuthed(form={
+    ...     'form.widgets.title': 'consumer3.example.com',
+    ...     'form.buttons.add': 1,
+    ... })
+    >>> view = consumer.ConsumerAddForm(self.portal, request)
+    >>> view.update()
+    >>> added_consumer_keys.append(view._data['key'])
+
+Now the management form should show these couple new consumers::
+
+    >>> request = TestRequestAuthed()
+    >>> view = consumer.ConsumerManageForm(self.portal, request)
+    >>> result = view()
+    >>> 'consumer2.example.com' in result
+    True
+    >>> 'consumer3.example.com' in result
+    True
+
+Should have no problems removing them either::
+
+    >>> request = TestRequestAuthed(form={
+    ...     'form.widgets.key': added_consumer_keys,
+    ...     'form.buttons.remove': 1,
+    ... })
+    >>> view = consumer.ConsumerManageForm(self.portal, request)
+    >>> result = view()
+    >>> 'consumer2.example.com' in result
+    False
+    >>> 'consumer3.example.com' in result
+    False
+
+Users should not be able to access the page::
+
+    >>> u_browser.open(baseurl + '/manage-oauth-consumers')
+    >>> 'Insufficient Privileges' in u_browser.contents
+    True
+    >>> 'consumer1.example.com' in u_browser.contents
+    False
+
+Owners or users with permissions can::
+
+    >>> o_browser.open(baseurl + '/manage-oauth-consumers')
+    >>> 'Insufficient Privileges' in o_browser.contents
+    False
+    >>> 'consumer1.example.com' in o_browser.contents
+    True
