@@ -194,6 +194,9 @@ class CTSMEditingTestCase(unittest.TestCase):
         self.sm.commitEditProfile('file')
         self.assertEqual(self.sm.getMappingByName('file'),
             self.file_profile.mapping)
+        mapping_id = self.sm.getMappingId('file')
+        self.assertEqual(self.sm.getMappingMethods(mapping_id),
+            ['GET', 'HEAD', 'OPTIONS'])
 
         self.sm.delMappingName('file')
         self.assertEqual(self.sm.getEditProfile('file'), None)

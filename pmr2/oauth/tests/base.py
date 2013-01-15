@@ -102,7 +102,7 @@ class TestRequest(pmr2.testing.base.TestRequest):
         return auth_header
 
 
-def SignedTestRequest(form=None, consumer=None, token=None,
+def SignedTestRequest(form=None, consumer=None, token=None, method=None,
         url=None, callback=None, timestamp=None, verifier=None, *a, **kw):
     """\
     Creates a signed TestRequest
@@ -125,7 +125,7 @@ def SignedTestRequest(form=None, consumer=None, token=None,
     result = TestRequest(form=form, *a, **kw)
     url = url or result.getURL()
     url = safe_unicode(url)
-    method = safe_unicode(result.method)
+    method = method and safe_unicode(method) or safe_unicode(result.method)
     timestamp = timestamp or unicode(int(time()))
 
     token_key = token and token.key

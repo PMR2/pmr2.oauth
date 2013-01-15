@@ -290,18 +290,27 @@ class TokenCTScopeView(page.SimplePage):
 
         # merge the mappings and the profiles.
         all_maps = {}
+        writable_maps = {}
         mapping_metadata = []
         mapping_keys = ('portal_type', 'subpaths')
+        write_methods = set(('POST', 'PUT', 'DELETE',))
         for mapping_id in mapping_ids:
 
             # mappings
             mapping = sm.getMapping(mapping_id)
+            writable = set(sm.getMappingMethods(mapping_id)
+                ).intersection(write_methods)
             for pt, subpaths in mapping.iteritems():
                 if not subpaths:
                     continue
                 if not pt in all_maps:
                     all_maps[pt] = []
                 all_maps[pt].extend(subpaths)
+
+                if writable:
+                    if not pt in writable_maps:
+                        writable_maps[pt] = []
+                    writable_maps[pt].extend(subpaths)
 
             # profiles
             metadata = sm.getMappingMetadata(mapping_id)
@@ -311,5 +320,9 @@ class TokenCTScopeView(page.SimplePage):
 
         self.mappings = [dict(zip(mapping_keys, (k, sorted(list(set(p))))))
                          for k, p in sorted(all_maps.items())]
+        self.writable_mappings = [dict(zip(mapping_keys,
+                                           (k, sorted(list(set(p))))))
+                                  for k, p in sorted(writable_maps.items())]
+        self.hasWritableMappings = len(self.writable_mappings) > 0
         self.profiles = sorted(mapping_metadata,
             lambda a, b: cmp(a['title'], b['title']))

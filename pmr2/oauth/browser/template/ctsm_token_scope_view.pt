@@ -13,6 +13,7 @@
   <dl class="collapsible collapsedOnLoad">
     <dt class="collapsibleHeader" i18n:translate="">Details</dt>
     <dd class="collapsibleContent">
+
       <p i18n:translate="">
         The following is a detailed listing of all subpaths available
         per content type for tokens using this set of scope profiles.
@@ -29,6 +30,27 @@
           </dd>
         </dl>
       </tal:loop>
+
+      <tal:if tal:condition="view/hasWritableMappings">
+      <p i18n:translate="">
+        Additionally, the following are subpaths within the content
+        types that will be granted access to the client to manipulate
+        your content with.
+      </p>
+      <tal:loop tal:repeat="mapping view/writable_mappings">
+        <dl>
+          <dt tal:content="mapping/portal_type">Document</dt>
+          <dd>
+            <ul>
+              <tal:loop tal:repeat="subpath mapping/subpaths">
+                <li tal:content="subpath">document_view</li>
+              </tal:loop>
+            </ul>
+          </dd>
+        </dl>
+      </tal:loop>
+      </tal:if>
+
     </dd>
   </dl>
 </tal:tal>

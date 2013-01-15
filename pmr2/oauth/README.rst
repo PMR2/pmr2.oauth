@@ -695,6 +695,7 @@ Apply the value and see that the profile is updated::
     >>> request = PMR2TestRequest(form={
     ...     'form.widgets.title': u'Test current user',
     ...     'form.widgets.description': u'See current user information.',
+    ...     'form.widgets.methods': 'GET HEAD OPTIONS',
     ...     'form.widgets.mapping.widgets.Plone Site': u'test_current_user',
     ...     'form.widgets.mapping.widgets.Document': u'document_view',
     ...     'form.widgets.mapping-empty-marker': 1,
@@ -778,6 +779,7 @@ Verify that the mapping and associated metadata is saved::
     >>> scopeManager.getMappingMetadata(mapping_id) == {
     ...     'title': u'Test current user',
     ...     'description': u'See current user information.',
+    ...     'methods': 'GET HEAD OPTIONS',
     ... }
     True
 
@@ -923,9 +925,7 @@ Back to the main page, and try to add a new profile::
     >>> o_browser.getControl(name="form.widgets.mapping.widgets.Plone Site"
     ...      ).value = 'test_current_user'
     >>> o_browser.getControl(name="form.buttons.apply").click()
-
     >>> o_browser.getControl(name="form.buttons.cancel").click()
-
     >>> o_browser.getControl(name="form.buttons.commit").click()
 
     >>> another_id = scopeManager.getMappingId('another')
@@ -935,6 +935,42 @@ Back to the main page, and try to add a new profile::
     >>> scopeManager.getMappingMetadata(another_id) == {
     ...     'title': u'Access document contents',
     ...     'description': u'Allow clients to view documents.',
+    ...     'methods': 'GET HEAD OPTIONS',
+    ... }
+    True
+
+One more, for allowing the POST method::
+
+    >>> o_browser.open(baseurl + '/manage-ctsp')
+    >>> o_browser.getLink(id='ctsm_add_scope_profile').click()
+    >>> o_browser.getControl(name="form.widgets.name").value = 'sharing'
+    >>> o_browser.getControl(name="form.buttons.add").click()
+    >>> o_browser.getControl(name="form.buttons.edit").click()
+    >>> o_browser.getControl(name="form.widgets.title"
+    ...     ).value = 'Manages sharing permissions'
+    >>> o_browser.getControl(name="form.widgets.description"
+    ...     ).value = 'Allows clients to edit sharing rights on Documents.'
+    >>> o_browser.getControl(name="form.widgets.methods"
+    ...     ).value = 'GET HEAD OPTIONS POST'
+    >>> o_browser.getControl(name="form.widgets.mapping.widgets.Document"
+    ...      ).value = 'sharing'
+    >>> o_browser.getControl(name="form.widgets.mapping.widgets.Plone Site"
+    ...      ).value = 'test_current_user'
+    >>> o_browser.getControl(name="form.buttons.apply").click()
+    >>> o_browser.getControl(name="form.buttons.cancel").click()
+    >>> o_browser.getControl(name="form.buttons.commit").click()
+
+    >>> another_id = scopeManager.getMappingId('sharing')
+    >>> another_mapping = scopeManager.getMapping(another_id)
+    >>> another_mapping.get('Document')
+    ['sharing']
+    >>> another_mapping.get('Plone Site')
+    ['test_current_user']
+    >>> scopeManager.getMappingMetadata(another_id) == {
+    ...     'title': u'Manages sharing permissions',
+    ...     'description': 
+    ...         u'Allows clients to edit sharing rights on Documents.',
+    ...     'methods': 'GET HEAD OPTIONS POST',
     ... }
     True
 
@@ -1061,7 +1097,7 @@ that the original permissions are still intact::
     1
     >>> o_browser.getControl(name='form.buttons.setdefault').click()
     >>> scopeManager.default_mapping_id
-    3
+    4
 
     >>> url = self.folder.absolute_url()
     >>> request = SignedTestRequest(consumer=consumer1, token=tok1, url=url)
@@ -1184,12 +1220,102 @@ updated::
       </dd>
     ...
 
+Multiple scopes involving write privileges can be specified.  The
+displayed scope for the profiles that involve write privileges will be
+additional.  While the current iteration of the provided scope manager
+checks for the HTTP methods, this is not directly presented to resource
+owners who are end-users that may not concern themselves with such
+details.  This also works on the assumption that no data is manipulated
+via requests by GET or others.  With that, let's render the form::
+
+    >>> scopetok3 = tokenManager.generateRequestToken(consumer1.key, 'oob')
+    >>> scopeManager.requestScope(scopetok3.key,
+    ...     'http://nohost/Plone/scope/another,'
+    ...     'http://nohost/Plone/scope/sharing,'
+    ...     'http://nohost/Plone/scope/test_profile')
+    True
+    >>> u_browser.open(auth_baseurl + '?oauth_token=' + scopetok3.key)
+    >>> print u_browser.contents
+    <...
+    <dl>
+      <dt>Access document contents</dt>
+      <dd>
+        <p>Allow clients to view documents.</p>
+      </dd>
+      <dt>Manages sharing permissions</dt>
+      <dd>
+        <p>Allows clients to edit sharing rights on Documents.</p>
+      </dd>
+      <dt>Test current user</dt>
+      <dd>
+        <p>See current user information.</p>
+      </dd>
+    </dl>
+    ...
+      <dd...
+    ...
+        <p>
+          The following is a detailed listing of all subpaths available
+          per content type for tokens using this set of scope profiles.
+        </p>
+        <dl>
+          <dt>Document</dt>
+          <dd>
+            <ul>
+              <li>document_view</li>
+              <li>sharing</li>
+            </ul>
+          </dd>
+        </dl>
+        <dl>
+          <dt>Folder</dt>
+          <dd>
+            <ul>
+              <li>folder_listing</li>
+            </ul>
+          </dd>
+        </dl>
+        <dl>
+          <dt>Plone Site</dt>
+          <dd>
+            <ul>
+              <li>test_current_roles</li>
+              <li>test_current_user</li>
+            </ul>
+          </dd>
+        </dl>
+        <p>
+          Additionally, the following are subpaths within the content
+          types that will be granted access to the client to manipulate
+          your content with.
+        </p>
+        <dl>
+          <dt>Document</dt>
+          <dd>
+            <ul>
+              <li>sharing</li>
+            </ul>
+          </dd>
+        </dl>
+        <dl>
+          <dt>Plone Site</dt>
+          <dd>
+            <ul>
+              <li>test_current_user</li>
+            </ul>
+          </dd>
+        </dl>
+      </dd>
+    ...
+
 To test that the permissions function as they are, have the user approve
 both those tokens::
 
     >>> u_browser.open(auth_baseurl + '?oauth_token=' + scopetok1.key)
     >>> u_browser.getControl(name='form.buttons.approve').click()
     >>> u_browser.open(auth_baseurl + '?oauth_token=' + scopetok2.key)
+    >>> u_browser.getControl(name='form.buttons.approve').click()
+    >>> u_browser.open(auth_baseurl + '?oauth_token=' + scopetok3.key)
     >>> u_browser.getControl(name='form.buttons.approve').click()
 
 Then have the client request the access token for bot those tokens::
@@ -1207,6 +1333,13 @@ Then have the client request the access token for bot those tokens::
     ...     consumer=consumer1, token=scopetok2, verifier=v, timestamp=t)
     >>> atp = token.GetAccessTokenPage(self.portal, request)
     >>> asto2 = makeToken(atp())
+
+    >>> v = tokenManager.get(scopetok3.key).verifier
+    >>> t = str(int(time.time()))
+    >>> request = SignedTestRequest(
+    ...     consumer=consumer1, token=scopetok3, verifier=v, timestamp=t)
+    >>> atp = token.GetAccessTokenPage(self.portal, request)
+    >>> asto3 = makeToken(atp())
 
 Now test access using the first token.  The test_current_roles page is
 not one of the approved links for the site root::
@@ -1268,6 +1401,33 @@ the second::
     >>> 'Welcome to Plone' in browser.contents
     True
 
+However, post requests should not work for this token as it does not
+have the method set as permitted::
+
+    >>> url = baseurl + '/test_current_user'
+    >>> request = SignedTestRequest(consumer=consumer1, token=asto2,
+    ...     method='POST', url=url)
+    >>> auth = request._auth
+    >>> browser = Browser()
+    >>> browser.addHeader('Authorization', auth)
+    >>> browser.post(url, '')
+    Traceback (most recent call last):
+    ...
+    HTTPError: HTTP Error 403: Forbidden
+
+On the other hand, the third token will, as it has post access to the
+two subpaths that have this enabled::
+
+    >>> url = baseurl + '/test_current_user'
+    >>> request = SignedTestRequest(consumer=consumer1, token=asto3,
+    ...     method='POST', url=url)
+    >>> auth = request._auth
+    >>> browser = Browser()
+    >>> browser.addHeader('Authorization', auth)
+    >>> browser.post(url, '')
+    >>> print browser.contents
+    test_user_1_
+
 
 ---------------------------
 Token Management Interfaces
@@ -1319,10 +1479,32 @@ Users can also review the token details::
     with the following rights:
     ...
 
+For tokens that have write privileges, the extra notice must also be
+shown::
+
+    >>> u_browser.open(baseurl + '/issued_oauth_tokens/view/' + asto3.key)
+    >>> print u_browser.contents
+    <...
+    The token was granted to <strong>consumer1.example.com</strong>
+    with the following rights:
+    ...
+        <p>
+          The following is a detailed listing of all subpaths available
+          per content type for tokens using this set of scope profiles.
+        </p>
+    ...
+        <p>
+          Additionally, the following are subpaths within the content
+          types that will be granted access to the client to manipulate
+          your content with.
+        </p>
+    ...
+
 If user revokes the token, the example associated with that token will
 cease to work::
 
     >>> u_browser.open(baseurl + '/issued_oauth_tokens')
+    >>> u_browser.getControl(name="form.widgets.key").controls[-2].click()
     >>> u_browser.getControl(name="form.widgets.key").controls[-1].click()
     >>> u_browser.getControl(name='form.buttons.revoke').click()
 

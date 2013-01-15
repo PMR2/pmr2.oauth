@@ -167,6 +167,12 @@ class ContentTypeScopeManager(BTreeScopeManager):
         super(ContentTypeScopeManager, self).__init__()
         self._mappings = IOBTree()
 
+        # Methods permitted to access this mapping with.  Originally
+        # I wanted to provide alternative sets of mapping on a per
+        # mapping_id basis, however this proved to be complex and
+        # complicated due to extra relationships involved.
+        self._methods = IOBTree()
+
         # For metadata related to the above.
         self._mappings_metadata = IOBTree()
 
@@ -185,12 +191,13 @@ class ContentTypeScopeManager(BTreeScopeManager):
 
     # Main mapping related management methods.
 
-    def addMapping(self, mapping, metadata=None):
+    def addMapping(self, mapping, methods='GET HEAD OPTIONS', metadata=None):
         key = 0  # default?
         if len(self._mappings) > 0:
             # Can calculate the next key.
             key = self._mappings.maxKey() + 1
         self._mappings[key] = mapping
+        self._methods[key] = methods.split()
         if metadata is not None:
             self._mappings_metadata[key] = metadata
         return key
@@ -208,6 +215,16 @@ class ContentTypeScopeManager(BTreeScopeManager):
     def getMappingId(self, name):
         # Returned ID could potentially not exist, what do?
         return self._named_mappings[name]
+
+    def getMappingMethods(self, mapping_id, default=_marker):
+        result = self._methods.get(mapping_id, default)
+        if result is _marker:
+            raise KeyError()
+        return result
+
+    def checkMethodPermission(self, mapping_id, method):
+        methods = self.getMappingMethods(mapping_id, ())
+        return method in methods
 
     def setMappingNameToId(self, name, mapping_id):
         self._named_mappings[name] = mapping_id
@@ -243,12 +260,17 @@ class ContentTypeScopeManager(BTreeScopeManager):
         profile = self.getEditProfile(name)
         if not (IContentTypeScopeProfile.providedBy(profile)):
             raise KeyError('edit profile does not exist')
+        new_mapping = profile.mapping
+        methods = profile.methods
         metadata = {
             'title': profile.title,
             'description': profile.description,
+            # Should really not duplicate this there but this is easy
+            # shortcut to take for now.
+            'methods': methods,
         }
-        new_mapping = profile.mapping
-        new_id = self.addMapping(new_mapping, metadata=metadata)
+        new_id = self.addMapping(new_mapping, methods=methods,
+            metadata=metadata)
         self.setMappingNameToId(name, new_id)
 
     def getEditProfileNames(self):
@@ -269,7 +291,8 @@ class ContentTypeScopeManager(BTreeScopeManager):
 
         return not (profile.mapping == mapping and 
             profile.title == metadata.get('title') and
-            profile.description == metadata.get('description')
+            profile.description == metadata.get('description') and
+            profile.methods == metadata.get('methods')
         )
 
     # Scope handling.
@@ -312,8 +335,10 @@ class ContentTypeScopeManager(BTreeScopeManager):
         for mapping_id in mappings:
             mapping = self.getMapping(mapping_id, default={})
             result = self.validateTargetWithMapping(accessed, name, mapping)
-            if result:
-                return result
+            method_allowed = self.checkMethodPermission(mapping_id,
+                request.method)
+            if result and method_allowed:
+                return True
 
         # no matching mappings.
         return False
@@ -392,4 +417,5 @@ class ContentTypeScopeProfile(Persistent):
         IContentTypeScopeProfile['title'])
     description = fieldproperty.FieldProperty(
         IContentTypeScopeProfile['description'])
+    methods = fieldproperty.FieldProperty(IContentTypeScopeProfile['methods'])
     mapping = fieldproperty.FieldProperty(IContentTypeScopeProfile['mapping'])

@@ -312,6 +312,15 @@ class IContentTypeScopeProfile(zope.interface.Interface):
         required=False,
     )
 
+    methods = zope.schema.ASCIILine(
+        title=_(u'Permitted HTTP Methods'),
+        description=_(
+            u'Whitespace delimited list of permitted HTTP methods for the '
+            'subpaths below.'),
+        required=True,
+        default='GET HEAD OPTIONS',
+    )
+
     mapping = zope.schema.Dict(
         title=_(u'Mapping'),
         description=_(u'A mapping for each of the following portal types to '
