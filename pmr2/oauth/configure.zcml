@@ -9,6 +9,7 @@
   <i18n:registerTranslations directory="locales" />
 
   <include package="plone.app.z3cform" />
+  <include package="pmr2.z3cform" />
 
   <include package=".browser" />
 
