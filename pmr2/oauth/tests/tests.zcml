@@ -5,7 +5,7 @@
 
   <adapter
       for="*
-           pmr2.testing.base.IPMR2TestRequest"
+           pmr2.z3cform.tests.base.IPMR2TestRequest"
       factory=".adapter.TestCallbackManager"
       provides="pmr2.oauth.interfaces.ICallbackManager"
       />

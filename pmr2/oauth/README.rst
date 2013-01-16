@@ -604,9 +604,8 @@ demostrated earlier.  However, the adminstrators must have a way to
 customize them.  To do that views and forms are provided::
 
     >>> from pmr2.oauth.browser import scope
-    >>> from pmr2.testing.base import TestRequest as PMR2TestRequest
     >>> context = self.portal
-    >>> request = PMR2TestRequest()
+    >>> request = TestRequest()
     >>> view = scope.ContentTypeScopeManagerView(context, request)
     >>> print view()
     <BLANKLINE>
@@ -623,7 +622,7 @@ customize them.  To do that views and forms are provided::
 
 Selecting that link will bring up the Add Scope Profile form::
 
-    >>> request = PMR2TestRequest(form={
+    >>> request = TestRequest(form={
     ...     'form.widgets.name': 'test_profile',
     ...     'form.buttons.add': 1,
     ... })
@@ -645,7 +644,7 @@ the scope manager::
 
 The manager view will list this also::
 
-    >>> request = PMR2TestRequest()
+    >>> request = TestRequest()
     >>> view = scope.ContentTypeScopeManagerView(context, request)
     >>> print view()
     <BLANKLINE>
@@ -666,7 +665,7 @@ The manager view will list this also::
 The link leads to the view form.  There should be some actions with
 corresponding buttons::
 
-    >>> request = PMR2TestRequest()
+    >>> request = TestRequest()
     >>> view = scope.ContentTypeScopeProfileDisplayForm(context, request)
     >>> view = view.publishTraverse(request, 'test_profile')
     >>> view.update()
@@ -680,7 +679,7 @@ corresponding buttons::
 
 Now instantiate the edit view for that profile::
 
-    >>> request = PMR2TestRequest()
+    >>> request = TestRequest()
     >>> view = scope.ContentTypeScopeProfileEditForm(context, request)
     >>> view = view.publishTraverse(request, 'test_profile')
     >>> view.update()
@@ -692,7 +691,7 @@ Now instantiate the edit view for that profile::
 
 Apply the value and see that the profile is updated::
 
-    >>> request = PMR2TestRequest(form={
+    >>> request = TestRequest(form={
     ...     'form.widgets.title': u'Test current user',
     ...     'form.widgets.description': u'See current user information.',
     ...     'form.widgets.methods': 'GET HEAD OPTIONS',
@@ -732,7 +731,7 @@ is not preserved::
 Back onto the edit form.  See that the profile can be committed for
 use::
 
-    >>> request = PMR2TestRequest(form={
+    >>> request = TestRequest(form={
     ...     'form.buttons.setdefault': 1,
     ... })
     >>> view = scope.ContentTypeScopeProfileDisplayForm(context, request)
@@ -751,7 +750,7 @@ rendered, along with the notification that it has been modified.::
 
 Try this again after committing it::
 
-    >>> request = PMR2TestRequest(form={
+    >>> request = TestRequest(form={
     ...     'form.buttons.commit': 1,
     ... })
     >>> view = scope.ContentTypeScopeProfileDisplayForm(context, request)
@@ -760,7 +759,7 @@ Try this again after committing it::
 
 Use the newly created mapping as the default mapping::
 
-    >>> request = PMR2TestRequest(form={
+    >>> request = TestRequest(form={
     ...     'form.buttons.setdefault': 1,
     ... })
     >>> view = scope.ContentTypeScopeProfileDisplayForm(context, request)
@@ -790,14 +789,14 @@ Error Handling
 
 Traversing to profiles using edit form will get NotFound::
 
-    >>> request = PMR2TestRequest()
+    >>> request = TestRequest()
     >>> view = scope.ContentTypeScopeProfileEditForm(context, request)
     >>> view.update()
     Traceback (most recent call last):
     ...
     NotFound...
 
-    >>> request = PMR2TestRequest()
+    >>> request = TestRequest()
     >>> view = scope.ContentTypeScopeProfileEditForm(context, request)
     >>> view = view.publishTraverse(request, 'no_profile')
     >>> view.update()
@@ -805,7 +804,7 @@ Traversing to profiles using edit form will get NotFound::
     ...
     NotFound...
 
-    >>> request = PMR2TestRequest()
+    >>> request = TestRequest()
     >>> view = scope.ContentTypeScopeProfileDisplayForm(context, request)
     >>> view = view.publishTraverse(request, 'no_profile')
     >>> view.update()
@@ -1601,8 +1600,7 @@ in this case should be a browser, we will use the authenticated test
 request class::
 
     >>> added_consumer_keys = []
-    >>> from pmr2.testing.base import TestRequest as TestRequestAuthed
-    >>> request = TestRequestAuthed(form={
+    >>> request = TestRequest(form={
     ...     'form.widgets.title': 'consumer2.example.com',
     ...     'form.buttons.add': 1,
     ... })
@@ -1610,7 +1608,7 @@ request class::
     >>> view.update()
     >>> added_consumer_keys.append(view._data['key'])
 
-    >>> request = TestRequestAuthed(form={
+    >>> request = TestRequest(form={
     ...     'form.widgets.title': 'consumer3.example.com',
     ...     'form.buttons.add': 1,
     ... })
@@ -1620,7 +1618,7 @@ request class::
 
 Now the management form should show these couple new consumers::
 
-    >>> request = TestRequestAuthed()
+    >>> request = TestRequest()
     >>> view = consumer.ConsumerManageForm(self.portal, request)
     >>> result = view()
     >>> 'consumer2.example.com' in result
@@ -1630,7 +1628,7 @@ Now the management form should show these couple new consumers::
 
 Should have no problems removing them either::
 
-    >>> request = TestRequestAuthed(form={
+    >>> request = TestRequest(form={
     ...     'form.widgets.key': added_consumer_keys,
     ...     'form.buttons.remove': 1,
     ... })

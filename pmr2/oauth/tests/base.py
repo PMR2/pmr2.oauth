@@ -21,7 +21,8 @@ from Products.PloneTestCase.layer import onsetup
 from Products.PloneTestCase.layer import onteardown
 
 import z3c.form.testing
-import pmr2.testing.base
+
+import pmr2.z3cform.tests.base
 from pmr2.oauth.plugins.oauth import OAuthPlugin
 
 @onsetup
@@ -64,7 +65,7 @@ def escape(s):
     return urllib.quote(s.encode('utf-8'), safe='~')
 
 
-class TestRequest(pmr2.testing.base.TestRequest):
+class TestRequest(pmr2.z3cform.tests.base.TestRequest):
 
     zope.interface.implements(IOAuthTestLayer, IAttributeAnnotatable)
 
