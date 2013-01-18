@@ -145,7 +145,7 @@ class TokenManager(Persistent, Contained):
         token = self.get(token, default)
         if token is default:
             if default is False:
-                raise TokenInvalidError('no such access token.')
+                raise TokenInvalidError('no such request token.')
             return default
 
         if token.access:
