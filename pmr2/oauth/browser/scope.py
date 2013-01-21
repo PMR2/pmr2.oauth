@@ -17,7 +17,7 @@ from pmr2.z3cform import form
 from pmr2.z3cform import page
 
 from pmr2.oauth import MessageFactory as _
-from pmr2.oauth.interfaces import IContentTypeScopeManager
+from pmr2.oauth.interfaces import IScopeManager, IContentTypeScopeManager
 from pmr2.oauth.interfaces import IContentTypeScopeProfile
 from pmr2.oauth.interfaces import _IDynamicSchemaInterface
 from pmr2.oauth.scope import ContentTypeScopeProfile
@@ -252,7 +252,42 @@ class ContentTypeScopeProfileAddForm(form.AddForm):
             self.context.__name__, 'view', self._data['name'],])
 
 
-class TokenCTScopeView(page.SimplePage):
+class BaseTokenScopeView(page.SimplePage):
+
+    @property
+    def label(self):
+        return _(u'Token Scope Information')
+
+    def getTokenKey(self):
+        return self.request.get('oauth_token')
+
+    def getScope(self, token_key):
+        site = getSite()
+        sm = zope.component.getMultiAdapter(
+            (site, self.request), IScopeManager)
+        return sm.getScope(token_key, None)
+
+    def template(self):
+        # This should cause the parent template to render a notification
+        return u''
+
+    def getTokenScopeInfo(self):
+        # basically check for the existent of the scope.
+        token_key = self.getTokenKey()
+        if not token_key:
+            raise NotFound(self.context, '')
+
+        scope = self.getScope(token_key)
+        if not scope:
+            raise NotFound(self.context, '')
+
+        return token_key, scope
+
+    def update(self):
+        token_key, scope = self.getTokenScopeInfo()
+
+
+class TokenCTScopeView(BaseTokenScopeView):
 
     template = ViewPageTemplateFile(path('ctsm_token_scope_view.pt'))
     missing_metadata = {
@@ -264,10 +299,11 @@ class TokenCTScopeView(page.SimplePage):
     def label(self):
         return _(u'Token Scope Information')
 
-    def getTokenKey(self):
-        return self.request.get('oauth_token')
+    def getScope(self, token_key):
+        """
+        Override to ensure the correct scope manager is returned.
+        """
 
-    def getMappingIds(self, token_key):
         site = getSite()
         sm = zope.component.getMultiAdapter(
             (site, self.request), IContentTypeScopeManager)
@@ -275,14 +311,8 @@ class TokenCTScopeView(page.SimplePage):
         return sm.getScope(token_key, None)
 
     def update(self):
+        token_key, mapping_ids = self.getTokenScopeInfo()
         self.request['disable_border'] = True
-        token_key = self.getTokenKey()
-        if not token_key:
-            raise NotFound(self.context, '')
-
-        mapping_ids = self.getMappingIds(token_key)
-        if not mapping_ids:
-            raise NotFound(self.context, '')
 
         site = getSite()
         sm = zope.component.getMultiAdapter(

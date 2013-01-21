@@ -124,7 +124,12 @@ class UserTokenListView(Implicit, BrowserPage):
         return result
 
 
-class UserTokenDetailsView(page.TraversePage, TokenCTScopeView):
+class UserTokenCTScopeDetailsView(page.TraversePage, TokenCTScopeView):
+    """
+    This view class explicitly includes ContentTypeScope informations.
+    Plugins that wish to override this scope manager will also need to
+    override this view appropriately with the use of layers.
+    """
 
     template = ViewPageTemplateFile(path('user_token_scope_view.pt'))
 
@@ -133,7 +138,7 @@ class UserTokenDetailsView(page.TraversePage, TokenCTScopeView):
             return None
         return self.traverse_subpath[0]
 
-    def getMappingIds(self, token_key):
+    def getScope(self, token_key):
         site = getSite()
         sm = zope.component.getMultiAdapter(
             (site, self.request), IContentTypeScopeManager)
@@ -159,4 +164,4 @@ class UserTokenDetailsView(page.TraversePage, TokenCTScopeView):
 
         # Set the scope attributes only after this token is found for
         # this user.
-        super(UserTokenDetailsView, self).update()
+        super(UserTokenCTScopeDetailsView, self).update()

@@ -38,8 +38,17 @@
   <browser:page
       for=".user.UserTokenListView"
       name="view"
-      class=".user.UserTokenDetailsView"
+      class=".user.UserTokenCTScopeDetailsView"
       permission="cmf.SetOwnProperties"
+      />
+
+  <!-- generic token scope view -->
+
+  <browser:page
+      for="..interfaces.IScopeManager"
+      name="token_scope_view"
+      class=".scope.BaseTokenScopeView"
+      permission="zope2.View"
       />
 
   <!-- content type token scope view -->
