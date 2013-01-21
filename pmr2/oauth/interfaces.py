@@ -206,7 +206,8 @@ class IScopeManager(zope.interface.Interface):
 
     def requestScope(request_key, rawscope):
         """
-        Request a scope for the request key process.
+        Request a scope for the temporary credentials identified by the
+        ``request_key``.
 
         request_key
             the generated request key.

@@ -23,7 +23,7 @@ _marker = object()
 
 
 class BaseScopeManager(object):
-    """\
+    """
     Base scope manager.
 
     The base scope manager, does nothing on its own, can be used as a
@@ -36,31 +36,37 @@ class BaseScopeManager(object):
         pass
 
     def setScope(self, key, scope):
-        """
-        See IScopeManager
-        """
-
         raise NotImplementedError()
 
     def getScope(self, key, default=_marker):
-        """
-        See IScopeManager
-        """
-
         raise NotImplementedError()
 
     def popScope(self, key, default=_marker):
-        """
-        See IScopeManager
-        """
-
         raise NotImplementedError()
 
-    def validate(self, request, client_key, access_key, **kw):
-        """
-        See IScopeManager
-        """
+    def setClientScope(self, client_key, scope):
+        raise NotImplementedError()
 
+    def setAccessScope(self, access_key, scope):
+        raise NotImplementedError()
+
+    def getClientScope(self, client_key, default):
+        raise NotImplementedError()
+
+    def getAccessScope(self, access_key, default):
+        raise NotImplementedError()
+
+    def delClientScope(self, client_key):
+        raise NotImplementedError()
+
+    def delAccessScope(self, access_key):
+        raise NotImplementedError()
+
+    def validate(self, request, client_key, access_key,
+            accessed, container, name, value):
+        raise NotImplementedError()
+
+    def requestScope(self, request_key, raw_scope):
         raise NotImplementedError()
 
 
