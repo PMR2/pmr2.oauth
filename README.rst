@@ -2,17 +2,25 @@
 Introduction
 ============
 
-This module provides basic OAuth support for Zope/Plone while aiming to
-be extensible through the Zope Component Architecture such that more
-demanding features can be slotted in.  Basic features will be provided,
-such as simple management of consumers and their keys, and local users
-will be able to approve consumer requests and revoke the keys later.
+This module provides OAuth support for Zope/Plone, with the option to be
+extensible through the Zope Component Architecture to allow the addition
+of more feature-rich components.  Features core to OAuth are fully
+supported, this includes the full OAuth authentication workflow, client
+(consumer) management for site managers and access token management for
+resource owners.  Scope restriction is also supported; site managers can
+define content types and subpaths that are available for client usage
+using scope profiles, and clients can specify a list of them to better
+inform the resource owners of what will be accessed under their access
+rights.
 
 While the test coverage is fairly complete and demonstrates that access
-restriction seem to function as intented, this package is still a
-proof of concept at this point in time.  Production usage of this
-package should be avoided without a full understanding of how this
-package is constructed.
+permissions and scope restriction function as intended, the author does
+not currently endorse the usage of this package in a mission critical
+environment as there may be issues that can compromise the security of
+such sites, as no audits have been done on this package by security
+experts.  For providing third-party access to casually private data that
+is not highly sensitive in nature, this package should be sufficiently
+adequate in addressing that need.
 
 
 ------------
@@ -47,11 +55,3 @@ Example::
     zcml =
         ...
         pmr2.oauth
-
-
------
-Usage
------
-
-For further usage information, please refer to the tests and the 
-associated README files (i.e. pmr2/oauth/README.rst)

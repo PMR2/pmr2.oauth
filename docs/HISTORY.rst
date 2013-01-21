@@ -11,10 +11,10 @@ Major architectural changes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * Removal of python-oauth2 and use oauthlib.  Significant changes to the
-  PAS OAuthPlugin, including the removal of all private methods, removal
-  of the OAuthUtility, with nearly all authentication and verification
-  functions moved into the adapter that was developed as an extension to
-  the new library.
+  PAS OAuthPlugin, including the removal of all private methods,
+  replacement of the OAuthUtility with an adapter, with nearly all
+  authentication and verification functions moved into this adapter,
+  which extends the oauthlib server class.
 * Scope manager completely redefined to accept any identifiers, which
   can be client (consumer), temporary or access keys.  Specific
   implementations can then make use of this change.
@@ -22,7 +22,8 @@ Major architectural changes
   on regex, but views and subpaths within specific content types.
 * Consumer keys now randomly generated.  For identification purposes the
   title and domain fields are introduced.  Domain field serves an
-  additional purpose.
+  additional purpose for verification of callbacks by the default
+  callback manager.
 
 ~~~~~~~~~~~~
 New features
@@ -34,6 +35,7 @@ New features
 * Default scope manager provides the concept of scope profiles, which
   are concise representations of access that will be granted by the
   resource owner to clients.
+* Base classes for extending/replacing provided functionalities.
 
 -----------------
 0.3a - 2012-11-23
@@ -55,7 +57,7 @@ release is made regardless as it is needed for demonstration purposes.
 ----------------
 
 * Completing i18n coverage and added Italian support.  [giacomos]
-* Added intermediate form class to eliminate the neeed to define wrapper
+* Added intermediate form class to eliminate the need to define wrapper
   classes for compatibility between Plone and z3c.form.
 
 ----------------

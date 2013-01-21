@@ -218,11 +218,10 @@ name of the consumer, along with its identity::
     >>> '<strong>consumer1.example.com</strong>' in u_browser.contents
     True
 
-We can approve this token by selecting the 'Grant access' button.  Since
-no `xoauth_displayname` was specified, the browser should have been
-redirected to the callback URL with the token and verifier specified by
-the consumer, such that the consumer can request the access token with 
-it::
+We can approve this token by selecting the 'Grant access' button.  The
+browser should have been redirected to the callback URL with the token
+and verifier specified by the consumer, such that the consumer can
+request the access token with it::
 
     >>> u_browser.getControl(name='form.buttons.approve').click()
     >>> callback_baseurl = baseurl + '/test_oauth_callback?'
@@ -487,12 +486,12 @@ client key and associated secret extracted from a client application.
 For this reason, such client keys for oob usage MUST NOT provide a
 domain name.  Alternatively, they could be unintentionally leaked, and
 if the key does not have any restrictions on where the callback can lead
-to, it then can also be used in the same manner.
+to, it can also be misused in the same manner.
 
 Previously we had use a callback URL that is will redirect to the same
 Plone instance.  By default this will not pose any security issues as no
 information leakage is possible under normal circumstances.  In practice
-this will not happen, because a rediction to an external site must be
+this will not happen, because a redirection to an external site must be
 done in order to propagate the value of the token verifier, and by
 default the response redirector will check whether this redirect is
 trusted, and it is not unless otherwise stated.
