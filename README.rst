@@ -55,3 +55,19 @@ Example::
     zcml =
         ...
         pmr2.oauth
+
+Run buildout, then restart the Zope/Plone instance.  This package must
+also be activated using the Add-ons panel under Site Setup within the
+Plone instance where OAuth based authorization is to be used.
+
+
+------------------------------------------
+Further information and usage instructions
+------------------------------------------
+
+After rerunning buildout and activation of the Add-on, an index of
+views made available as part of this plugin can be found at
+``${portal_url}/@@pmr2-oauth``.
+
+For more detailed information, please refer to the doctest file at
+``pmr2/oauth/README.rst``.

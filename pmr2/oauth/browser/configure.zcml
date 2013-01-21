@@ -120,4 +120,13 @@
       permission="cmf.ManagePortal"
       />
 
+  <!-- index -->
+
+  <browser:page
+      for="Products.CMFPlone.interfaces.siteroot.IPloneSiteRoot"
+      name="pmr2-oauth"
+      class=".page.PMR2OAuthPage"
+      permission="zope2.View"
+      />
+
 </configure>

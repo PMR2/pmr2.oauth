@@ -1,0 +1,54 @@
+<tal:tal xmlns:tal="http://xml.zope.org/namespaces/tal"
+      i18n:domain="pmr2.oauth">
+
+<h3 i18n:translate="">User/resource owner views</h3>
+<dl>
+  <dt><a tal:attributes="href string:${view/portal_url}/issued_oauth_tokens"
+      i18n:translate=""
+    >Tokens you have approved</a></dt>
+  <dd i18n:translate="">
+    This lets you manage third-party access you have granted before.
+  </dd>
+</dl>
+
+<tal:if condition="view/isManager">
+<h3 i18n:translate="">Management views</h3>
+<dl>
+  <dt><a tal:attributes="href string:${view/portal_url}/manage-oauth-consumers"
+      i18n:translate=""
+    >Client management</a></dt>
+  <dd i18n:translate="">
+    For listing, creating and removing clients.
+  </dd>
+  <dt><a tal:attributes="href string:${view/portal_url}/manage-ctsp"
+      i18n:translate=""
+    >Content type scope manager</a></dt>
+  <dd i18n:translate="">
+    For listing, creating, committing content-type based scope profiles.
+  </dd>
+</dl>
+</tal:if>
+
+<h3 i18n:translate="">Endpoints for clients (consumers)</h3>
+<dl>
+  <dt><a tal:attributes="href string:${view/portal_url}/OAuthRequestToken"
+      i18n:translate=""
+    >Temporary Credential Request</a></dt>
+  <dd i18n:translate="">
+    To request temporary credentials.
+  </dd>
+  <dt><a tal:attributes="href string:${view/portal_url}/OAuthAuthorizeToken"
+      i18n:translate=""
+    >Resource Owner Authorization</a></dt>
+  <dd i18n:translate="">
+    Target to direct resource owner's agent to.
+  </dd>
+  <dt><a tal:attributes="href string:${view/portal_url}/OAuthGetAccessToken"
+      i18n:translate=""
+    >Token Request</a></dt>
+  <dd i18n:translate="">
+    To exchange temporary credentials for access credentials.
+  </dd>
+</dl>
+
+</tal:tal>
