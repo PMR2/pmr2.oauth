@@ -1,4 +1,5 @@
 from logging import getLogger
+from zope.app.component.hooks import getSite
 
 from Products.CMFCore.utils import getToolByName
 
@@ -42,3 +43,28 @@ def importVarious(context):
     if id_ not in installed:
         createPlugin(site, id_)
         activatePlugin(site, id_)
+
+
+def migrate_v0_2_to_v_0_4(context):
+    logger = getLogger('pmr2.oauth')
+    logger.info('Migrating pmr2.oauth to v0.4.')
+    site = getSite()
+    scope_upgrade_v0_4(site)
+
+def scope_upgrade_v0_4(site):
+    import zope.component
+    from zope.annotation import IAnnotations
+    from pmr2.oauth.interfaces import ITokenManager, IConsumerManager
+
+    logger = getLogger('pmr2.oauth')
+    ants = IAnnotations(site)
+    if 'pmr2.oauth.scope.DefaultScopeManager' in ants:
+        logger.info('Purging the removed DefaultScopeManager.')
+        del ants['pmr2.oauth.scope.DefaultScopeManager']
+
+    # The following needs to be done because of the uselessness of a
+    # token without a scope, not to mention the impossibility of
+    # migrating the scope definitions from previous scope manager.
+    logger.info('Purging and reinitializing the built-in token manager.')
+    tm = zope.component.getMultiAdapter((site, None), ITokenManager)
+    tm.__init__()

@@ -11,4 +11,12 @@
       provides="Products.GenericSetup.interfaces.EXTENSION"
       />
 
+  <genericsetup:upgradeStep
+      title="pmr2.oauth upgrade to v0.4"
+      description="Upgrades pmr2.oauth to v0.4 profile by purging data stored in old format."
+      destination="0.4"
+      handler="pmr2.oauth.setuphandlers.migrate_v0_2_to_v_0_4"
+      profile="pmr2.oauth:default"
+      />
+
 </configure>
