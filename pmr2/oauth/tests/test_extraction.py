@@ -262,6 +262,21 @@ class TestExtraction(unittest.TestCase):
         request = SignedTestRequest(consumer=consumer, token=token,)
         self.assertRaises(Forbidden, plugin.extractCredentials, request)
 
+    def test_2000_base_oauth_adapter(self):
+        oauth1 = zope.component.getMultiAdapter(
+            (object, TestRequest()), IOAuthAdapter)
+        self.assertEqual(oauth1.dummy_request_token,
+            self.tokenManager.DUMMY_KEY)
+        self.assertEqual(oauth1.dummy_access_token,
+            self.tokenManager.DUMMY_KEY)
+
+        # should still work if purged.
+        self.tokenManager.remove(self.tokenManager.DUMMY_KEY)
+        self.assertEqual(oauth1.dummy_request_token,
+            self.tokenManager.DUMMY_KEY)
+        self.assertEqual(oauth1.dummy_access_token,
+            self.tokenManager.DUMMY_KEY)
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite

@@ -340,6 +340,19 @@ class TestToken(unittest.TestCase):
         self.assertRaises(TokenInvalidError, m.generateAccessToken, 
             consumer.key, None)
 
+    def test_500_token_manager_get_dummy(self):
+        m = TokenManager()
+        token = m.get(m.DUMMY_KEY)
+        self.assertEqual(token.secret, m.DUMMY_SECRET)
+        # Now this is where it might get a bit interesting.  For dealing
+        # with dummy tokens, is it better to generate a new one, or just
+        # store it and provide one to ensure constant time?  Either way,
+        # if somehow the dummy is removed, the utility shouldn't have to
+        # die in a fire.
+        m.remove(token)
+        token = m.get(m.DUMMY_KEY)
+        self.assertEqual(token, None)
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite

@@ -253,14 +253,14 @@ class SiteRequestOAuth1ServerAdapter(oauthlib.oauth1.Server):
     @property
     def dummy_request_token(self):
         token = self.tokenManager.get(self.tokenManager.DUMMY_KEY)
-        result = token.key
+        result = token and token.key or self.tokenManager.DUMMY_KEY
 
         return unicode(result)
 
     @property
     def dummy_access_token(self):
         token = self.tokenManager.get(self.tokenManager.DUMMY_KEY)
-        result = token.key
+        result = token and token.key or self.tokenManager.DUMMY_KEY
 
         return unicode(result)
 
