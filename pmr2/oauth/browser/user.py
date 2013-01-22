@@ -131,7 +131,7 @@ class UserTokenCTScopeDetailsView(page.TraversePage, TokenCTScopeView):
     override this view appropriately with the use of layers.
     """
 
-    template = ViewPageTemplateFile(path('user_token_scope_view.pt'))
+    template = ViewPageTemplateFile(path('token_scope_view.pt'))
 
     def getTokenKey(self):
         if not self.traverse_subpath or len(self.traverse_subpath) > 1:
@@ -152,7 +152,7 @@ class UserTokenCTScopeDetailsView(page.TraversePage, TokenCTScopeView):
         cm = zope.component.getMultiAdapter(
             (site, self.request), IConsumerManager)
         token_key = self.getTokenKey()
-        token = tm.getAccessToken(token_key)
+        token = tm.getAccessToken(token_key, None)
 
         mt = getToolByName(self.context, 'portal_membership')
         current_user = mt.getAuthenticatedMember().id

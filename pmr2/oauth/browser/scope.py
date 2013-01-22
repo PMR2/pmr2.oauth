@@ -289,7 +289,7 @@ class BaseTokenScopeView(page.SimplePage):
 
 class TokenCTScopeView(BaseTokenScopeView):
 
-    template = ViewPageTemplateFile(path('ctsm_token_scope_view.pt'))
+    template = ViewPageTemplateFile(path('token_scope_view.pt'))
     missing_metadata = {
         'title': _(u'<Undefined Mapping Type>'),
         'description': u'',

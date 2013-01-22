@@ -1,6 +1,6 @@
 <tal:tal xmlns:tal="http://xml.zope.org/namespaces/tal"
       i18n:domain="pmr2.oauth">
-  <p i18n:translate="">
+  <p tal:condition="exists:view/consumer_title" i18n:translate="">
     The token was granted to <strong tal:content="view/consumer_title"
     >example.com</strong> with the following rights:
   </p>
