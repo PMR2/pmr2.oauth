@@ -26,29 +26,35 @@ class CallbackManagerTestCase(unittest.TestCase):
     def setUp(self):
         self.cbm = CallbackManager()
 
-    def test_0000_no_domain_oob(self):
+    def test_0000_faildata(self):
+        consumer = DummyConsumer(None)
+        callback = 'oob'
+        self.assertFalse(self.cbm.validate(None, callback))
+        self.assertFalse(self.cbm.validate(consumer, None))
+
+    def test_0010_no_domain_oob(self):
         consumer = DummyConsumer(None)
         callback = 'oob'
         self.assertTrue(self.cbm.validate(consumer, callback))
 
-    def test_0001_unequal(self):
+    def test_0011_unequal(self):
         consumer = DummyConsumer('example.com')
         callback = 'http://test.example.com/oauth_callback'
         self.assertFalse(self.cbm.validate(consumer, callback))
         # Naturally an undefined callback cannot be equal to this.
         self.assertFalse(self.cbm.validate(consumer, None))
 
-    def test_0002_equal(self):
+    def test_0012_equal(self):
         consumer = DummyConsumer('example.com')
         callback = 'http://example.com/oauth_callback'
         self.assertTrue(self.cbm.validate(consumer, callback))
 
-    def test_0003_valid_subdomain(self):
+    def test_0100_valid_subdomain(self):
         consumer = DummyConsumer('*.example.com')
         callback = 'http://test.example.com/oauth_callback'
         self.assertTrue(self.cbm.validate(consumer, callback))
 
-    def test_0003_invalid_subdomain(self):
+    def test_0110_invalid_subdomain(self):
         consumer = DummyConsumer('*.example.com')
         callback = 'http://testexample.com/oauth_callback'
         self.assertFalse(self.cbm.validate(consumer, callback))

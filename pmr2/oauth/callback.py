@@ -21,6 +21,9 @@ class CallbackManager(object):
         Check whether callback is valid for this consumer.
         """
 
+        if not consumer:
+            return False
+
         domain = consumer.domain
 
         if callback == 'oob':
