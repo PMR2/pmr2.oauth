@@ -36,6 +36,15 @@ New features
   are concise representations of access that will be granted by the
   resource owner to clients.
 * Base classes for extending/replacing provided functionalities.
+* An index of all valid endpoints (views) made available by this add-on.
+
+~~~~~~~~~~~~~~~~~~~~~~
+Bugs (and maybe fixes)
+~~~~~~~~~~~~~~~~~~~~~~
+
+* The missing permissions.zcml is now included.  (noted by ngi644)
+* Translations are not included with this release as there were too many
+  new and modified text.
 
 -----------------
 0.3a - 2012-11-23

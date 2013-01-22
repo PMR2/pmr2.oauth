@@ -65,9 +65,12 @@ Plone instance where OAuth based authorization is to be used.
 Further information and usage instructions
 ------------------------------------------
 
-After rerunning buildout and activation of the Add-on, an index of
-views made available as part of this plugin can be found at
+If the add-on is correctly installed and activated, an index of views
+made available as part of this add-on can be found at
 ``${portal_url}/@@pmr2-oauth``.
+
+If you are upgrading from a previously installed version of this add-on,
+please refer to ``docs/UPGRADE.rst`` for some important information.
 
 For more detailed information, please refer to the doctest file at
 ``pmr2/oauth/README.rst``.

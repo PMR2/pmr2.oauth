@@ -8,6 +8,7 @@ setup(name='pmr2.oauth',
       description="OAuth PAS Plugin",
       long_description=open("README.rst").read() + "\n" +
            open(os.path.join("pmr2", "oauth", "README.rst")).read() + '\n' +
+           open(os.path.join("docs", "UPGRADE.rst")).read() + '\n' +
            open(os.path.join("docs", "HISTORY.rst")).read(), 
       # Get more strings from http://www.python.org/pypi?%3Aaction=list_classifiers
       classifiers=[

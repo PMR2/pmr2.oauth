@@ -50,6 +50,7 @@ def migrate_v0_2_to_v_0_4(context):
     logger.info('Migrating pmr2.oauth to v0.4.')
     site = getSite()
     scope_upgrade_v0_4(site)
+    context.runAllImportStepsFromProfile('profile-pmr2.oauth:default')
 
 def scope_upgrade_v0_4(site):
     import zope.component
