@@ -12,7 +12,15 @@ setup(name='pmr2.oauth',
            open(os.path.join("docs", "HISTORY.rst")).read(), 
       # Get more strings from http://www.python.org/pypi?%3Aaction=list_classifiers
       classifiers=[
+        "Development Status :: 4 - Beta",
         "Programming Language :: Python",
+        "Framework :: Plone :: 4.0",
+        "Framework :: Plone :: 4.1",
+        "Framework :: Plone :: 4.2",
+        "License :: OSI Approved :: GNU General Public License v2 (GPLv2)"
+        "Programming Language :: Python :: 2.5",
+        "Programming Language :: Python :: 2.6",
+        "Programming Language :: Python :: 2.7",
         "Topic :: Software Development :: Libraries :: Python Modules",
         ],
       keywords='',
