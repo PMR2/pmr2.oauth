@@ -279,6 +279,9 @@ class AuthorizeTokenForm(form.PostForm, BaseTokenPage):
         User denies this token
         """
 
+        if self._errors or not self.token:
+            return
+
         token_key = self.request.form.get('oauth_token', None)
         tm = zope.component.getMultiAdapter((self.context, self.request),
             ITokenManager)

@@ -295,6 +295,25 @@ In the case of a rejected oob token, a message will be displayed::
     >>> scopeManager.getScope(testtok.key, None) is None
     True
 
+After denial (or after completion of the exchange for an access token)
+the page should not fail when rejection is done again::
+
+    >>> request = TestRequest(form={
+    ...     'oauth_token': testtok.key,
+    ...     'form.buttons.deny': 1,
+    ... })
+    >>> rt = token.AuthorizeTokenForm(self.portal, request)
+    >>> result = rt()
+
+Or approved::
+
+    >>> request = TestRequest(form={
+    ...     'oauth_token': testtok.key,
+    ...     'form.buttons.approve': 1,
+    ... })
+    >>> rt = token.AuthorizeTokenForm(self.portal, request)
+    >>> result = rt()
+
 
 ----------------------------
 Request the Authorized Token
