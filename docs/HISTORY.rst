@@ -3,6 +3,12 @@ Changelog
 =========
 
 ----------------
+??? - Unreleased
+----------------
+
+* Denying a non-existent token will no longer show a stack trace.
+
+----------------
 0.4 - 2013-01-22
 ----------------
 
