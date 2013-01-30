@@ -10,7 +10,7 @@ rather unstable.
 From 0.2 to 0.4
 ---------------
 
-A word of caution before replacing 0.4 with 0.2: the changes made to the
+A word of caution before replacing 0.2 with 0.4: the changes made to the
 default scope manager is a complete rewrite, as the security it offered
 was merely a quick and dirty demonstration.  Due to this change, all
 existing tokens and scopes will need to be purged, and clients
