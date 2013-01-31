@@ -265,6 +265,8 @@ class AuthorizeTokenForm(form.PostForm, BaseTokenPage):
         if self._errors or not self.token:
             return
 
+        data, errors = self.extractData()
+
         mt = getToolByName(self.context, 'portal_membership')
         user = mt.getAuthenticatedMember().id
 
@@ -281,6 +283,8 @@ class AuthorizeTokenForm(form.PostForm, BaseTokenPage):
 
         if self._errors or not self.token:
             return
+
+        data, errors = self.extractData()
 
         token_key = self.request.form.get('oauth_token', None)
         tm = zope.component.getMultiAdapter((self.context, self.request),

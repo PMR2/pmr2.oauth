@@ -38,6 +38,11 @@
             tal:attributes="value request/oauth_token" />
       </metal:fill>
 
+      <metal:main fill-slot="formbottom">
+          <span tal:replace="
+              structure context/@@authenticator/authenticator" />
+      </metal:main>
+
     </metal:use>
     </metal:fill>
 
