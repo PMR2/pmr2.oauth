@@ -9,7 +9,9 @@ from pmr2.oauth.interfaces import ITokenManager, IConsumerManager
 from pmr2.oauth.interfaces import IScopeManager
 from pmr2.oauth.token import Token
 from pmr2.oauth.consumer import Consumer
+from pmr2.oauth.browser import consumer
 from pmr2.oauth.browser import token
+from pmr2.oauth.browser import user
 
 from pmr2.oauth.tests.base import TestRequest
 
@@ -64,6 +66,22 @@ class FormTestCase(ptc.PloneTestCase):
         form.update()
         result = form.render()
         self.assertTrue(self.reqtoken.verifier in result)
+
+    def test_1000_consumermanageform_fail(self):
+        request = TestRequest(form={
+            'form.buttons.remove': 1,
+        })
+        request.form['_authenticator'] = None
+        form = consumer.ConsumerManageForm(self.portal, request)
+        self.assertRaises(Unauthorized, form.update)
+
+    def test_2000_usertokenform_fail(self):
+        request = TestRequest(form={
+            'form.buttons.revoke': 1,
+        })
+        request.form['_authenticator'] = None
+        form = user.UserTokenForm(self.portal, request)
+        self.assertRaises(Unauthorized, form.update)
 
 
 def test_suite():
