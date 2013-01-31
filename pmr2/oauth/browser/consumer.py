@@ -89,6 +89,7 @@ class ConsumerManageForm(form.PostForm):
         # removing consumers does not remove corresponding tokens that 
         # were issued previous to this, although the tokens will cease
         # to work without the corresponding secret.
+        data, errors = self.extractData()
 
         removed = error = 0
         keys = self.request.form.get('form.widgets.key', [])
