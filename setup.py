@@ -17,7 +17,7 @@ setup(name='pmr2.oauth',
         "Framework :: Plone :: 4.0",
         "Framework :: Plone :: 4.1",
         "Framework :: Plone :: 4.2",
-        "License :: OSI Approved :: GNU General Public License v2 (GPLv2)"
+        "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
         "Programming Language :: Python :: 2.5",
         "Programming Language :: Python :: 2.6",
         "Programming Language :: Python :: 2.7",
