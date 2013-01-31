@@ -2,10 +2,11 @@
 Changelog
 =========
 
-----------------
-??? - Unreleased
-----------------
+------------------
+0.4.1 - 2013-01-31
+------------------
 
+* Security Fix: Correctly apply CSRF protection to all forms.
 * Denying a non-existent token will no longer show a stack trace.
 
 ----------------
