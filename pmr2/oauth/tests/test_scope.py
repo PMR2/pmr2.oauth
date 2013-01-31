@@ -12,9 +12,6 @@ from Products.PloneTestCase import ptc
 
 from pmr2.oauth.interfaces import KeyExistsError
 from pmr2.oauth.interfaces import IDefaultScopeManager
-from pmr2.oauth.interfaces import ITokenManager, IConsumerManager
-from pmr2.oauth.token import Token
-from pmr2.oauth.consumer import Consumer
 from pmr2.oauth.scope import BTreeScopeManager, ContentTypeScopeManager
 from pmr2.oauth.scope import ContentTypeScopeProfile
 
@@ -201,6 +198,7 @@ class CTSMEditingTestCase(unittest.TestCase):
         self.sm.delMappingName('file')
         self.assertEqual(self.sm.getEditProfile('file'), None)
         self.assertEqual(self.sm.getMappingByName('file', default=None), None)
+
 
 class CTSMPloneIntegrationTestCase(ptc.PloneTestCase):
     """

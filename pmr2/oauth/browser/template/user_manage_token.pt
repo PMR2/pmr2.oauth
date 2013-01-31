@@ -35,6 +35,11 @@
         </ul>
       </metal:fill>
 
+      <metal:fill fill-slot="formbottom">
+          <span tal:replace="
+              structure context/@@authenticator/authenticator" />
+      </metal:fill>
+
     </metal:use>
     </metal:fill>
 

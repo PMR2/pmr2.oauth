@@ -90,7 +90,8 @@ class ContentTypeScopeManagerView(Implicit, page.SimplePage):
         return self
 
 
-class ContentTypeScopeProfileTraverseForm(form.Form, page.TraversePage):
+class ContentTypeScopeProfileTraverseForm(form.AuthenticatedForm,
+        page.TraversePage):
     # TODO split the form specific part up.
 
     def _getProfileAndMapping(self):
@@ -143,6 +144,7 @@ class ContentTypeScopeProfileDisplayForm(ContentTypeScopeProfileTraverseForm):
 
     @button.buttonAndHandler(_('Edit'), name='edit')
     def handleEdit(self, action):
+        self.authenticate()
         if self.profile_name:
             # absolute_url is implicitly acquired by the parent view.
             self.next_target = '/'.join([self.context.absolute_url(), 
@@ -150,6 +152,7 @@ class ContentTypeScopeProfileDisplayForm(ContentTypeScopeProfileTraverseForm):
 
     @button.buttonAndHandler(_('Commit Update'), name='commit')
     def handleCommit(self, action):
+        self.authenticate()
         site = getSite()
         sm = zope.component.getMultiAdapter(
             (site, self.request), IContentTypeScopeManager)
@@ -160,6 +163,7 @@ class ContentTypeScopeProfileDisplayForm(ContentTypeScopeProfileTraverseForm):
 
     @button.buttonAndHandler(_('Revert'), name='revert')
     def handleRevert(self, action):
+        self.authenticate()
         profile, original = self._getProfileAndMapping()
         profile.mapping = original
 
@@ -168,6 +172,7 @@ class ContentTypeScopeProfileDisplayForm(ContentTypeScopeProfileTraverseForm):
 
     @button.buttonAndHandler(_('Set as Default'), name='setdefault')
     def handleSetDefault(self, action):
+        self.authenticate()
         site = getSite()
         sm = zope.component.getMultiAdapter(
             (site, self.request), IContentTypeScopeManager)
@@ -223,6 +228,7 @@ class ContentTypeScopeProfileEditForm(form.EditForm,
 
     @button.buttonAndHandler(_('Cancel and Return'), name='cancel')
     def handleCancel(self, action):
+        data, errors = self.extractData()
         next_target = '/'.join([self.context.absolute_url(), 
             self.context.__name__, 'view', self.profile_name,])
         self.request.response.redirect(next_target)

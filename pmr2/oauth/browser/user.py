@@ -111,6 +111,7 @@ class UserTokenForm(BaseUserTokenForm):
 
     @button.buttonAndHandler(_('Revoke'), name='revoke')
     def handleRevoke(self, action):
+        data, errors = self.extractData()
         return self.revokeTokens()
 
 
