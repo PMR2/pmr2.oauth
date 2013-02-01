@@ -3,6 +3,13 @@ Changelog
 =========
 
 ------------------
+0.4.3 - 2013-02-01
+------------------
+
+* Pin the minimum supported oauthlib version to 0.3.5 to maintain
+  consistency of the require_callback parameter.
+
+------------------
 0.4.2 - 2013-01-31
 ------------------
 
