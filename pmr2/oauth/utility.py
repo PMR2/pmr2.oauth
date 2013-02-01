@@ -131,23 +131,33 @@ class SiteRequestOAuth1ServerAdapter(oauthlib.oauth1.Server):
             require_callback=False,
         )
 
-    def verify_request_token_request(self):
+    def verify_request_token_request(self, uri=None, http_method=None,
+            body=None, headers=None):
         """
         For verification of requests for getting RequestTokens.
         """
 
         return self.verify_request(
+            uri=uri,
+            http_method=http_method,
+            body=body,
+            headers=headers,
             require_resource_owner=False, 
             require_verifier=False,
             require_callback=True,
         )
 
-    def verify_access_token_request(self):
+    def verify_access_token_request(self, uri=None, http_method=None,
+            body=None, headers=None):
         """
         For verification of requests for getting AccessTokens.
         """
 
         return self.verify_request(
+            uri=uri,
+            http_method=http_method,
+            body=body,
+            headers=headers,
             require_resource_owner=True, 
             require_verifier=True,
             require_callback=False,
@@ -176,7 +186,7 @@ class SiteRequestOAuth1ServerAdapter(oauthlib.oauth1.Server):
         return super(SiteRequestOAuth1ServerAdapter, self).verify_request(
             uri, http_method, body, headers, 
             require_resource_owner, require_verifier, require_realm,
-            required_realm)
+            required_realm, require_callback)
 
     # Property overrides
 
