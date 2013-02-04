@@ -214,17 +214,8 @@ class ContentTypeScopeProfileEditForm(form.EditForm,
 
     fields = field.Fields(IContentTypeScopeProfileEdit)
 
-    @button.buttonAndHandler(_('Apply'), name='apply')
-    def handleApply(self, action):
-        data, errors = self.extractData()
-        if errors:
-            self.status = self.formErrorsMessage
-            return
-        changes = self.applyChanges(data)
-        if changes:
-            self.status = self.successMessage
-        else:
-            self.status = self.noChangesMessage
+    buttons = form.EditForm.buttons.copy()
+    handlers = form.EditForm.handlers.copy()
 
     @button.buttonAndHandler(_('Cancel and Return'), name='cancel')
     def handleCancel(self, action):
