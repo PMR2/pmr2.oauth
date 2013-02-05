@@ -50,4 +50,24 @@
 
   <adapter factory=".converter.SchemaMethodObjectConverter" />
 
+  <!--
+    explicit definitions to ensure no accidental override by other
+    packages
+  -->
+
+  <adapter
+      factory="z3c.form.browser.textlines.TextLinesFieldWidgetFactory"
+      for=".schema.ICTSMMappingList
+           zope.schema.interfaces.IASCIILine
+           z3c.form.interfaces.IFormLayer"
+      provides="z3c.form.interfaces.IFieldWidget"
+      />
+
+  <adapter
+      factory="z3c.form.browser.orderedselect.SequenceSelectFieldWidget"
+      for=".schema.ICTSMMappingList
+           z3c.form.interfaces.IFormLayer"
+      provides="z3c.form.interfaces.IFieldWidget"
+      />
+
 </configure>

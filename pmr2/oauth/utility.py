@@ -13,7 +13,7 @@ from pmr2.oauth.interfaces import TokenInvalidError, ICallbackManager
 from pmr2.oauth.interfaces import IOAuthAdapter, INonceManager
 from pmr2.oauth.interfaces import IConsumerManager, ITokenManager
 
-from pmr2.oauth.schema import buildSchemaInterface
+from pmr2.oauth.schema import buildSchemaInterface, CTSMMappingList
 
 SAFE_ASCII_CHARS = set([chr(i) for i in xrange(32, 127)])
 
@@ -384,7 +384,7 @@ def getUserPortalTypes():
 def schemaFactory(**kw):
     title = unicode(kw.pop('title'))
     required = kw.pop('required')
-    return zope.schema.List(title=title, required=required,
+    return CTSMMappingList(title=title, required=required,
         value_type=zope.schema.ASCIILine())
 
 def buildContentTypeScopeProfileInterface():
