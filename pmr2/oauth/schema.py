@@ -1,9 +1,14 @@
 import new
 
 import zope.interface
-from zope.schema import Object
+from zope.schema import Object, List
+from zope.schema.interfaces import IList, ISequence
 
 from pmr2.oauth.interfaces import _IDynamicSchemaInterface
+
+
+class ICTSMMappingList(IList):
+    pass
 
 
 class ISchemaMethodObject(zope.interface.Interface):
@@ -33,6 +38,14 @@ class SchemaMethodObject(Object):
     def _validate(self, value):
         super(Object, self)._validate(value)
         # skip the schema validation as value is a dict.
+
+
+class CTSMMappingList(List):
+    """
+    Customized List schema to prevent accidental overriding.
+    """
+
+    zope.interface.implements(ICTSMMappingList)
 
 
 def buildSchemaInterface(fields, schema_factory, schema_keywords=None,
