@@ -139,22 +139,10 @@ def SignedTestRequest(form=None, consumer=None, token=None, method=None,
         safe_unicode(token_secret),
         safe_unicode(callback),
         verifier=safe_unicode(verifier),
+        timestamp=timestamp,
     )
 
-    # Manually sign this thing since we can't override timestamp
-    # for our tests.
-    request = Request(url, method)
-    content_type = request.headers.get('Content-Type', None)
-    request.oauth_params = client.get_oauth_params()
-
-    # assumptions made to the output here to force a timestamp.
-    if timestamp:
-        request.oauth_params[1] = (u'oauth_timestamp', safe_unicode(timestamp))
-
-    request.oauth_params.append((u'oauth_signature', 
-        client.get_oauth_signature(request)))
-
-    url, headers, body = client._render(request, formencode=True, realm=None)
+    url, headers, body = client.sign(url, method)
 
     result._auth = headers['Authorization']
 
