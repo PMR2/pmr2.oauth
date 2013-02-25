@@ -1,7 +1,9 @@
 import os
 import base64
+from urllib import quote_plus
 
 import oauthlib.oauth1
+from oauthlib.common import urldecode
 
 import zope.interface
 import zope.schema
@@ -357,6 +359,14 @@ def extractRequestURL(request):
     if actual_url:
         result = actual_url
         if query_string:
+            # XXX this is _seriously_ a pita.  For some reason in some
+            # circumstances we are not getting back the original encoded
+            # values that we used to sign the request.  This rectifies
+            # that.
+            try:
+                urldecode(query_string)
+            except ValueError:
+                query_string = quote_plus(query_string, safe='=&;%+~')
             result += '?' + query_string
     else:
         # fallback.
