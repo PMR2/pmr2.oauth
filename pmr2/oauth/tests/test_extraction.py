@@ -245,7 +245,7 @@ class TestExtraction(unittest.TestCase):
         plugin = self.plugin
         consumer, token = self.save_consumer_and_token()
 
-        request = SignedTestRequest(consumer=consumer)
+        request = SignedTestRequest(consumer=consumer, callback='oob')
         credentials = plugin.extractCredentials(request)
         self.assertEqual(credentials, {})
 
