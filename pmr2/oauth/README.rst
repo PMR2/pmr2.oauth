@@ -9,6 +9,7 @@ To run this, we first import all the modules we need::
 
     >>> import time
     >>> import urlparse
+    >>> from urllib import quote_plus
     >>> import zope.component
     >>> import zope.interface
     >>> from Testing.testbrowser import Browser
@@ -1048,8 +1049,8 @@ Test out some of the views::
 The second token, however, will make use of the scope parameter to make
 use of the scope profile we have defined earlier::
 
-    >>> url = (baseurl +
-    ...     '/OAuthRequestToken?scope=http://nohost/Plone/test_profile')
+    >>> scope = quote_plus('http://nohost/Plone/test_profile')
+    >>> url = '%s/OAuthRequestToken?scope=%s' % (baseurl, scope)
     >>> request = SignedTestRequest(consumer=consumer1, url=url, 
     ...     callback='oob',
     ... )
