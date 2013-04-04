@@ -3,6 +3,16 @@ Changelog
 =========
 
 ------------------
+0.4.4 - 2013-04-04
+------------------
+
+* URL encoding/decoding workaround to ensure the query parameters are
+  being processed correctly.
+* Bug fix: Deleting a client (consumer) no longer prevents user from
+  managing their list of issued tokens.
+* Depends on oauthlib 0.4.0
+
+------------------
 0.4.3 - 2013-02-01
 ------------------
 
