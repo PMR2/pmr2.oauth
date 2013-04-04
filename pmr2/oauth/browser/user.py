@@ -20,6 +20,10 @@ from pmr2.oauth.browser.template import path
 from pmr2.oauth.browser.scope import TokenCTScopeView
 
 
+class _NotConsumer(object):
+     title = _(u'<Deleted Client>')
+
+
 class BaseUserTokenForm(form.PostForm):
     """\
     For user to manage their authorized tokens.
@@ -45,7 +49,7 @@ class BaseUserTokenForm(form.PostForm):
             ITokenManager)
         tokens = []
         for token in tm.getTokensForUser(user):
-            consumer_title = cm.get(token.consumer_key).title
+            consumer_title = cm.get(token.consumer_key, _NotConsumer).title
             tokens.append({
                 'consumer_title': consumer_title,
                 'key': token.key,
@@ -161,7 +165,7 @@ class UserTokenCTScopeDetailsView(page.TraversePage, TokenCTScopeView):
         if token is None or not token.user == current_user:
             raise NotFound(self.context, token_key)
 
-        self.consumer_title = cm.get(token.consumer_key).title
+        self.consumer_title = cm.get(token.consumer_key, _NotConsumer).title
 
         # Set the scope attributes only after this token is found for
         # this user.

@@ -1753,3 +1753,19 @@ function::
     Traceback (most recent call last):
     ...
     HTTPError: HTTP Error 403: Forbidden
+
+Render the user's token interface::
+
+    >>> u_browser.open(baseurl + '/issued_oauth_tokens')
+    >>> acctok2.key in u_browser.contents
+    True
+    >>> 'consumer2.example.com' in u_browser.contents
+    False
+    >>> 'Deleted Client' in u_browser.contents
+    True
+
+Also the details page should render::
+
+    >>> u_browser.open(baseurl + '/issued_oauth_tokens/view/' + acctok2.key)
+    >>> 'Deleted Client' in u_browser.contents
+    True
