@@ -1614,6 +1614,11 @@ accessed via `${portal_url}/manage-oauth-consumers`::
     >>> 'consumer1.example.com' in result
     True
 
+
+~~~~~~~~~~~~~~~~~~~~
+Adding new consumers
+~~~~~~~~~~~~~~~~~~~~
+
 We can try to add a few consumers using the form also.  Since the client
 in this case should be a browser, we will use the authenticated test
 request class::
@@ -1645,6 +1650,62 @@ Now the management form should show these couple new consumers::
     >>> 'consumer3.example.com' in result
     True
 
+These new consumers should be able to generate request tokens::
+
+    >>> client2 = consumerManager.get(added_consumer_keys[0])
+    >>> scope = quote_plus('http://nohost/Plone/test_profile')
+    >>> url = '%s/OAuthRequestToken?scope=%s' % (baseurl, scope)
+    >>> request = SignedTestRequest(consumer=client2, url=url, callback='oob')
+    >>> auth = request._auth
+    >>> browser = Browser()
+    >>> browser.addHeader('Authorization', auth)
+    >>> browser.open(url)
+    >>> btoken2 = makeToken(browser.contents)
+
+Authorization requests should happen without issues::
+
+    >>> u_browser.open(auth_baseurl + '?oauth_token=' + btoken2.key)
+    >>> u_browser.getControl(name='form.buttons.approve').click()
+    >>> tmpToken = tokenManager.get(btoken2.key)
+    >>> btoken2_verifier = tmpToken.verifier
+
+Get the access token::
+
+    >>> url = baseurl + '/OAuthGetAccessToken'
+    >>> request = SignedTestRequest(url=url, consumer=client2, token=btoken2,
+    ...     verifier=btoken2_verifier)
+    >>> auth = request._auth
+    >>> browser = Browser()
+    >>> browser.addHeader('Authorization', auth)
+    >>> browser.open(url)
+    >>> acctok2 = makeToken(browser.contents)
+
+Test that it also works as intended::
+
+    >>> url = baseurl + '/test_current_roles'
+    >>> request = SignedTestRequest(consumer=client2, token=acctok2, url=url)
+    >>> auth = request._auth
+    >>> browser = Browser()
+    >>> browser.addHeader('Authorization', auth)
+    >>> browser.open(url)
+    >>> print browser.contents
+    Member
+    Authenticated
+
+Users should be able to see the new access token from their list of
+issued tokens::
+
+    >>> u_browser.open(baseurl + '/issued_oauth_tokens')
+    >>> acctok2.key in u_browser.contents
+    True
+    >>> 'consumer2.example.com' in u_browser.contents
+    True
+
+
+~~~~~~~~~~~~~~~~~~
+Removing consumers
+~~~~~~~~~~~~~~~~~~
+
 Should have no problems removing them either::
 
     >>> request = TestRequest(form={
@@ -1673,3 +1734,22 @@ Owners or users with permissions can::
     False
     >>> 'consumer1.example.com' in o_browser.contents
     True
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Consequences of consumer removal
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Naturally a design of OAuth is that once a client key is removed, any
+tokens authorized to work with that particular client will cease to
+function::
+
+    >>> url = baseurl + '/test_current_roles'
+    >>> request = SignedTestRequest(consumer=client2, token=acctok2, url=url)
+    >>> auth = request._auth
+    >>> browser = Browser()
+    >>> browser.addHeader('Authorization', auth)
+    >>> browser.open(url)
+    Traceback (most recent call last):
+    ...
+    HTTPError: HTTP Error 403: Forbidden
