@@ -1,7 +1,7 @@
 import zope.component
 import zope.interface
 from zope.publisher.browser import BrowserPage
-from zope.app.component.hooks import getSite
+from zope.component.hooks import getSite
 from zope.publisher.interfaces import NotFound
 
 from z3c.form import button

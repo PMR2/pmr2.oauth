@@ -1,6 +1,6 @@
 import zope.component
 import zope.interface
-from zope.app.component.hooks import getSite
+from zope.component.hooks import getSite
 from zope.publisher.browser import BrowserView
 from zope.publisher.interfaces import NotFound
 from zope.publisher.interfaces import IPublishTraverse

@@ -7,7 +7,7 @@ from oauthlib.common import urldecode
 
 import zope.interface
 import zope.schema
-from zope.app.component.hooks import getSite
+from zope.component.hooks import getSite
 
 from Products.CMFCore.utils import getToolByName
 

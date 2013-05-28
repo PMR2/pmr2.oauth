@@ -2,7 +2,7 @@ import traceback
 import logging
 
 import zope.component
-from zope.app.component.hooks import getSite
+from zope.component.hooks import getSite
 
 from AccessControl.SecurityInfo import ClassSecurityInfo
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
