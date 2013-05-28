@@ -2,7 +2,7 @@ import urllib
 
 import zope.component
 import zope.interface
-from zope.app.component.hooks import getSite
+from zope.component.hooks import getSite
 from zope.publisher.browser import BrowserPage
 from zope.publisher.interfaces import NotFound
 

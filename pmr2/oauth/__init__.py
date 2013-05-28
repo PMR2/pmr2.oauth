@@ -5,7 +5,7 @@ from Products.PluggableAuthService.PluggableAuthService import \
 
 MessageFactory = zope.i18nmessageid.MessageFactory('pmr2.oauth')
 
-from plugins import oauth
+from pmr2.oauth.plugins import oauth
 
 
 registerMultiPlugin(oauth.OAuthPlugin.meta_type)

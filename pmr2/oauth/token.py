@@ -5,7 +5,7 @@ from persistent import Persistent
 from persistent.list import PersistentList
 from BTrees.OOBTree import OOBTree
 
-from zope.app.container.contained import Contained
+from zope.container.contained import Contained
 from zope.annotation.interfaces import IAttributeAnnotatable
 
 import zope.interface

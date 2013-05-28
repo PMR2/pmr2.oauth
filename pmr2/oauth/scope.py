@@ -5,7 +5,7 @@ from BTrees.OOBTree import OOBTree
 from BTrees.IOBTree import IOBTree
 from BTrees.OIBTree import OIBTree
 
-from zope.app.container.contained import Contained
+from zope.container.contained import Contained
 from zope.annotation.interfaces import IAttributeAnnotatable
 import zope.interface
 from zope.schema import fieldproperty
