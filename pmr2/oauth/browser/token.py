@@ -14,47 +14,35 @@ from z3c.form import button
 
 from Products.CMFCore.utils import getToolByName
 
+from oauthlib.oauth1 import RequestTokenEndpoint, AccessTokenEndpoint
+from oauthlib.oauth1 import AuthorizationEndpoint
+
 from pmr2.z3cform import form
 
 from pmr2.oauth import MessageFactory as _
 from pmr2.oauth.interfaces import *
 from pmr2.oauth.browser.template import ViewPageTemplateFile
 from pmr2.oauth.browser.template import path
+from pmr2.oauth.utility import safe_unicode
+
+from .endpoints import BaseEndpoint
 
 _marker = object()
 
+exc_code_table = {
+    400: BadRequest,
+    401: Unauthorized,
+    403: Forbidden,
+}
 
-class BaseTokenPage(BrowserPage):
+
+class BaseTokenPage(BrowserPage, BaseEndpoint):
 
     # token to return
     token = None
 
-    def _verifyToken(self, oauth):
-        # Return the correct OAuth method for the respective token 
-        # request page.
-        raise NotImplementedError()
-
-    def getOAuth1(self):
-        if not hasattr(self.request, '_pmr2_oauth1_'):
-            site = getSite()
-            oauthAdapter = zope.component.getMultiAdapter((site, self.request),
-                IOAuthRequestValidatorAdapter)
-            try:
-                result, oauth1 = self._verifyToken(oauthAdapter)
-            except OAuth1Error:
-                raise BadRequest()
-            if not result:
-                raise Forbidden()
-            #self.request._pmr2_oauth1_ = oauth1
-            return oauth1
-        else:
-            # Prepared by the run at the plugin.
-            return self.request._pmr2_oauth1_
-
-    def update(self):
-        # Considering modifying to call something like create and store
-        # token and store scope.
-        raise NotImplementedError()
+    def __init__(self, context, request):
+        BrowserPage.__init__(self, context, request)
 
     def render(self):
         token = self.token
@@ -64,6 +52,8 @@ class BaseTokenPage(BrowserPage):
         }
         if token.callback is not None:
             data['oauth_callback_confirmed'] = 'true'
+        self.request.response.setHeader(
+            'Content-type', 'application/x-www-form-urlencoded')
         return urllib.urlencode(data)
 
     def __call__(self):
@@ -71,35 +61,26 @@ class BaseTokenPage(BrowserPage):
         return self.render()
 
 
-class RequestTokenPage(BaseTokenPage):
+class RequestTokenPage(BaseTokenPage, RequestTokenEndpoint):
 
-    def _verifyToken(self, oauth):
-        # See parent class
-        return oauth.verify_request_token_request()
-
-    def update(self):
-        oauth1 = self.getOAuth1()
-
-        # NOTE Currently it is impossible to disable callback validation
-        # in oauthlib, so verify that callback is really provided.
-        if not oauth1.redirect_uri:
-            raise BadRequest()
-
-        # This is an 8-bit protocol, so we cast the oauthlib request
-        # parameters into something we would expect from the http spec.
-        # Yes, I am aware something about unicode literals in Python 3,
-        # but this transition period is just a giant pita.
-        # If these kind of casting dies in a fire I don't really care
-        # because these should all be ascii for simplicity.
-        consumer_key = str(oauth1.client_key)
-        callback = str(oauth1.redirect_uri)
+    def create_request_token(self, request, credentials):
+        consumer_key = str(request.client_key)
+        callback = str(request.redirect_uri)
 
         # create request token
         tm = zope.component.getMultiAdapter((self.context, self.request),
             ITokenManager)
         self.token = tm.generateRequestToken(consumer_key, callback)
 
+    def update(self):
+        # None for all parameters to ensure default extraction
+        uri, headers, response, code = self.create_request_token_response(
+            None, None, None, None, None)
+        if code != 200:
+            raise exc_code_table[code]
+
         # store the scope.
+        # XXX convert this into oauth realms?
         scope = self.request.get('scope', None)
         key = self.token.key
         sm = zope.component.getMultiAdapter((self.context, self.request),
@@ -108,24 +89,16 @@ class RequestTokenPage(BaseTokenPage):
             raise Forbidden()
 
 
-class GetAccessTokenPage(BaseTokenPage):
+class GetAccessTokenPage(BaseTokenPage, AccessTokenEndpoint):
 
     def _verifyToken(self, oauth):
         # See parent class
         return oauth.verify_access_token_request()
 
-    def update(self):
-        oauth1 = self.getOAuth1()
+    def create_access_token(self, request, credentials):
+        consumer_key = str(request.client_key)
+        token_key = str(request.resource_owner_key)
 
-        consumer_key = str(oauth1.client_key)
-        token_key = str(oauth1.resource_owner_key)
-        verifier = str(oauth1.verifier)
-
-        tm = zope.component.getMultiAdapter((self.context, self.request),
-            ITokenManager)
-        self.token = tm.generateAccessToken(consumer_key, token_key)
-
-        # move the scope stored into the access token.
         sm = zope.component.getMultiAdapter((self.context, self.request),
             IScopeManager)
 
@@ -134,8 +107,20 @@ class GetAccessTokenPage(BaseTokenPage):
             # could not find the scope that was stored.
             raise Forbidden()
 
+        tm = zope.component.getMultiAdapter((self.context, self.request),
+            ITokenManager)
+        self.token = tm.generateAccessToken(consumer_key, token_key)
+
         key = self.token.key
+
+        # move the scope stored into the access token.
         sm.setAccessScope(key, scope)
+
+    def update(self):
+        uri, headers, response, code = self.create_access_token_response(
+            None, None, None, None, None)
+        if code != 200:
+            raise exc_code_table[code]
 
 
 class AuthorizeTokenForm(form.PostForm, BaseTokenPage):

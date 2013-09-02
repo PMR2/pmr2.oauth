@@ -14,9 +14,10 @@ from Products.PluggableAuthService.interfaces.plugins \
 from zExceptions import Forbidden
 from zExceptions import BadRequest
 
-from pmr2.oauth.interfaces import IOAuthPlugin, IOAuthRequestValidatorAdapter, IScopeManager
-from pmr2.oauth.interfaces import OAuth1Error
-
+from pmr2.oauth.interfaces import IOAuthPlugin, IOAuthRequestValidatorAdapter
+from pmr2.oauth.interfaces import ITokenManager, IScopeManager
+from pmr2.oauth.browser.endpoints import ResourceEndpointValidator
+from pmr2.oauth.browser.endpoints import OAuth1Error
 
 manage_addOAuthPlugin = PageTemplateFile("../www/oauthAdd", globals(), 
                 __name__="manage_addOAuthPlugin")
@@ -44,6 +45,8 @@ class OAuthPlugin(BasePlugin):
     meta_type = "OAuth plugin"
     security = ClassSecurityInfo()
 
+    token_endpoints = ['OAuthGetAccessToken', 'OAuthRequestToken']
+
     def __init__(self, id, title=None):
         self._setId(id)
         self.title = title
@@ -65,13 +68,13 @@ class OAuthPlugin(BasePlugin):
 
         # XXX should just return the OAuth request string, let method
         # authenticateCredentials handle the rest.
-
         site = getSite()
-        verifier = zope.component.getMultiAdapter(
-            (site, request), IOAuthRequestValidatorAdapter)
-
         try:
-            result = verifier()
+            endpoint = ResourceEndpointValidator(site, request)
+            if not endpoint.check_request():
+                return {}
+            result, oreq = endpoint.validate_protected_resource_request(
+                None, None)
         except OAuth1Error:
             raise BadRequest('bad oauth request')
 
@@ -81,11 +84,15 @@ class OAuthPlugin(BasePlugin):
             return {}
 
         if result is False:
+            # See if the URI ends with a valid token end point.
+            if True in [oreq.uri.endswith(ep) for ep in self.token_endpoints]:
+                # this then do nothing.
+                return {}
             raise Forbidden('authorization failed')
 
         # Please see _validateScope
         scope = self._validateScope(site, request,
-            verifier.client_key, verifier.access_key)
+            oreq.client_key, oreq.resource_owner_key)
         if scope is False:
             raise Forbidden('invalid scope')
 
@@ -94,11 +101,13 @@ class OAuthPlugin(BasePlugin):
             return {}
 
         mappings = {}
-        token = verifier.tokenManager.getAccessToken(verifier.access_key)
+        tokenManager = zope.component.getMultiAdapter(
+            (site, request), ITokenManager)
+        token = tokenManager.getAccessToken(oreq.resource_owner_key)
         mappings['userid'] = token.user
         return mappings
 
-    def _validateScope(self, site, request, client_key, access_key):
+    def _validateScope(self, site, request, client_key, resource_owner_key):
         # This should really be done outside of here by a customized
         # SecurityManager/Policy, which PAS will invoke some time after
         # this plugin is called.  However I have no time to figure out 
@@ -115,7 +124,8 @@ class OAuthPlugin(BasePlugin):
             # This normally shouldn't happen...
             return
         
-        scopeValidity = scopeManager.validate(request, client_key, access_key, 
+        scopeValidity = scopeManager.validate(request, client_key,
+            resource_owner_key, 
             accessed=accessed,
             container=container,
             name=name,

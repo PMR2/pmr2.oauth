@@ -385,7 +385,7 @@ be used again to request a new token::
     >>> rt()
     Traceback (most recent call last):
     ...
-    Forbidden...
+    Unauthorized...
 
 Now try again using the browser::
 
@@ -530,9 +530,8 @@ of their domain name, the request will fail::
     >>> browser = Browser()
     >>> browser.addHeader('Authorization', auth)
     >>> browser.open(url)
-    Traceback (most recent call last):
-    ...
-    HTTPError: HTTP Error 400: Bad Request
+    >>> browser.url != url
+    True
 
 An appropriate domain name assigned to the client will then permit the
 above request::

@@ -36,6 +36,7 @@ class SiteRequestValidatorAdapter(oauthlib.oauth1.RequestValidator):
             (site, request), ITokenManager)
         self.callbackManager = zope.component.getMultiAdapter(
             (site, request), ICallbackManager)
+
         # Optional at this point.
         self.nonceManager = zope.component.queryMultiAdapter(
             (site, request), INonceManager)
@@ -44,11 +45,6 @@ class SiteRequestValidatorAdapter(oauthlib.oauth1.RequestValidator):
 
         self.site = site
         self.request = request
-
-        # All OAuth related terms are placed in the Authorization.
-        # Using unicode because lol oauthlib's obsession with 
-        # unicode_literals, which adds nothing but annoyance when the
-        # protocol is fundamentally in bytes.
 
         self.uri = safe_unicode(extractRequestURL(request))
         self.http_method = safe_unicode(request.method)
@@ -64,17 +60,6 @@ class SiteRequestValidatorAdapter(oauthlib.oauth1.RequestValidator):
         request.stdin.seek(0)
         self.body = safe_unicode(request.stdin.read())
 
-    # Local helpers.
-
-    def __call__(self):
-        result, request = self.verify_pas_request()
-        if result:
-            # Only set the access key if access was granted.
-            self.client_key = request.client_key
-            self.access_key = request.resource_owner_key
-        # We only want a True or False value.
-        return result
-
     def mark_request(self, oauth_request):
         """
         Mark the request object with a flag to give hints for the token
@@ -82,108 +67,6 @@ class SiteRequestValidatorAdapter(oauthlib.oauth1.RequestValidator):
         """
 
         self.request._pmr2_oauth1_ = oauth_request
-
-    def verify_pas_request(self):
-        """
-        Verify a standard request with all checks in order to not
-        trigger a BadRequest or Forbidden error prematurely, which would
-        prevent access to the RequestToken and AccessToken pages.
-        """
-
-        req_result = acc_result = result = None
-        acc_request = req_request = request = None 
-
-        try:
-            req_result, req_request = self.verify_request_token_request()
-        except OAuth1Error:
-            pass
-
-        try:
-            acc_result, acc_request = self.verify_access_token_request()
-        except OAuth1Error:
-            pass
-
-        try:
-            result, request = self.verify_resource_request()
-        except OAuth1Error:
-            if not (req_result or acc_result):
-                raise
-
-        if result is False:
-            # Check to see if either one of those passed.  Return an
-            # undefined result (as None) and whichever request object
-            # that got generated.
-            if req_result:
-                self.mark_request(req_request)
-                return None, req_request
-
-            if acc_result:
-                self.mark_request(acc_request)
-                return None, acc_request
-
-        return result, request
-
-    def verify_resource_request(self):
-        """
-        For verification of requests for accessing resources.
-        """
-
-        endpoint = oauthlib.oauth1.ResourceEndpoint(self, None)
-        request = endpoint._create_request(*self.prepare_verify())
-        return endpoint.validate_protected_resource_request(
-            *self.prepare_verify()), request
-
-    def verify_request_token_request(self, uri=None, http_method=None,
-            body=None, headers=None):
-        """
-        For verification of requests for getting RequestTokens.
-        """
-
-        endpoint = oauthlib.oauth1.RequestTokenEndpoint(self, None)
-        request = endpoint._create_request(*self.prepare_verify())
-        return endpoint.validate_request_token_request(request), request
-
-    def verify_access_token_request(self, uri=None, http_method=None,
-            body=None, headers=None):
-        """
-        For verification of requests for getting AccessTokens.
-        """
-
-        endpoint = oauthlib.oauth1.AccessTokenEndpoint(self, None)
-        request = endpoint._create_request(*self.prepare_verify())
-        return endpoint.validate_access_token_request(request), request
-
-    def prepare_verify(self, uri=None, http_method=None, body=None,
-            headers=None):
-        if uri is None:
-            uri = self.uri
-        if http_method is None:
-            http_method = self.http_method
-        if body is None:
-            body = self.body
-        if headers is None:
-            headers = self.headers
-
-        return uri, http_method, body, headers
-
-    # Overrides
-
-    def verify_request(self, uri=None, http_method=None, body=None,
-            headers=None, require_resource_owner=True, require_verifier=False,
-            require_realm=False, required_realm=None, require_callback=False,
-            *a, **kw):
-        """
-        Essentially a clone of the parent class, but the default 
-        parameters will be from this class.
-        """
-
-        uri, http_method, body, headers = self.prepare_verify(
-            uri, http_method, body, headers)
-
-        return super(SiteRequestValidatorAdapter, self).verify_request(
-            uri, http_method, body, headers, 
-            require_resource_owner, require_verifier, require_realm,
-            required_realm, require_callback)
 
     # Property overrides
 
@@ -212,20 +95,26 @@ class SiteRequestValidatorAdapter(oauthlib.oauth1.RequestValidator):
     def access_token_length(self):
         return 8, 64
 
-    # Not implemented but used
+    # Dummies to ensure near constant time validations.
 
     @property
-    def dummy_resource_owner(self):
-        # This is not actually used.
-        return u''
+    def dummy_client(self):
+        result = self.consumerManager.DUMMY_KEY
+        return unicode(result)
+
+    @property
+    def dummy_request_token(self):
+        token = self.tokenManager.get(self.tokenManager.DUMMY_KEY)
+        result = token and token.key or self.tokenManager.DUMMY_KEY
+        return unicode(result)
+
+    @property
+    def dummy_access_token(self):
+        token = self.tokenManager.get(self.tokenManager.DUMMY_KEY)
+        result = token and token.key or self.tokenManager.DUMMY_KEY
+        return unicode(result)
 
     # Implementation
-
-    def get_realms(self, client_key, request):
-        return []
-
-    def get_default_realms(self, client_key, request):
-        return []
 
     def get_client_secret(self, client_key, request):
         consumer = self.consumerManager.getValidated(client_key)
@@ -238,11 +127,6 @@ class SiteRequestValidatorAdapter(oauthlib.oauth1.RequestValidator):
         else:
             result = self.consumerManager.DUMMY_SECRET
 
-        return unicode(result)
-
-    @property
-    def dummy_client(self):
-        result = self.consumerManager.DUMMY_KEY
         return unicode(result)
 
     def get_request_token_secret(self, client_key, request_token, request):
@@ -263,19 +147,15 @@ class SiteRequestValidatorAdapter(oauthlib.oauth1.RequestValidator):
 
         return unicode(result)
 
-    @property
-    def dummy_request_token(self):
-        token = self.tokenManager.get(self.tokenManager.DUMMY_KEY)
-        result = token and token.key or self.tokenManager.DUMMY_KEY
+    def get_default_realms(self, client_key, request):
+        return []
 
-        return unicode(result)
+    def get_realms(self, client_key, request):
+        return []
 
-    @property
-    def dummy_access_token(self):
-        token = self.tokenManager.get(self.tokenManager.DUMMY_KEY)
-        result = token and token.key or self.tokenManager.DUMMY_KEY
-
-        return unicode(result)
+    def get_redirect_uri(self, token, request):
+        # We have our own AuthorizationEndpoint that do not use this.
+        raise NotImplementedError
 
     def get_rsa_key(self, client_key, request):
         # TODO figure out how to implement this.
@@ -289,6 +169,7 @@ class SiteRequestValidatorAdapter(oauthlib.oauth1.RequestValidator):
         return consumer.validate() and consumer != dummy
 
     def validate_request_token(self, client_key, request_token, request):
+        # XXX request_token <- token in parent
         token = self.tokenManager.getRequestToken(request_token, 
             self.dummy_request_token)
         return (token != self.dummy_request_token and 
@@ -334,6 +215,18 @@ class SiteRequestValidatorAdapter(oauthlib.oauth1.RequestValidator):
                 client_key, request_token, verifier)
         except TokenInvalidError:
             return False
+
+    def save_access_token(self, token, request):
+        # generated tokens automatically saved.
+        return
+
+    def save_request_token(self, token, request):
+        # generated tokens automatically saved.
+        return
+
+    def save_verifier(self, token, verifier, request):
+        # generated verifier automatically saved.
+        return
 
 
 def random_string(length):
