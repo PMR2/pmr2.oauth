@@ -207,8 +207,8 @@ class TestExtraction(unittest.TestCase):
         # Request token generated properly and stored, with verifier
         # signed and provided with request, and a user has claimed the
         # token.
-        request = SignedTestRequest(consumer=consumer, token=token, 
-            verifier=token.verifier)
+        request = SignedTestRequest(url='http://127.0.0.1/OAuthGetAccessToken',
+            consumer=consumer, token=token, verifier=token.verifier)
 
         # Credentials successfully not returned.
         self.assertEqual(plugin.extractCredentials(request), {})

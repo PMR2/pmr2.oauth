@@ -123,7 +123,7 @@ def SignedTestRequest(form=None, consumer=None, token=None, method=None,
     if form is None:
         form = {}
 
-    result = TestRequest(form=form, *a, **kw)
+    result = TestRequest(form=form, url=url, *a, **kw)
     url = url or result.getURL()
     url = safe_unicode(url)
     method = method and safe_unicode(method) or safe_unicode(result.method)
