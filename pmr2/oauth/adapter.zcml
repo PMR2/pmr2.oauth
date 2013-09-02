@@ -5,8 +5,8 @@
   <adapter
       for="zope.annotation.interfaces.IAnnotatable
            *"
-      factory=".utility.SiteRequestOAuth1ServerAdapter"
-      provides=".interfaces.IOAuthAdapter"
+      factory=".utility.SiteRequestValidatorAdapter"
+      provides=".interfaces.IOAuthRequestValidatorAdapter"
       />
 
   <adapter

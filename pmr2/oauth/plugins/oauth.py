@@ -1,20 +1,21 @@
 import traceback
 import logging
 
+from zope.interface import implementer
 import zope.component
 from zope.component.hooks import getSite
 
 from AccessControl.SecurityInfo import ClassSecurityInfo
 from Products.PageTemplates.PageTemplateFile import PageTemplateFile
 from Products.PluggableAuthService.plugins.BasePlugin import BasePlugin
-from Products.PluggableAuthService.utils import classImplements
 from Products.PluggableAuthService.interfaces.plugins \
                 import IAuthenticationPlugin, IExtractionPlugin
 
 from zExceptions import Forbidden
 from zExceptions import BadRequest
 
-from pmr2.oauth.interfaces import IOAuthPlugin, IOAuthAdapter, IScopeManager
+from pmr2.oauth.interfaces import IOAuthPlugin, IOAuthRequestValidatorAdapter, IScopeManager
+from pmr2.oauth.interfaces import OAuth1Error
 
 
 manage_addOAuthPlugin = PageTemplateFile("../www/oauthAdd", globals(), 
@@ -33,6 +34,8 @@ def addOAuthPlugin(self, id, title='', REQUEST=None):
                 "?manage_tabs_message=OAuth+plugin+added." %
                 self.absolute_url())
 
+
+@implementer(IOAuthPlugin, IExtractionPlugin, IAuthenticationPlugin)
 class OAuthPlugin(BasePlugin):
     """OAuth authentication plugin.
     """
@@ -40,7 +43,6 @@ class OAuthPlugin(BasePlugin):
     # to implement IExtractionPlugin, IAuthenticationPlugin
     meta_type = "OAuth plugin"
     security = ClassSecurityInfo()
-    zope.interface.implements(IOAuthPlugin)
 
     def __init__(self, id, title=None):
         self._setId(id)
@@ -61,13 +63,16 @@ class OAuthPlugin(BasePlugin):
             # Skip all not OAuth related.
             return {}
 
+        # XXX should just return the OAuth request string, let method
+        # authenticateCredentials handle the rest.
+
         site = getSite()
         verifier = zope.component.getMultiAdapter(
-            (site, request), IOAuthAdapter)
+            (site, request), IOAuthRequestValidatorAdapter)
 
         try:
             result = verifier()
-        except ValueError:
+        except OAuth1Error:
             raise BadRequest('bad oauth request')
 
         if result is None:
@@ -135,7 +140,3 @@ class OAuthPlugin(BasePlugin):
             return None  # should we raise Forbidden instead?
 
         return (info['id'], info['login'])
-
-classImplements(OAuthPlugin,
-                IExtractionPlugin,
-                IAuthenticationPlugin)

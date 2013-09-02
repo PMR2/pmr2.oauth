@@ -1,6 +1,9 @@
 import zope.interface
 import zope.schema
 
+# XXX exceptions from upstream
+from oauthlib.oauth1.rfc5849.errors import OAuth1Error
+
 from pmr2.oauth import MessageFactory as _
 
 
@@ -52,7 +55,7 @@ class InvalidScopeError(BaseValueError):
     __doc__ = "invalid scope."
 
 
-class IOAuthAdapter(zope.interface.Interface):
+class IOAuthRequestValidatorAdapter(zope.interface.Interface):
     """
     Interface for the OAuth adapter.
     """

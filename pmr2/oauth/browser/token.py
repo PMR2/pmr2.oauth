@@ -38,10 +38,10 @@ class BaseTokenPage(BrowserPage):
         if not hasattr(self.request, '_pmr2_oauth1_'):
             site = getSite()
             oauthAdapter = zope.component.getMultiAdapter((site, self.request),
-                IOAuthAdapter)
+                IOAuthRequestValidatorAdapter)
             try:
                 result, oauth1 = self._verifyToken(oauthAdapter)
-            except ValueError:
+            except OAuth1Error:
                 raise BadRequest()
             if not result:
                 raise Forbidden()
@@ -82,7 +82,7 @@ class RequestTokenPage(BaseTokenPage):
 
         # NOTE Currently it is impossible to disable callback validation
         # in oauthlib, so verify that callback is really provided.
-        if not oauth1.callback_uri:
+        if not oauth1.redirect_uri:
             raise BadRequest()
 
         # This is an 8-bit protocol, so we cast the oauthlib request
@@ -92,7 +92,7 @@ class RequestTokenPage(BaseTokenPage):
         # If these kind of casting dies in a fire I don't really care
         # because these should all be ascii for simplicity.
         consumer_key = str(oauth1.client_key)
-        callback = str(oauth1.callback_uri)
+        callback = str(oauth1.redirect_uri)
 
         # create request token
         tm = zope.component.getMultiAdapter((self.context, self.request),

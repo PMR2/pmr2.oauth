@@ -28,9 +28,9 @@ The OAuth adapter should have been set up::
 
     >>> request = TestRequest()
     >>> oauthAdapter = zope.component.getMultiAdapter(
-    ...     (self.portal, request), IOAuthAdapter)
+    ...     (self.portal, request), IOAuthRequestValidatorAdapter)
     >>> oauthAdapter
-    <pmr2.oauth.utility.SiteRequestOAuth1ServerAdapter object at ...>
+    <pmr2.oauth.utility.SiteRequestValidatorAdapter object at ...>
 
 The default consumer manager should also be available via adapter::
 

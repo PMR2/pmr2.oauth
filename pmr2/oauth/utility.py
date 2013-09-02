@@ -11,8 +11,9 @@ from zope.component.hooks import getSite
 
 from Products.CMFCore.utils import getToolByName
 
+from pmr2.oauth.interfaces import OAuth1Error
 from pmr2.oauth.interfaces import TokenInvalidError, ICallbackManager
-from pmr2.oauth.interfaces import IOAuthAdapter, INonceManager
+from pmr2.oauth.interfaces import IOAuthRequestValidatorAdapter, INonceManager
 from pmr2.oauth.interfaces import IConsumerManager, ITokenManager
 
 from pmr2.oauth.schema import buildSchemaInterface, CTSMMappingList
@@ -20,13 +21,13 @@ from pmr2.oauth.schema import buildSchemaInterface, CTSMMappingList
 SAFE_ASCII_CHARS = set([chr(i) for i in xrange(32, 127)])
 
 
-class SiteRequestOAuth1ServerAdapter(oauthlib.oauth1.Server):
+class SiteRequestValidatorAdapter(oauthlib.oauth1.RequestValidator):
     """
     Completing the implementation of the server as an adapter that
     unifies the authentication process.
     """
 
-    zope.interface.implements(IOAuthAdapter)
+    zope.interface.implements(IOAuthRequestValidatorAdapter)
 
     def __init__(self, site, request):
         self.consumerManager = zope.component.getMultiAdapter(
@@ -94,17 +95,17 @@ class SiteRequestOAuth1ServerAdapter(oauthlib.oauth1.Server):
 
         try:
             req_result, req_request = self.verify_request_token_request()
-        except ValueError:
+        except OAuth1Error:
             pass
 
         try:
             acc_result, acc_request = self.verify_access_token_request()
-        except ValueError:
+        except OAuth1Error:
             pass
 
         try:
             result, request = self.verify_resource_request()
-        except ValueError:
+        except OAuth1Error:
             if not (req_result or acc_result):
                 raise
 
@@ -127,11 +128,10 @@ class SiteRequestOAuth1ServerAdapter(oauthlib.oauth1.Server):
         For verification of requests for accessing resources.
         """
 
-        return self.verify_request(
-            require_resource_owner=True,
-            require_verifier=False,
-            require_callback=False,
-        )
+        endpoint = oauthlib.oauth1.ResourceEndpoint(self, None)
+        request = endpoint._create_request(*self.prepare_verify())
+        return endpoint.validate_protected_resource_request(
+            *self.prepare_verify()), request
 
     def verify_request_token_request(self, uri=None, http_method=None,
             body=None, headers=None):
@@ -139,15 +139,9 @@ class SiteRequestOAuth1ServerAdapter(oauthlib.oauth1.Server):
         For verification of requests for getting RequestTokens.
         """
 
-        return self.verify_request(
-            uri=uri,
-            http_method=http_method,
-            body=body,
-            headers=headers,
-            require_resource_owner=False, 
-            require_verifier=False,
-            require_callback=True,
-        )
+        endpoint = oauthlib.oauth1.RequestTokenEndpoint(self, None)
+        request = endpoint._create_request(*self.prepare_verify())
+        return endpoint.validate_request_token_request(request), request
 
     def verify_access_token_request(self, uri=None, http_method=None,
             body=None, headers=None):
@@ -155,15 +149,22 @@ class SiteRequestOAuth1ServerAdapter(oauthlib.oauth1.Server):
         For verification of requests for getting AccessTokens.
         """
 
-        return self.verify_request(
-            uri=uri,
-            http_method=http_method,
-            body=body,
-            headers=headers,
-            require_resource_owner=True, 
-            require_verifier=True,
-            require_callback=False,
-        )
+        endpoint = oauthlib.oauth1.AccessTokenEndpoint(self, None)
+        request = endpoint._create_request(*self.prepare_verify())
+        return endpoint.validate_access_token_request(request), request
+
+    def prepare_verify(self, uri=None, http_method=None, body=None,
+            headers=None):
+        if uri is None:
+            uri = self.uri
+        if http_method is None:
+            http_method = self.http_method
+        if body is None:
+            body = self.body
+        if headers is None:
+            headers = self.headers
+
+        return uri, http_method, body, headers
 
     # Overrides
 
@@ -176,16 +177,10 @@ class SiteRequestOAuth1ServerAdapter(oauthlib.oauth1.Server):
         parameters will be from this class.
         """
 
-        if uri is None:
-            uri = self.uri
-        if http_method is None:
-            http_method = self.http_method
-        if body is None:
-            body = self.body
-        if headers is None:
-            headers = self.headers
+        uri, http_method, body, headers = self.prepare_verify(
+            uri, http_method, body, headers)
 
-        return super(SiteRequestOAuth1ServerAdapter, self).verify_request(
+        return super(SiteRequestValidatorAdapter, self).verify_request(
             uri, http_method, body, headers, 
             require_resource_owner, require_verifier, require_realm,
             required_realm, require_callback)
@@ -226,7 +221,13 @@ class SiteRequestOAuth1ServerAdapter(oauthlib.oauth1.Server):
 
     # Implementation
 
-    def get_client_secret(self, client_key):
+    def get_realms(self, client_key, request):
+        return []
+
+    def get_default_realms(self, client_key, request):
+        return []
+
+    def get_client_secret(self, client_key, request):
         consumer = self.consumerManager.getValidated(client_key)
         # Spend actual time failing.
         dummy = self.consumerManager.getValidated(
@@ -244,7 +245,7 @@ class SiteRequestOAuth1ServerAdapter(oauthlib.oauth1.Server):
         result = self.consumerManager.DUMMY_KEY
         return unicode(result)
 
-    def get_request_token_secret(self, client_key, request_token):
+    def get_request_token_secret(self, client_key, request_token, request):
         token = self.tokenManager.getRequestToken(request_token, None)
         if token and token.consumer_key == client_key:
             result = token.secret
@@ -253,7 +254,7 @@ class SiteRequestOAuth1ServerAdapter(oauthlib.oauth1.Server):
 
         return unicode(result)
 
-    def get_access_token_secret(self, client_key, access_token):
+    def get_access_token_secret(self, client_key, access_token, request):
         token = self.tokenManager.getAccessToken(access_token, None)
         if token and token.consumer_key == client_key:
             result = token.secret
@@ -276,38 +277,38 @@ class SiteRequestOAuth1ServerAdapter(oauthlib.oauth1.Server):
 
         return unicode(result)
 
-    def get_rsa_key(self, client_key):
+    def get_rsa_key(self, client_key, request):
         # TODO figure out how to implement this.
         raise NotImplementedError
 
-    def validate_client_key(self, client_key):
+    def validate_client_key(self, client_key, request):
         # This will search through the table to acquire a failed dummy key
         dummy = self.consumerManager.get(self.consumerManager.DUMMY_KEY,
             self.consumerManager.makeDummy())
         consumer = self.consumerManager.getValidated(client_key, dummy)
         return consumer.validate() and consumer != dummy
 
-    def validate_request_token(self, client_key, request_token):
+    def validate_request_token(self, client_key, request_token, request):
         token = self.tokenManager.getRequestToken(request_token, 
             self.dummy_request_token)
         return (token != self.dummy_request_token and 
             token.consumer_key == client_key)
 
-    def validate_access_token(self, client_key, access_token):
+    def validate_access_token(self, client_key, access_token, request):
         token = self.tokenManager.getAccessToken(access_token, 
             self.dummy_access_token)
         return (token != self.dummy_access_token and 
             token.consumer_key == client_key)
 
     def validate_timestamp_and_nonce(self, client_key, timestamp, nonce,
-            request_token=None, access_token=None):
+            request, request_token=None, access_token=None):
         if self.nonceManager:
             # TODO figure out the parameters.
             return self.nonceManager.validate(timestamp, nonce)
         # Just let this one go...
         return True
 
-    def validate_redirect_uri(self, client_key, redirect_uri):
+    def validate_redirect_uri(self, client_key, redirect_uri, request):
         # Redirect URI will be external, verify that it is in the
         # same format as it was registered for the consumer.
         if redirect_uri is None:
@@ -318,16 +319,16 @@ class SiteRequestOAuth1ServerAdapter(oauthlib.oauth1.Server):
         consumer = self.consumerManager.getValidated(client_key)
         return self.callbackManager.validate(consumer, redirect_uri)
 
-    def validate_requested_realm(self, client_key, realm):
+    def validate_requested_realms(self, client_key, realms, request):
         # Realms are not handled.
         return True
 
-    def validate_realm(self, client_key, access_token, uri=None,
-            required_realm=None):
+    def validate_realms(self, client_key, token, request, uri=None,
+            realms=None):
         # Realms are not handled.
         return True
 
-    def validate_verifier(self, client_key, request_token, verifier):
+    def validate_verifier(self, client_key, request_token, verifier, request):
         try:
             return self.tokenManager.requestTokenVerify(
                 client_key, request_token, verifier)

@@ -8,7 +8,7 @@ from zExceptions import BadRequest
 
 from pmr2.oauth.interfaces import *
 
-from pmr2.oauth.utility import SiteRequestOAuth1ServerAdapter
+from pmr2.oauth.utility import SiteRequestValidatorAdapter
 
 from pmr2.oauth.token import Token
 from pmr2.oauth.token import TokenManager
@@ -45,8 +45,8 @@ class TestExtraction(unittest.TestCase):
             tmf, (Interface, IOAuthTestLayer,), ITokenManager)
         zope.component.provideAdapter(
             TestCallbackManager, (Interface, IOAuthTestLayer), ICallbackManager)
-        zope.component.provideAdapter(SiteRequestOAuth1ServerAdapter,
-            (Interface, IOAuthTestLayer,), IOAuthAdapter)
+        zope.component.provideAdapter(SiteRequestValidatorAdapter,
+            (Interface, IOAuthTestLayer,), IOAuthRequestValidatorAdapter)
 
         self.consumerManager = zope.component.getMultiAdapter(
             (object, TestRequest()), IConsumerManager)
@@ -264,7 +264,7 @@ class TestExtraction(unittest.TestCase):
 
     def test_2000_base_oauth_adapter(self):
         oauth1 = zope.component.getMultiAdapter(
-            (object, TestRequest()), IOAuthAdapter)
+            (object, TestRequest()), IOAuthRequestValidatorAdapter)
         self.assertEqual(oauth1.dummy_request_token,
             self.tokenManager.DUMMY_KEY)
         self.assertEqual(oauth1.dummy_access_token,
