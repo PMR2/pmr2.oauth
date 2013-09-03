@@ -3,6 +3,14 @@ Changelog
 =========
 
 ------------------
+0.5.x - Unreleased
+------------------
+
+* Updated the supported oauthlib to 0.5.1
+* The design has been refactored to rely on the token endpoint classes
+  for the validation.
+
+------------------
 0.4.5 - 2013-07-09
 ------------------
 
