@@ -62,7 +62,9 @@ class OAuthPlugin(BasePlugin):
         otherwise empty mapping.
         """
 
-        if not (request._auth and request._auth.startswith('OAuth ')):
+        if not ((request._auth and request._auth.startswith('OAuth ')) or
+                ('oauth_signature=' in request.get('QUERY_STRING', ''))
+            ):
             # Skip all not OAuth related.
             return {}
 

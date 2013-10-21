@@ -39,8 +39,9 @@ class BaseEndpoint(base.BaseEndpoint):
             headers = {
                 u'Content-type':
                     safe_unicode(self.request.getHeader('Content-type')),
-                u'Authorization': safe_unicode(self.request._auth),
             }
+            if self.request._auth:
+                headers[u'Authorization'] = safe_unicode(self.request._auth)
 
         if body is None:
             self.request.stdin.seek(0)

@@ -136,7 +136,7 @@ class TestExtraction(unittest.TestCase):
                 'oauth_body_hash': "2jmj7l5rSw0yVb%2FvlWAYkK/YBwk=", 
             },
         )
-        self.assertRaises(BadRequest, plugin.extractCredentials, request)
+        self.assertRaises(Forbidden, plugin.extractCredentials, request)
 
     def test_0202_fail_bad_timestamp(self):
         plugin = self.plugin
