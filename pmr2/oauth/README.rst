@@ -991,6 +991,30 @@ One more, for allowing the POST method::
     ... }
     True
 
+~~~~~~~~~~~~~~~~~
+New content types
+~~~~~~~~~~~~~~~~~
+
+New content types added to the site should have no effect on existing
+scopes::
+
+    >>> self.loginAsPortalOwner()
+    >>> item = self.portal.news.invokeFactory("News Item", "Test News Item")
+    >>> self.logout()
+    >>> request = TestRequest()
+    >>> view = scope.ContentTypeScopeProfileDisplayForm(self.portal, request)
+    >>> view = view.publishTraverse(request, 'test_profile')
+    >>> view.update()
+    >>> results = view.render()
+    >>> 'News Item' in results
+    True
+
+Browser test::
+
+    >>> o_browser.open(baseurl + '/manage-ctsp/view/sharing')
+    >>> 'News Item' in o_browser.contents
+    True
+
 
 ----------------------
 Using OAuth with scope
