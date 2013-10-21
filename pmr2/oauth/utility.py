@@ -95,6 +95,10 @@ class SiteRequestValidatorAdapter(oauthlib.oauth1.RequestValidator):
     def access_token_length(self):
         return 8, 64
 
+    @property
+    def nonce_length(self):
+        return 8, 64
+
     # Dummies to ensure near constant time validations.
 
     @property
