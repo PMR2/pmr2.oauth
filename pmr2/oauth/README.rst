@@ -471,6 +471,21 @@ Try the roles view also, since it is also permitted::
     Member
     Authenticated
 
+Try again using query based token passing::
+
+    >>> request = SignedTestRequest(
+    ...     consumer=consumer1, 
+    ...     token=access_token, 
+    ...     url=url,
+    ...     signature_type='QUERY',
+    ... )
+    >>> qs = request['QUERY_STRING']
+    >>> browser = Browser()
+    >>> browser.open(url + '?' + qs)
+    >>> print browser.contents
+    Member
+    Authenticated
+
 If a client were to access a content type object without specifying a
 view, typically the default view will be resolved.  If this is included
 in the list of allowed names for the content type, the scope manager

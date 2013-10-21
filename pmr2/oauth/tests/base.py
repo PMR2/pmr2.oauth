@@ -104,7 +104,9 @@ class TestRequest(pmr2.z3cform.tests.base.TestRequest):
 
 
 def SignedTestRequest(form=None, consumer=None, token=None, method=None,
-        url=None, callback=None, timestamp=None, verifier=None, *a, **kw):
+        url=None, callback=None, timestamp=None, verifier=None,
+        signature_type='AUTH_HEADER',
+        *a, **kw):
     """\
     Creates a signed TestRequest
     """
@@ -140,13 +142,19 @@ def SignedTestRequest(form=None, consumer=None, token=None, method=None,
         safe_unicode(callback),
         verifier=safe_unicode(verifier),
         timestamp=timestamp,
+        signature_type=signature_type,
     )
 
-    url, headers, body = client.sign(url, method)
+    url_signed, headers, body = client.sign(url, method)
 
-    result._auth = headers['Authorization']
-
-    return result
+    # lazy not importing oauthlib tokens.
+    if signature_type == 'AUTH_HEADER':
+        result._auth = headers['Authorization']
+        return result
+    elif signature_type == 'QUERY':
+        qs = urlparse.urlsplit(url_signed).query
+        result = TestRequest(form=form, url=url, QUERY_STRING=qs)
+        return result
 
 def makeToken(qsstr):
     # quick and dirty, don't do this for real.
