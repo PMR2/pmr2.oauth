@@ -32,7 +32,7 @@ class BaseScopeManager(object):
 
     zope.interface.implements(IScopeManager)
     
-    def __init__(self):
+    def __init__(self, *a, **kw):
         pass
 
     def setScope(self, key, scope):
