@@ -74,7 +74,7 @@ class RequestTokenPage(BaseTokenPage, RequestTokenEndpoint):
 
     def update(self):
         # None for all parameters to ensure default extraction
-        uri, headers, response, code = self.create_request_token_response(
+        headers, response, code = self.create_request_token_response(
             None, None, None, None, None)
         if code != 200:
             raise exc_code_table[code]
@@ -117,7 +117,7 @@ class GetAccessTokenPage(BaseTokenPage, AccessTokenEndpoint):
         sm.setAccessScope(key, scope)
 
     def update(self):
-        uri, headers, response, code = self.create_access_token_response(
+        headers, response, code = self.create_access_token_response(
             None, None, None, None, None)
         if code != 200:
             raise exc_code_table[code]
