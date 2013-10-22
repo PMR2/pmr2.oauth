@@ -124,10 +124,6 @@ class TokenManager(Persistent, Contained):
             raise TokenInvalidError('token has no user')
         token.user = old_token.user
 
-        if old_token:
-            # Terminate old token to prevent reuse.
-            self.remove(old_key)
-
         # Now add token.
         self.add(token)
         return token

@@ -15,6 +15,7 @@ from pmr2.oauth.interfaces import OAuth1Error
 from pmr2.oauth.interfaces import TokenInvalidError, ICallbackManager
 from pmr2.oauth.interfaces import IOAuthRequestValidatorAdapter, INonceManager
 from pmr2.oauth.interfaces import IConsumerManager, ITokenManager
+from pmr2.oauth.interfaces import IScopeManager
 
 from pmr2.oauth.schema import buildSchemaInterface, CTSMMappingList
 
@@ -30,12 +31,20 @@ class SiteRequestValidatorAdapter(oauthlib.oauth1.RequestValidator):
     zope.interface.implements(IOAuthRequestValidatorAdapter)
 
     def __init__(self, site, request):
+        # consider adapting self rather than site for these managers?
+        # this might make it easier to provide a whole suite of managers
+        # for a given validator.
         self.consumerManager = zope.component.getMultiAdapter(
             (site, request), IConsumerManager)
         self.tokenManager = zope.component.getMultiAdapter(
             (site, request), ITokenManager)
         self.callbackManager = zope.component.getMultiAdapter(
             (site, request), ICallbackManager)
+
+        # Really should not be optional, but this is only used within
+        # the ``invalidate_request_token`` method
+        self.scopeManager = zope.component.queryMultiAdapter(
+            (site, request), IScopeManager)
 
         # Optional at this point.
         self.nonceManager = zope.component.queryMultiAdapter(
@@ -166,8 +175,13 @@ class SiteRequestValidatorAdapter(oauthlib.oauth1.RequestValidator):
         raise NotImplementedError
 
     def invalidate_request_token(self, client_key, request_token, request):
-        # Dummy for now.
-        return
+        # purge the scope
+        if self.scopeManager:
+            scope = self.scopeManager.popScope(request_token, None)
+        # and then the token
+        token = self.tokenManager.getRequestToken(request_token, None)
+        if token:
+            self.tokenManager.remove(token)
 
     def validate_client_key(self, client_key, request):
         # This will search through the table to acquire a failed dummy key

@@ -102,7 +102,7 @@ class GetAccessTokenPage(BaseTokenPage, AccessTokenEndpoint):
         sm = zope.component.getMultiAdapter((self.context, self.request),
             IScopeManager)
 
-        scope = sm.popScope(token_key, _marker)
+        scope = sm.getScope(token_key, _marker)
         if scope == _marker:
             # could not find the scope that was stored.
             raise Forbidden()
