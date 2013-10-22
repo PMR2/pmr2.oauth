@@ -481,7 +481,7 @@ Try again using query based token passing::
     ... )
     >>> qs = request['QUERY_STRING']
     >>> browser = Browser()
-    >>> browser.open(url + '?' + qs)
+    >>> browser.open(url + '?' + quote_plus(qs))
     >>> print browser.contents
     Member
     Authenticated
