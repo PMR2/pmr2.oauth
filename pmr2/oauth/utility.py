@@ -165,6 +165,10 @@ class SiteRequestValidatorAdapter(oauthlib.oauth1.RequestValidator):
         # TODO figure out how to implement this.
         raise NotImplementedError
 
+    def invalidate_request_token(self, client_key, request_token, request):
+        # Dummy for now.
+        return
+
     def validate_client_key(self, client_key, request):
         # This will search through the table to acquire a failed dummy key
         dummy = self.consumerManager.get(self.consumerManager.DUMMY_KEY,
