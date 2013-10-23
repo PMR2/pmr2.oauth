@@ -1,5 +1,6 @@
 import traceback
 import logging
+from urlparse import urlsplit
 
 from zope.interface import implementer
 import zope.component
@@ -87,7 +88,8 @@ class OAuthPlugin(BasePlugin):
 
         if result is False:
             # See if the URI ends with a valid token end point.
-            if True in [oreq.uri.endswith(ep) for ep in self.token_endpoints]:
+            if True in [urlsplit(oreq.uri).path.endswith(ep)
+                    for ep in self.token_endpoints]:
                 # this then do nothing.
                 return {}
             raise Forbidden('authorization failed')

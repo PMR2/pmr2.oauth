@@ -213,6 +213,14 @@ class TestExtraction(unittest.TestCase):
         # Credentials successfully not returned.
         self.assertEqual(plugin.extractCredentials(request), {})
 
+        # Try again using query parameters. (3.5.3)
+        request = SignedTestRequest(url='http://127.0.0.1/OAuthGetAccessToken',
+            consumer=consumer, token=token, verifier=token.verifier,
+            signature_type='QUERY')
+
+        # Credentials successfully not returned.
+        self.assertEqual(plugin.extractCredentials(request), {})
+
         # Now if the generated request token was removed from the store,
         # this same token request would be forbidden.
         request = SignedTestRequest(consumer=consumer, token=token,)
