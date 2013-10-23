@@ -6,9 +6,12 @@ Changelog
 0.5.x - Unreleased
 ------------------
 
-* Updated the supported oauthlib to 0.5.1
+* Updated the supported oauthlib to 0.6.0
 * The design has been refactored to rely on the token endpoint classes
   for the validation.
+* Support OAuth requests encoded using URL query strings.
+* Addition of new content types into portal should no longer result in
+  z3c.form-3.0.0 breaking on <NO_VALUE>.
 
 ------------------
 0.4.5 - 2013-07-09
