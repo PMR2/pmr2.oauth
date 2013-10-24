@@ -326,7 +326,7 @@ Now retry using the session::
   <Response [200]>
   >>> 'Private Page' in response.text
   True
-  >>> 'This is some top secret test data.' in response.text
+  >>> 'This is some top secret private test content.' in response.text
   True
   >>> 'test_user_1_' in response.text
   True
