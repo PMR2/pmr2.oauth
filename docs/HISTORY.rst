@@ -12,6 +12,12 @@ Changelog
 * Support OAuth requests encoded using URL query strings.
 * Addition of new content types into portal should no longer result in
   z3c.form-3.0.0 breaking on <NO_VALUE>.
+* Updated a large amounts of text and even an internal management
+  endpoint to be more clear and reflective of the terminology used in
+  RFC 5849.
+* More usability fixes.  The entire management interface should now be
+  easily accessible through the Site Setup menu, and also the inner
+  management pages should link back to the main OAuth management page.
 
 ------------------
 0.4.5 - 2013-07-09
