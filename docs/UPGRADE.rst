@@ -31,3 +31,9 @@ remove all previous keys and issue new ones, but this step is not done
 automatically.  Old keys should still be usable, but they won't be as
 friendly to the end users as they will lack the human-friendly
 component.
+
+---------------
+From 0.4 to 0.5
+---------------
+
+No major changes.
