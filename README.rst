@@ -74,3 +74,15 @@ please refer to ``docs/UPGRADE.rst`` for some important information.
 
 For more detailed information, please refer to the doctest file at
 ``pmr2/oauth/README.rst``.
+
+
+~~~~~
+About
+~~~~~
+
+This add-on was created as part of the `Physiome Model Repository`_ in
+order to enable it to provide secured web-service access using a well
+supported, industry-standard authorization method for third-party
+clients.
+
+.. _`Physiome Model Repository`: https://models.physiomeproject.org/
