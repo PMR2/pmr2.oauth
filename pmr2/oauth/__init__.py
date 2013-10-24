@@ -1,3 +1,4 @@
+from os.path import join
 import zope.i18nmessageid
 from AccessControl.Permissions import manage_users as ManageUsers
 from Products.PluggableAuthService.PluggableAuthService import \
@@ -20,5 +21,5 @@ def initialize(context):
             oauth.addOAuthPlugin,
         ),
         visibility=None,
-        icon="icon/oauth.png"
+        icon=join('browser', 'images', 'oauth.png'),
     )

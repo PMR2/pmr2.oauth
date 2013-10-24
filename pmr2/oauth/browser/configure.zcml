@@ -129,4 +129,9 @@
       permission="zope2.View"
       />
 
+  <browser:resourceDirectory
+      name="pmr2.oauth.images"
+      directory="images"
+      />
+
 </configure>
