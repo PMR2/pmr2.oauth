@@ -1,4 +1,5 @@
 import re
+import logging
 
 from persistent import Persistent
 from BTrees.OOBTree import OOBTree
@@ -20,6 +21,7 @@ from pmr2.oauth.interfaces import IContentTypeScopeProfile
 from pmr2.oauth.factory import factory
 
 _marker = object()
+logger = logging.getLogger('pmr2.oauth.scope')
 
 
 class BaseScopeManager(object):
@@ -366,6 +368,7 @@ class ContentTypeScopeManager(BTreeScopeManager):
         content type id.  Return both these values.
         """
 
+        logger.debug('resolving %s into types', accessed)
         # use getSite() instead of container?
         pt_tool = getToolByName(accessed, 'portal_types', None)
         if pt_tool is None:
@@ -384,6 +387,7 @@ class ContentTypeScopeManager(BTreeScopeManager):
             subpath.append(context.__name__)
             context = aq_parent(context)
 
+        logger.debug('parent of %s failed to resolve into typeinfo', accessed)
         return None, None
 
     def validateTargetWithMapping(self, accessed, name, mapping):
@@ -394,7 +398,9 @@ class ContentTypeScopeManager(BTreeScopeManager):
         # A simple lookup method.
         valid_scopes = mapping.get(accessed_type, {})
         if not valid_scopes:
+            logger.debug('out of scope: %s has no mapping', accessed_type)
             return False
+        logger.debug('%s got mapping', accessed_type)
 
         for vs in valid_scopes:
             # XXX ignores second last asterisk, preventing validation
@@ -405,7 +411,10 @@ class ContentTypeScopeManager(BTreeScopeManager):
             else:
                 match = subpath == vs
             if match:
+                logger.debug('subpath:%s within scope', subpath)
                 return True
+        logger.debug('out of scope: %s not a subpath in mapping for %s',
+            subpath, accessed_type)
         return False
 
 ContentTypeScopeManagerFactory = factory(ContentTypeScopeManager)
