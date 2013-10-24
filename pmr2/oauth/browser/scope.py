@@ -52,7 +52,7 @@ class ScopeEditForm(form.EditForm):
 
 class ContentTypeScopeManagerView(Implicit, page.SimplePage):
 
-    template = ViewPageTemplateFile(path('ctsm_view.pt'))
+    template = ViewPageTemplateFile(path('ctsm_root.pt'))
 
     def update(self):
         self.request['disable_border'] = True
