@@ -17,3 +17,5 @@
           id string:ctsm_add_scope_profile"
      i18n:translate="">Add Scope Profile</a>
 </p>
+<a tal:attributes="href string:${view/context/portal_url}/pmr2-oauth;"
+    i18n:translate="">Return to OAuth Provider Manager</a>

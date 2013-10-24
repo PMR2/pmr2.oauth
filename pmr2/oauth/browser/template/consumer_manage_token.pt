@@ -57,6 +57,8 @@
       </metal:fill>
 
     </metal:use>
+    <a tal:attributes="href string:${view/context/portal_url}/pmr2-oauth;"
+        i18n:translate="">Return to OAuth Provider Manager</a>
     </metal:fill>
 
   </body>
