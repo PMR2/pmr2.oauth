@@ -1,5 +1,6 @@
 recursive-include pmr2 *
-recursive-include docs *
+recursive-include docs *.rst
+prune docs/enduser
 global-exclude *pyc
 global-exclude .*swp
 include *rst
