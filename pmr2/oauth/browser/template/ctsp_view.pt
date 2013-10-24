@@ -1,0 +1,32 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      lang="en"
+      i18n:domain="pmr2.oauth"
+      metal:use-macro="context/@@pmr2-z3cform-macros/main">
+  <body>
+
+    <metal:block fill-slot="main">
+
+        <h1 tal:condition="view/label" class="documentFirstHeading" 
+            tal:content="view/label | nothing"/>
+
+        <div id="content-core">
+
+          <metal:use use-macro="context/@@ploneform-macros/titlelessform">
+              <metal:main fill-slot="formbottom">
+                  <span tal:replace="
+                      structure context/@@authenticator/authenticator" />
+              </metal:main>
+          </metal:use>
+
+        </div>
+
+    <a tal:attributes="href string:${context/absolute_url}/manage-ctsp;"
+        i18n:translate="">Return to Content Type Scope Manager</a><br />
+    <a tal:attributes="href string:${context/absolute_url}/pmr2-oauth;"
+        i18n:translate="">Return to OAuth Provider Manager</a>
+
+    </metal:block>
+
+  </body>
+</html>

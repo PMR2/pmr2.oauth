@@ -135,8 +135,9 @@ class ContentTypeScopeProfileTraverseForm(form.AuthenticatedForm,
 
 class ContentTypeScopeProfileDisplayForm(ContentTypeScopeProfileTraverseForm):
 
-    # May just take a shortcut and have a custom template to show icons.
-    #template = ViewPageTemplateFile(path('ctsp_view.pt'))
+    # TODO At some point we should consider rendering the content-type
+    # icons.
+    template = ViewPageTemplateFile(path('ctsp_view.pt'))
 
     fields = field.Fields(IContentTypeScopeProfileEdit)
     mode = DISPLAY_MODE
