@@ -4,7 +4,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2012-10-16 04:16+0000\n"
+"POT-Creation-Date: 2013-10-24 09:43+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI +ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,197 +17,410 @@ msgstr ""
 "Preferred-Encodings: utf-8 latin1\n"
 "Domain: pmr2.oauth\n"
 
-#: ./interfaces.py:183
+#: ./browser/user.py:24
+msgid "<Deleted Client>"
+msgstr ""
+
+#: ./browser/scope.py:292
+msgid "<Undefined Mapping Type>"
+msgstr ""
+
+#: ./browser/template/authorize_question.pt:34
+msgid "<strong>${DYNAMIC_CONTENT}</strong> is requesting <em>unrestricted</em> access to all resources you have access to on this site within the set of resources that have been permitted by your site manager(s) using your credentials. If you are unsure or unaware of what this encompasses, please either contact your site manager(s) or deny access of your resources to this client by selecting '<em>Deny acccess</em>' below."
+msgstr ""
+
+#: ./browser/template/authorize_question.pt:17
+msgid "<strong>${DYNAMIC_CONTENT}</strong> is requesting access to the following resources using your credentials:"
+msgstr ""
+
+#: ./browser/template/authorize_question.pt:12
+msgid "A client application is awaiting your approval"
+msgstr ""
+
+#: ./browser/interfaces.py:51
+msgid "A description of the rights granted by this scope."
+msgstr ""
+
+#: ./browser/interfaces.py:66
+#: ./interfaces.py:335
+msgid "A mapping for each of the following portal types to a list of permitted subpaths."
+msgstr ""
+
+#: ./interfaces.py:378
 msgid "Access Permitted"
 msgstr ""
 
-#: ./browser/user.py:75
+#: ./browser/template/authorize_verifier.pt:9
+msgid "Access authorized"
+msgstr ""
+
+#: ./browser/user.py:106
 msgid "Access successfully removed"
 msgstr ""
 
-#. Default: "Access token approval"
-#: ./browser/template/authorize_question.pt:9
-msgid "Access token approval"
+#: ./browser/template/consumer_manage_token.pt:48
+msgid "Add OAuth Client"
 msgstr ""
 
-#. Default: "Add OAuth Consumer"
-#: ./browser/template/consumer_manage_token.pt:31
-msgid "Add OAuth Consumer"
+#: ./browser/template/token_scope_view.pt:40
+msgid "Additionally, the following are subpaths within the content types that will be granted access to the client to manipulate your content with."
 msgstr ""
 
-#: ./interfaces.py:166
+#: ./browser/interfaces.py:44
+#: ./interfaces.py:312
+msgid "Brief description about this scope profile."
+msgstr ""
+
+#: ./interfaces.py:366
 msgid "Callback"
 msgstr ""
 
-#: ./interfaces.py:171
-msgid "Callback Confirmed"
+#: ./browser/token.py:134
+msgid "Callback is not approved for the client.  Aborted."
 msgstr ""
 
-#: ./interfaces.py:69
-msgid "Consumer Key"
+#: ./browser/scope.py:221
+msgid "Cancel and Return"
 msgstr ""
 
-#: ./interfaces.py:76
-msgid "Consumer Secret"
+#: ./interfaces.py:87
+msgid "Client Identifier"
 msgstr ""
 
-#: ./browser/token.py:151
+#: ./interfaces.py:392
+msgid "Client Key"
+msgstr ""
+
+#: ./interfaces.py:100
+msgid "Client Name"
+msgstr ""
+
+#: ./interfaces.py:93
+msgid "Client Shared-Secret"
+msgstr ""
+
+#: ./browser/template/consumer_manage_token.pt:12
+#: ./browser/template/pmr2-oauth.pt:17
+msgid "Client management"
+msgstr ""
+
+#: ./browser/scope.py:154
+msgid "Commit Update"
+msgstr ""
+
+#: ./browser/token.py:130
 msgid "Consumer associated with this key is invalid."
 msgstr ""
 
-#: ./interfaces.py:155
-msgid "Consumer key"
-msgstr ""
-
-#. Default: "Consumer management"
-#: ./browser/template/consumer_manage_token.pt:9
-msgid "Consumer management"
-msgstr ""
-
-#: ./interfaces.py:77
-msgid "Consumer secret"
-msgstr ""
-
-#: ./browser/consumer.py:110
+#: ./browser/consumer.py:116
 msgid "Consumers successfully removed"
 msgstr ""
 
-#: ./interfaces.py:205
+#: ./browser/scope.py:62
+msgid "Content Type Scope Manager"
+msgstr ""
+
+#: ./browser/template/pmr2-oauth.pt:23
+msgid "Content type scope manager"
+msgstr ""
+
+#: ./interfaces.py:400
 msgid "Creation timestamp of this token"
 msgstr ""
 
-#: ./browser/token.py:237
+#: ./interfaces.py:281
+msgid "Default Mapping ID"
+msgstr ""
+
+#: ./browser/token.py:263
 msgid "Deny access"
 msgstr ""
 
-#: ./interfaces.py:184
+#: ./browser/interfaces.py:50
+#: ./interfaces.py:318
+msgid "Description"
+msgstr ""
+
+#: ./interfaces.py:319
+msgid "Detailed description of the rights granted by this scope."
+msgstr ""
+
+#: ./browser/template/token_scope_view.pt:19
+msgid "Details"
+msgstr ""
+
+#: ./interfaces.py:379
 msgid "Determines if this can be used to access content."
 msgstr ""
 
-#: ./browser/consumer.py:106
-#: ./browser/user.py:71
+#: ./browser/template/consumer_manage_token.pt:27
+msgid "Domain"
+msgstr ""
+
+#: ./interfaces.py:109
+msgid "Domain Name"
+msgstr ""
+
+#: ./browser/scope.py:146
+msgid "Edit"
+msgstr ""
+
+#: ./browser/template/pmr2-oauth.pt:32
+msgid "End-points for clients (consumers)"
+msgstr ""
+
+#: ./browser/consumer.py:112
+#: ./browser/user.py:102
 msgid "Errors encountered during key removal"
 msgstr ""
 
-#: ./interfaces.py:209
+#: ./interfaces.py:404
 msgid "Expiry"
 msgstr ""
 
-#: ./interfaces.py:210
+#: ./interfaces.py:405
 msgid "Expiry timestamp for this token"
 msgstr ""
 
-#: ./browser/token.py:213
+#: ./browser/template/pmr2-oauth.pt:20
+msgid "For listing, creating and removing clients."
+msgstr ""
+
+#: ./browser/template/pmr2-oauth.pt:26
+msgid "For listing, creating, committing content-type based scope profiles."
+msgstr ""
+
+#: ./browser/token.py:241
 msgid "Grant access"
 msgstr ""
 
-#: ./browser/token.py:150
+#: ./interfaces.py:110
+msgid "If this client is able to receive callbacks, please enter its doamin name here as callbacks will be validated against this value. Otherwise leave this as blank."
+msgstr ""
+
+#: ./browser/token.py:129
 msgid "Invalid Token."
 msgstr ""
 
-#: ./interfaces.py:154
+#: ./browser/template/consumer_manage_token.pt:24
+#: ./interfaces.py:354
 msgid "Key"
 msgstr ""
 
-#: ./interfaces.py:142
-msgid "List of regular expressions of URIs that are permitted to be accessible via OAuth."
+#: ./browser/interfaces.py:31
+msgid "List of views identified by their name that are permitted for this content type."
 msgstr ""
 
 #. Default: "Manage third-party access to your content"
-#: ./browser/template/user_manage_token.pt:9
+#: ./browser/template/user_manage_token.pt:12
 msgid "Manage third-party access to your content"
 msgstr ""
 
-#: ./interfaces.py:141
-msgid "Permitted URIs"
+#: ./browser/template/pmr2-oauth.pt:15
+msgid "Management views"
 msgstr ""
 
-#. Default: "Please only grant access if you trust this site."
-#: ./browser/template/authorize_question.pt:32
-msgid "Please only grant access if you trust this site."
+#: ./browser/interfaces.py:65
+#: ./interfaces.py:334
+msgid "Mapping"
 msgstr ""
 
-#: ./browser/consumer.py:75
+#: ./browser/page.py:15
+msgid "OAuth Provider Manager"
+msgstr ""
+
+#: ./browser/interfaces.py:56
+#: ./interfaces.py:325
+msgid "Permitted HTTP Methods"
+msgstr ""
+
+#: ./browser/interfaces.py:30
+msgid "Permitted Views"
+msgstr ""
+
+#: ./interfaces.py:341
+msgid "Permitted subpaths"
+msgstr ""
+
+#: ./browser/template/authorize_question.pt:44
+msgid "Please note that you should only grant access if and only if you trust this application and if your site manager(s) have made you aware of what this application can access using your credentials."
+msgstr ""
+
+#: ./browser/template/authorize_question.pt:24
+msgid "Please note that you should only grant access if and only if you trust this application with your data that are within the scope as outlined above. Otherwise please deny access."
+msgstr ""
+
+#: ./interfaces.py:338
+msgid "Portal Type"
+msgstr ""
+
+#: ./browser/interfaces.py:17
+msgid "Profile Name"
+msgstr ""
+
+#: ./browser/consumer.py:80
 msgid "Remove"
 msgstr ""
 
-#: ./browser/user.py:43
+#: ./browser/template/pmr2-oauth.pt:40
+msgid "Resource Owner Authorization"
+msgstr ""
+
+#: ./browser/template/ctsp_view.pt:24
+msgid "Return to Content Type Scope Manager"
+msgstr ""
+
+#: ./browser/template/consumer_manage_token.pt:60
+#: ./browser/template/ctsp_view.pt:26
+msgid "Return to OAuth Provider Manager"
+msgstr ""
+
+#: ./browser/scope.py:165
+msgid "Revert"
+msgstr ""
+
+#: ./browser/user.py:116
 msgid "Revoke"
 msgstr ""
 
-#: ./interfaces.py:221
-msgid "Scope"
-msgstr ""
-
-#: ./interfaces.py:214
-msgid "Scope ID"
-msgstr ""
-
-#: ./interfaces.py:160
+#: ./browser/template/consumer_manage_token.pt:25
+#: ./interfaces.py:360
 msgid "Secret"
 msgstr ""
 
-#: ./interfaces.py:198
-msgid "The consumer key associated with this token"
+#: ./browser/scope.py:174
+msgid "Set as Default"
 msgstr ""
 
-#: ./interfaces.py:215
-msgid "The id of the scope manager that was used."
+#: ./interfaces.py:342
+msgid "Subpath"
 msgstr ""
 
-#: ./interfaces.py:70
-msgid "The key that identifies this consumer.  This usually is the domain name of the consumer"
+#: ./browser/template/pmr2-oauth.pt:43
+msgid "Target to direct resource owner's agent to."
 msgstr ""
 
-#: ./interfaces.py:222
-msgid "The scope associated with this token, specific to the original scope manager that was in use."
+#: ./browser/template/pmr2-oauth.pt:34
+msgid "Temporary Credential Request"
 msgstr ""
 
-#: ./browser/template/authorize_question.pt:14
-msgid "The site <strong>${DYNAMIC_CONTENT}</strong> is requesting access to URIs on this site matching the following rules using your credentials:"
+#: ./interfaces.py:393
+msgid "The client key associated with this token"
 msgstr ""
 
-#: ./browser/template/authorize_question.pt:26
-msgid "The site <strong>${DYNAMIC_CONTENT}</strong> is requesting access to all resources on this site that are permitted by your site manager(s) using your credentials."
+#: ./browser/template/token_scope_view.pt:22
+msgid "The following is a detailed listing of all subpaths available per content type for tokens using this set of scope profiles."
 msgstr ""
 
-#: ./interfaces.py:191
+#: ./browser/interfaces.py:18
+msgid "The name for the scope profile."
+msgstr ""
+
+#: ./interfaces.py:94
+msgid "The secret that is shared between the client and the service provider."
+msgstr ""
+
+#: ./browser/template/token_scope_view.pt:4
+msgid "The token was granted to <strong>${DYNAMIC_CONTENT}</strong> with the following rights:"
+msgstr ""
+
+#: ./interfaces.py:88
+msgid "The unique identifier for this client"
+msgstr ""
+
+#: ./interfaces.py:386
 msgid "The user id associated with this token."
 msgstr ""
 
-#: ./interfaces.py:204
+#: ./interfaces.py:101
+msgid "This is the name of the application that will be using this set of client credentials, and serves as the identifier that will be presented to resource owners during the authorization process."
+msgstr ""
+
+#: ./browser/template/pmr2-oauth.pt:9
+msgid "This lets you manage third-party access you have granted before."
+msgstr ""
+
+#: ./browser/scope.py:197
+msgid "This profile has been modified.  Please commit the changes when they are ready."
+msgstr ""
+
+#: ./browser/scope.py:184
+msgid "This profile has not been committed yet."
+msgstr ""
+
+#: ./interfaces.py:399
 msgid "Timestamp"
 msgstr ""
 
+#: ./browser/interfaces.py:43
+#: ./browser/template/consumer_manage_token.pt:26
+#: ./interfaces.py:311
+msgid "Title"
+msgstr ""
+
+#: ./browser/template/pmr2-oauth.pt:49
+msgid "To exchange temporary credentials for access credentials."
+msgstr ""
+
 #. Default: "To remove access for the following sites, please check the checkboxes for each site you desire to remove, then activate the revoke button to revoke access for the selected sites."
-#: ./browser/template/user_manage_token.pt:12
+#: ./browser/template/user_manage_token.pt:15
 msgid "To remove access for the following sites, please check the checkboxes for each site you desire to remove, then activate the revoke button to revoke access for the selected sites."
 msgstr ""
 
-#. Default: "To remove access from the following consumer, select the checkboxes associated with each consumer you would like removed, then activate the remove button."
-#: ./browser/template/consumer_manage_token.pt:12
-msgid "To remove access from the following consumer, select the checkboxes associated with each consumer you would like removed, then activate the remove button."
+#: ./browser/template/consumer_manage_token.pt:15
+msgid "To remove access from the following client, select the checkboxes associated with each client you would like removed, then activate the remove button."
 msgstr ""
 
-#. Default: "Token authorized"
-#: ./browser/template/authorize_verifier.pt:6
-msgid "Token authorized"
+#: ./browser/template/pmr2-oauth.pt:37
+msgid "To request temporary credentials."
 msgstr ""
 
-#. Default: "Token authorized. Please enter the following verification code into the application you are granting access to:"
-#: ./browser/template/authorize_verifier.pt:9
-msgid "Token authorized. Please enter the following verification code into the application you are granting access to:"
+#: ./browser/template/pmr2-oauth.pt:46
+msgid "Token Request"
 msgstr ""
 
-#: ./browser/token.py:153
+#: ./browser/scope.py:257
+msgid "Token Scope Information"
+msgstr ""
+
+#: ./browser/token.py:132
 msgid "Token has been denied."
 msgstr ""
 
-#: ./interfaces.py:190
+#: ./interfaces.py:355
+msgid "Token key"
+msgstr ""
+
+#: ./interfaces.py:361
+msgid "Token secret"
+msgstr ""
+
+#: ./browser/template/pmr2-oauth.pt:6
+msgid "Tokens you have approved"
+msgstr ""
+
+#: ./interfaces.py:385
 msgid "User ID"
 msgstr ""
 
-#: ./interfaces.py:176
+#: ./browser/template/pmr2-oauth.pt:4
+msgid "User/resource owner views"
+msgstr ""
+
+#: ./interfaces.py:371
 msgid "Verifier"
+msgstr ""
+
+#: ./browser/interfaces.py:57
+#: ./interfaces.py:326
+msgid "Whitespace delimited list of permitted HTTP methods for the subpaths below."
+msgstr ""
+
+#: ./browser/template/authorize_verifier.pt:12
+msgid "You have granted access to the application. To finalize the authorization process, please input the following verification code as per the instructions provided by the application."
+msgstr ""
+
+#: ./browser/template/user_manage_token.pt:32
+msgid "[details]"
 msgstr ""
 
