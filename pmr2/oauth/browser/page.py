@@ -12,7 +12,7 @@ from pmr2.oauth.browser.template import path, ViewPageTemplateFile
 class PMR2OAuthPage(page.SimplePage):
 
     template = ViewPageTemplateFile(path('pmr2-oauth.pt'))
-    label = _(u'pmr2.oauth views')
+    label = _(u'OAuth Provider Manager')
 
     @property
     def portal_url(self):

@@ -14,7 +14,7 @@
 <tal:if condition="view/isManager">
 <h3 i18n:translate="">Management views</h3>
 <dl>
-  <dt><a tal:attributes="href string:${view/portal_url}/manage-oauth-consumers"
+  <dt><a tal:attributes="href string:${view/portal_url}/manage-oauth-clients"
       i18n:translate=""
     >Client management</a></dt>
   <dd i18n:translate="">
@@ -29,7 +29,7 @@
 </dl>
 </tal:if>
 
-<h3 i18n:translate="">Endpoints for clients (consumers)</h3>
+<h3 i18n:translate="">End-points for clients (consumers)</h3>
 <dl>
   <dt><a tal:attributes="href string:${view/portal_url}/OAuthRequestToken"
       i18n:translate=""

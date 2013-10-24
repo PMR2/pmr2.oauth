@@ -49,7 +49,7 @@ class ConsumerAddForm(form.AddForm):
         cm.add(obj)
 
     def nextURL(self):
-        return self.context.absolute_url() + '/manage-oauth-consumers'
+        return self.context.absolute_url() + '/manage-oauth-clients'
 
 
 class ConsumerManageForm(form.PostForm):

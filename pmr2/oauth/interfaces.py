@@ -20,7 +20,7 @@ class TokenInvalidError(BaseInvalidError):
 
 
 class ConsumerInvalidError(BaseInvalidError):
-    __doc__ = "invalid consumer."
+    __doc__ = "invalid client."
 
 
 class RequestInvalidError(BaseInvalidError):
@@ -80,32 +80,37 @@ class IOAuthPlugin(zope.interface.Interface):
 
 class IConsumer(zope.interface.Interface):
     """\
-    An OAuth consumer.
+    An OAuth client credential.
     """
 
     key = zope.schema.ASCIILine(
-        title=_(u'Consumer Key'),
-        description=_(u'The key that identifies this consumer.  This usually '
-                     'is the domain name of the consumer'),
+        title=_(u'Client Identifier'),
+        description=_(u'The unique identifier for this client'),
         required=True,
     )
 
     secret = zope.schema.ASCIILine(
-        title=_(u'Consumer Secret'),
-        description=_(u'Consumer secret'),
+        title=_(u'Client Shared-Secret'),
+        description=_(u'The secret that is shared between the client and the '
+                      'service provider.'),
         required=True,
     )
 
     title = zope.schema.TextLine(
-        title=_(u'Consumer Title'),
-        description=_(u'Short description of what or who this consumer is.'),
+        title=_(u'Client Name'),
+        description=_(u'This is the name of the application that will be '
+                      'using this set of client credentials, and serves as '
+                      'the identifier that will be presented to resource '
+                      'owners during the authorization process.'),
         required=False,
     )
 
     domain = zope.schema.TextLine(
-        title=_(u'Domain name'),
-        description=_(u'The domain that is permitted to receive redirection '
-                       'requests.'),
+        title=_(u'Domain Name'),
+        description=_(u'If this client is able to receive callbacks, please '
+                      'enter its doamin name here as callbacks will be '
+                      'validated against this value. Otherwise leave this as ' 
+                      'blank.'),
         required=False,
     )
 
@@ -117,32 +122,32 @@ class IConsumer(zope.interface.Interface):
 
 class IConsumerManager(zope.interface.Interface):
     """\
-    Consumer utility
+    Interface for the client management.
     """
 
     def add(consumer):
         """\
-        Add a consumer.
+        Add a client.
         """
 
     def check(consumer):
         """\
-        Check for validity of input consumer.
+        Check for validity of input client.
         """
 
     def get(consumer_key, default=None):
         """\
-        Return consumer, identified by consumer_key.
+        Return client, identified by consumer_key.
         """
 
     def getAllKeys():
         """\
-        Return all consumer keys tracked by this consumer.
+        Return all client keys tracked by this client manager.
         """
 
     def getValidated(consumer_key, default=None):
         """\
-        Return consumer only if it is a validated one.
+        Return a client only if it is a validated one.
 
         This will be used when possible to allow further checks by 
         alternative implementations.
@@ -150,7 +155,7 @@ class IConsumerManager(zope.interface.Interface):
 
     def remove(consumer):
         """\
-        Remove consumer.
+        Remove client.
         """
 
 
@@ -347,13 +352,13 @@ class IToken(zope.interface.Interface):
 
     key = zope.schema.ASCIILine(
         title=_(u'Key'),
-        description=_(u'Consumer key'),
+        description=_(u'Token key'),
         required=True,
     )
 
     secret = zope.schema.ASCIILine(
         title=_(u'Secret'),
-        description=_(u'Consumer secret'),
+        description=_(u'Token secret'),
         required=True,
     )
 
@@ -384,8 +389,8 @@ class IToken(zope.interface.Interface):
     )
 
     consumer_key = zope.schema.ASCIILine(
-        title=_(u'Consumer Key'),
-        description=_(u'The consumer key associated with this token'),
+        title=_(u'Client Key'),
+        description=_(u'The client key associated with this token'),
         required=False,
         default=None,
     )
@@ -418,7 +423,7 @@ class ITokenManager(zope.interface.Interface):
 
     def generateRequestToken(consumer, request):
         """\
-        Generate a request token, using consumer and request.
+        Generate a request token, using client and request.
         """
 
     def generateAccessToken(consumer, request):
@@ -483,15 +488,15 @@ class ICallbackManager(zope.interface.Interface):
 
     def validate(consumer, token):
         """
-        Check that the callbacks are valid against both the consumer and
+        Check that the callbacks are valid against both the client and
         the token.  A more thorough implementation should allow multiple
-        hosts for consumers, matching against the tokens issued, instead
-        of just relying on the helper attribute provided by consumer.
+        hosts for clients, matching against the tokens issued, instead
+        of just relying on the helper attribute provided by client.
 
         token
             The token to validate against.
         consumer
-            The consumer to validate against.
+            The client to validate against.
         """
 
 

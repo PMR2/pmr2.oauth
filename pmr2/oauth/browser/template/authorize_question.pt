@@ -10,29 +10,44 @@
 
       <metal:fill fill-slot="formtop">
         <h1 i18n:translate="">
-          Access token approval
+          A client application is awaiting your approval
         </h1>
         <tal:if tal:condition="view/scope">
           <p i18n:translate="">
             <strong tal:content="view/consumer/title"></strong>
-            is requesting access to the following types of resources
-            using your credentials:
+            is requesting access to the following resources using your 
+            credentials:
           </p>
 
           <div tal:content="structure view/scope"></div>
+
+          <p i18n:translate="">
+            Please note that you should only grant access if and only if
+            you trust this application with your data that are within
+            the scope as outlined above.  Otherwise please deny access.
+          </p>
+
         </tal:if>
 
         <tal:if tal:condition="not:view/scope">
           <p i18n:translate="">
             <strong tal:content="view/consumer/title"></strong>
-            is requesting access to all resources on this site that are
-            permitted by your site manager(s) using your credentials.
+            is requesting <em>unrestricted</em> access to all resources
+            you have access to on this site within the set of resources
+            that have been permitted by your site manager(s) using your
+            credentials.  If you are unsure or unaware of what this
+            encompasses, please either contact your site manager(s) or
+            deny access of your resources to this client by selecting
+            "<em>Deny acccess</em>" below.
+          </p>
+
+          <p i18n:translate="">
+            Please note that you should only grant access if and only if
+            you trust this application and if your site manager(s) have
+            made you aware of what this application can access using
+            your credentials.
           </p>
         </tal:if>
-
-        <p i18n:translate="">
-          Please only grant access if you trust this site.
-        </p>
 
         <input type="hidden" name="oauth_token"
             tal:attributes="value request/oauth_token" />

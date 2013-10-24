@@ -7,11 +7,12 @@
 
     <metal:fill fill-slot="main">
       <h1 i18n:translate="">
-        Token authorized
+        Access authorized
       </h1>
       <p i18n:translate="">
-        Token authorized.  Please enter the following verification code
-        into the application you are granting access to:
+        You have granted access to the application.  To finalize the
+        authorization process, please input the following verification
+        code as per the instructions provided by the application.
       </p>
       <h3 style="text-align: center;" 
           tal:content="view/verifier">verifier</h3>

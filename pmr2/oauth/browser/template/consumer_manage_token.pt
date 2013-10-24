@@ -10,11 +10,11 @@
 
       <metal:fill fill-slot="fields">
         <h1 i18n:translate="">
-          Consumer management
+          Client management
         </h1>
         <p i18n:translate="">
-          To remove access from the following consumer, select the 
-          checkboxes associated with each consumer you would like removed,
+          To remove access from the following client, select the 
+          checkboxes associated with each client you would like removed,
           then activate the remove button.
         </p>
         <table class="listing">
@@ -46,8 +46,8 @@
         </table>
         <p>
           <a tal:attributes="
-                  href string:${view/context/absolute_url}/add-oauth-consumer"
-             i18n:translate="">Add OAuth Consumer</a>
+                  href string:${view/context/absolute_url}/add-oauth-client"
+             i18n:translate="">Add OAuth Client</a>
         </p>
       </metal:fill>
 

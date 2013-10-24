@@ -1643,7 +1643,7 @@ Consumer Management Interfaces
 
 For consumers, we can open the consumer management form and we should
 see the single consumer that had been added earlier.  This page can be
-accessed via `${portal_url}/manage-oauth-consumers`::
+accessed via `${portal_url}/manage-oauth-clients`::
 
     >>> from pmr2.oauth.browser import consumer
     >>> request = TestRequest()
@@ -1759,7 +1759,7 @@ Should have no problems removing them either::
 
 Users should not be able to access the page::
 
-    >>> u_browser.open(baseurl + '/manage-oauth-consumers')
+    >>> u_browser.open(baseurl + '/manage-oauth-clients')
     >>> 'Insufficient Privileges' in u_browser.contents
     True
     >>> 'consumer1.example.com' in u_browser.contents
@@ -1767,7 +1767,7 @@ Users should not be able to access the page::
 
 Owners or users with permissions can::
 
-    >>> o_browser.open(baseurl + '/manage-oauth-consumers')
+    >>> o_browser.open(baseurl + '/manage-oauth-clients')
     >>> 'Insufficient Privileges' in o_browser.contents
     False
     >>> 'consumer1.example.com' in o_browser.contents

@@ -71,14 +71,14 @@
 
   <browser:page
       for="Products.CMFPlone.interfaces.siteroot.IPloneSiteRoot"
-      name="add-oauth-consumer"
+      name="add-oauth-client"
       class=".consumer.ConsumerAddForm"
       permission="cmf.ManagePortal"
       />
 
   <browser:page
       for="Products.CMFPlone.interfaces.siteroot.IPloneSiteRoot"
-      name="manage-oauth-consumers"
+      name="manage-oauth-clients"
       class=".consumer.ConsumerManageForm"
       permission="cmf.ManagePortal"
       />
