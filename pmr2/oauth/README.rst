@@ -2,10 +2,26 @@
 OAuth PAS Plug-in
 =================
 
-This module provides OAuth authentication for Plone via the Pluggable
-Authentication Service.
+--------
+Foreword
+--------
 
-To run this, we first import all the modules we need::
+While the aim of this OAuth provider is to fully adhere to the standards
+as described in the OAuth related RFCs, parts of this add-on were
+based directly on the OAuth 1.0 community specification.  Therefore,
+some terms, including class names and descriptions made by this document
+will have to be referenced against the ones outlined in RFC 5849 Section
+1.1.
+
+
+------------
+Introduction
+------------
+
+This module provides OAuth authentication for Plone via the Pluggable
+Authentication Service, also as a Plone Add-on.
+
+For this demonstration, first import all the modules needed::
 
     >>> import time
     >>> import urlparse
