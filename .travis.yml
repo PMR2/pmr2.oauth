@@ -1,0 +1,22 @@
+language: python
+python:
+  - 2.6
+  - 2.7
+env:
+  - PLONE=4.1
+  - PLONE=4.2
+  - PLONE=4.3
+matrix:
+  exclude:
+    - python: 2.7
+      env: PLONE=4.1
+    - python: 2.6
+      env: PLONE=4.2
+    - python: 2.6
+      env: PLONE=4.3
+install:
+  - mkdir -p buildout-cache/eggs
+  - mkdir -p buildout-cache/downloads
+  - python bootstrap.py -c travis-$PLONE.x.cfg
+  - bin/buildout -N -t 5 -c travis-$PLONE.x.cfg
+script: bin/test

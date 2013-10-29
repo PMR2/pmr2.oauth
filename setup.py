@@ -41,6 +41,9 @@ setup(name='pmr2.oauth',
           'zope.annotation',
           'pmr2.z3cform',
       ],
+      extras_require={
+          'test': ['z3c.form [test]'],
+      },
       entry_points="""
       # -*- Entry points: -*-
       """,

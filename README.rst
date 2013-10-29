@@ -27,9 +27,11 @@ adequate in addressing that need.
 Installation
 ------------
 
-This package may require Plone 4 or later.  Might work with Plone 3.3.x
-but it has not been tested on that yet.
+~~~~~~~~~~~~
+Requirements
+~~~~~~~~~~~~
 
+This package requires Plone 4.1 or later.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~
 Installing with buildout
