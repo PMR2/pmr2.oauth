@@ -5,7 +5,7 @@ version = '0.6'
 
 setup(name='pmr2.oauth',
       version=version,
-      description="OAuth PAS Plugin",
+      description="OAuth PAS Plugin, OAuth 1.0 provider for Plone.",
       long_description=open("README.rst").read() + "\n" +
            open(os.path.join("docs", "HISTORY.rst")).read(), 
       # Get more strings from http://www.python.org/pypi?%3Aaction=list_classifiers
