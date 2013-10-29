@@ -145,7 +145,7 @@ class TestToken(unittest.TestCase):
         m.remove(t2)
         self.assertEqual(len(m._tokens), 1)
 
-    def test_111_token_manager_addget_user(self):
+    def test_112_token_manager_addget_user(self):
         m = TokenManager()
         token = Token('token-key', 'token-secret')
         token.user = 'user'
