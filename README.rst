@@ -15,6 +15,8 @@ rights.
 
 .. image:: https://travis-ci.org/PMR/pmr2.oauth.png?branch=master
    :target: https://travis-ci.org/PMR/pmr2.oauth
+.. image:: https://coveralls.io/repos/PMR/pmr2.oauth/badge.png?branch=master
+   :target: https://coveralls.io/r/PMR/pmr2.oauth?branch=master
 
 While the test coverage is fairly complete and demonstrates that access
 permissions and scope restriction function as intended, the author does
