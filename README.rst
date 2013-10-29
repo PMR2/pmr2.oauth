@@ -13,14 +13,18 @@ using scope profiles, and clients can specify a list of them to better
 inform the resource owners of what will be accessed under their access
 rights.
 
+.. image:: https://travis-ci.org/PMR/pmr2.oauth.png?branch=master
+   :target: https://travis-ci.org/PMR/pmr2.oauth
+
 While the test coverage is fairly complete and demonstrates that access
 permissions and scope restriction function as intended, the author does
 not currently endorse the usage of this package in a mission critical
-environment as there may be issues that can compromise the security of
-such sites, as no audits have been done on this package by security
-experts.  For providing third-party access to casually private data that
-is not highly sensitive in nature, this package should be sufficiently
-adequate in addressing that need.
+environment where absolute security is required, as there are no audits
+have been done on this package by security experts.  Otherwise, please
+ensure that your users are aware of who the trusted third-party clients
+are and that your site's privacy and security policies are updated to
+fully inform your users of risks that may be associated with the usage
+of OAuth with this package.
 
 
 ------------
