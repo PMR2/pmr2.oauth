@@ -322,6 +322,8 @@ If our client tries to access this document through normal channels::
 Yup, no access, in fact, redirection to login page which isn't useful.
 Now retry using the session::
 
+  >>> response = session.get(
+  ...     'http://localhost:40000/plone/Members/test_user_1_/private-page')
   >>> response
   <Response [200]>
   >>> 'Private Page' in response.text
