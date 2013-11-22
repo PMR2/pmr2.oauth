@@ -77,8 +77,10 @@ If you are upgrading from a previously installed version of this add-on,
 please refer to ``docs/UPGRADE.rst`` for some important information.
 
 For more detailed information, please refer to the doctest file at
-``pmr2/oauth/README.rst``.
+|pmr2/oauth/README.rst|_.
 
+.. |pmr2/oauth/README.rst| replace:: ``pmr2/oauth/README.rst``
+.. _pmr2/oauth/README.rst: https://github.com/PMR/pmr2.oauth/blob/0.5.1/docs/enduser/README.rst
 
 ~~~~~
 About
