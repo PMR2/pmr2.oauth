@@ -37,7 +37,7 @@ class BaseEndpoint(base.BaseEndpoint):
             # These are the only headers that affect the signature for
             # an OAuth request.
             headers = {
-                u'Content-type':
+                u'Content-Type':
                     safe_unicode(self.request.getHeader('Content-type')),
             }
             if self.request._auth:
