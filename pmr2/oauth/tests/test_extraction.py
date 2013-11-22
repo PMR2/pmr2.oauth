@@ -257,6 +257,16 @@ class TestExtraction(unittest.TestCase):
         credentials = plugin.extractCredentials(request)
         self.assertEqual(credentials['userid'], self.default_user_id)
 
+    def test_1050_success_with_www_form_body(self):
+        # use request token
+        plugin = self.plugin
+        consumer, token = self.save_consumer_and_token()
+        request = SignedTestRequest(consumer=consumer, token=token,
+            method='POST', raw_body='title=test&value=1',
+            CONTENT_TYPE='application/x-www-form-urlencoded')
+        credentials = plugin.extractCredentials(request)
+        self.assertEqual(credentials['userid'], self.default_user_id)
+
     def test_1100_missing_token_ignored(self):
         # Should not forbid cases where the oauth_token is missing (it
         # could be a RequestToken, let that page handle it).
