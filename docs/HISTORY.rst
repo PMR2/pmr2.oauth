@@ -2,6 +2,13 @@
 Changelog
 =========
 
+------------------
+0.5.1 - 2013-11-22
+------------------
+
+* Bug Fix: Corrected the handling of application/x-www-form-urlencoded
+  for the signature verification.  [PMR/pmr2.oauth#4]
+
 ----------------
 0.5 - 2013-10-24
 ----------------
