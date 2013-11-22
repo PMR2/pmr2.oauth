@@ -69,7 +69,7 @@ class TestRequest(pmr2.z3cform.tests.base.TestRequest):
 
     zope.interface.implements(IOAuthTestLayer, IAttributeAnnotatable)
 
-    def __init__(self, oauth_keys=None, url=None, *a, **kw):
+    def __init__(self, oauth_keys=None, url=None, method=None, *a, **kw):
         super(TestRequest, self).__init__(*a, **kw)
         if url:
             parts = url.split('/')
@@ -87,6 +87,8 @@ class TestRequest(pmr2.z3cform.tests.base.TestRequest):
             self._auth = self.to_header(oauth_keys)
 
         self.stdin = StringIO()
+        if method:
+            self.method = method
 
     def to_header(self, oauth_keys, realm=''):
         # copied from oauth2 (for now)
@@ -105,7 +107,7 @@ class TestRequest(pmr2.z3cform.tests.base.TestRequest):
 
 def SignedTestRequest(form=None, consumer=None, token=None, method=None,
         url=None, callback=None, timestamp=None, verifier=None,
-        signature_type='AUTH_HEADER',
+        signature_type='AUTH_HEADER', raw_body=None,
         *a, **kw):
     """\
     Creates a signed TestRequest
@@ -125,7 +127,10 @@ def SignedTestRequest(form=None, consumer=None, token=None, method=None,
     if form is None:
         form = {}
 
-    result = TestRequest(form=form, url=url, *a, **kw)
+    result = TestRequest(form=form, url=url, method=method, *a, **kw)
+    if raw_body:
+        result.stdin.write(raw_body)
+
     url = url or result.getURL()
     url = safe_unicode(url)
     method = method and safe_unicode(method) or safe_unicode(result.method)
@@ -145,7 +150,12 @@ def SignedTestRequest(form=None, consumer=None, token=None, method=None,
         signature_type=signature_type,
     )
 
-    url_signed, headers, body = client.sign(url, method)
+    if result.getHeader('Content-Type') == 'application/x-www-form-urlencoded':
+        headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+        url_signed, headers, body = client.sign(url, method,
+            body=raw_body, headers=headers)
+    else:
+        url_signed, headers, body = client.sign(url, method)
 
     # lazy not importing oauthlib tokens.
     if signature_type == 'AUTH_HEADER':
@@ -153,7 +163,9 @@ def SignedTestRequest(form=None, consumer=None, token=None, method=None,
         return result
     elif signature_type == 'QUERY':
         qs = urlparse.urlsplit(url_signed).query
-        result = TestRequest(form=form, url=url, QUERY_STRING=qs)
+        result = TestRequest(form=form, url=url, QUERY_STRING=qs, *a, **kw)
+        if raw_body:
+            result.stdin.write(raw_body)
         return result
 
 def makeToken(qsstr):
