@@ -54,6 +54,16 @@ class CallbackManagerTestCase(unittest.TestCase):
         callback = 'http://test.example.com/oauth_callback'
         self.assertTrue(self.cbm.validate(consumer, callback))
 
+    def test_0101_valid_port(self):
+        consumer = DummyConsumer('example.com:8000')
+        callback = 'http://example.com:8000/oauth_callback'
+        self.assertTrue(self.cbm.validate(consumer, callback))
+
+    def test_0102_valid_subdomain_port(self):
+        consumer = DummyConsumer('*.example.com:8000')
+        callback = 'http://test.example.com:8000/oauth_callback'
+        self.assertTrue(self.cbm.validate(consumer, callback))
+
     def test_0110_invalid_subdomain(self):
         consumer = DummyConsumer('*.example.com')
         callback = 'http://testexample.com/oauth_callback'
@@ -61,6 +71,14 @@ class CallbackManagerTestCase(unittest.TestCase):
 
         consumer = DummyConsumer('*example.com')
         callback = 'http://example.com/oauth_callback'
+        self.assertFalse(self.cbm.validate(consumer, callback))
+
+        consumer = DummyConsumer('example.com')
+        callback = 'http://example.com:8000/oauth_callback'
+        self.assertFalse(self.cbm.validate(consumer, callback))
+
+        consumer = DummyConsumer('*.example.com:8')
+        callback = 'http://test.example.com:8000/oauth_callback'
         self.assertFalse(self.cbm.validate(consumer, callback))
 
 
