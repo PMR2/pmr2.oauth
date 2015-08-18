@@ -10,12 +10,15 @@
 
       <metal:fill fill-slot="fields">
         <h1 i18n:translate="">
-          Manage third-party access to your content
+          Application Manager
         </h1>
         <p i18n:translate="">
-          To remove access for the following sites, please check the
-          checkboxes for each site you desire to remove, then activate the
-          revoke button to revoke access for the selected sites.
+          The following are applications and sites that have access to your
+          content that you have approved previously.
+        </p>
+        <p i18n:translate="">
+          To remove access, select the checkboxes next to the application
+          you wish to remove then activate the revoke button.
         </p>
         <ul>
           <tal:loop repeat="t view/tokens">
