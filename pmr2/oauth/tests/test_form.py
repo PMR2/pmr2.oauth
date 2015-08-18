@@ -81,12 +81,7 @@ class FormTestCase(ptc.PloneTestCase):
         atok = self.tokenManager._generateBaseToken(self.consumer.key)
         atok.access = True
         atok.user = default_user
-        atok = self.tokenManager.add(atok)
-
-        self.login(default_user)
-        request = TestRequest()
-        form = user.UserTokenForm(self.portal, request)
-        self.assertIn('Revoke', form())
+        self.tokenManager.add(atok)
 
         request = TestRequest(form={
             'form.buttons.revoke': 1,
@@ -95,7 +90,36 @@ class FormTestCase(ptc.PloneTestCase):
         form = user.UserTokenForm(self.portal, request)
         self.assertRaises(Unauthorized, form.update)
 
-    def test_2100_usertokenform_no_token_no_button(self):
+    def test_2100_usertokenform_revoke(self):
+        # have to add a token to show the button.
+        atok = self.tokenManager._generateBaseToken(self.consumer.key)
+        atok.access = True
+        atok.user = default_user
+        self.tokenManager.add(atok)
+
+        self.login(default_user)
+        request = TestRequest()
+        form = user.UserTokenForm(self.portal, request)
+        result = form()
+        self.assertIn(atok.key, result)
+        self.assertIn('Revoke', result)
+
+        request = TestRequest(form={
+            'form.widgets.key': [atok.key],
+            'form.buttons.revoke': 1,
+        })
+        form = user.UserTokenForm(self.portal, request)
+        result = form()
+        self.assertNotIn(atok.key, result)
+        # Ideally this would not be rendered, but it is, due to how the
+        # button and handler are coupled together.  If the button is not
+        # available the action wouldn't be executed, which would have
+        # meant that the token wouldn't be revoked...
+
+        # This whole issue can probably be sidestepped with a redirect.
+        # self.assertNotIn('Revoke', result)
+
+    def test_2200_usertokenform_no_token_no_button(self):
         # have to add a token to show the button.
         request = TestRequest()
         form = user.UserTokenForm(self.portal, request)

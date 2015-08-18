@@ -57,8 +57,8 @@ class BaseUserTokenForm(form.PostForm):
         return tokens
 
     def update(self):
-        self.tokens = self.getTokens()
         super(BaseUserTokenForm, self).update()
+        self.tokens = self.getTokens()
         self.request['disable_border'] = True
 
     def revokeTokens(self):
@@ -108,7 +108,12 @@ class BaseUserTokenForm(form.PostForm):
 
 
 def hasTokens(form):
-    return bool(form.tokens)
+    # need this separate method with separate checks because this must be
+    # executed independently, until after any other action has been done.
+    user = form.getUser()
+    tm = zope.component.getMultiAdapter((form.context, form.request),
+        ITokenManager)
+    return tm.hasTokensForUser(user)
 
 
 class UserTokenForm(BaseUserTokenForm):

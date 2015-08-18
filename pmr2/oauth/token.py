@@ -177,6 +177,9 @@ class TokenManager(Persistent, Contained):
 
         return token
 
+    def hasTokensForUser(self, user):
+        return bool(self._user_token_map.get(user, []))
+
     def getTokensForUser(self, user):
         raw_keys = self._user_token_map.get(user, [])
         result = [self.get(t) for t in raw_keys]
