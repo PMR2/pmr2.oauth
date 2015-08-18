@@ -3,6 +3,13 @@ Changelog
 =========
 
 ------------------
+0.6.0 - Unreleased
+------------------
+
+* Usability enhancements; reworded the user facing form and added a user
+  action for easier linkage to their approved applications.
+
+------------------
 0.5.1 - 2013-11-22
 ------------------
 
