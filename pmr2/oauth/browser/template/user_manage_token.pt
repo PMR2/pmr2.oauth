@@ -20,7 +20,7 @@
           To remove access, select the checkboxes next to the application
           you wish to remove then activate the revoke button.
         </p>
-        <ul>
+        <ul id="pmr2_oauth_user_manage_token">
           <tal:loop repeat="t view/tokens">
             <li>
               <input name="form.widgets.key" type="checkbox" 

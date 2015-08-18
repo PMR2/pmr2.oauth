@@ -17,7 +17,7 @@
           checkboxes associated with each client you would like removed,
           then activate the remove button.
         </p>
-        <table class="listing">
+        <table class="listing" id="pmr2_oauth_consumer_manage_token">
           <thead>
             <tr>
               <th i18n:translate=""></th>
