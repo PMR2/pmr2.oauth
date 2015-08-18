@@ -4,6 +4,7 @@ import zope.component
 
 from zExceptions import Unauthorized
 from Products.PloneTestCase import ptc
+from Products.PloneTestCase.ptc import default_user
 
 from pmr2.oauth.interfaces import ITokenManager, IConsumerManager
 from pmr2.oauth.interfaces import IScopeManager
@@ -25,8 +26,8 @@ class FormTestCase(ptc.PloneTestCase):
         request = TestRequest()
         self.consumerManager = zope.component.getMultiAdapter(
             (self.portal, request), IConsumerManager)
-        consumer = Consumer('consumer.example.com', 'consumer-secret')
-        self.consumerManager.add(consumer)
+        self.consumer = Consumer('consumer.example.com', 'consumer-secret')
+        self.consumerManager.add(self.consumer)
 
         self.tokenManager = zope.component.getMultiAdapter(
             (self.portal, request), ITokenManager)
@@ -35,7 +36,7 @@ class FormTestCase(ptc.PloneTestCase):
             (self.portal, request), IScopeManager)
 
         self.reqtoken = self.tokenManager.generateRequestToken(
-            consumer.key, 'oob')
+            self.consumer.key, 'oob')
         self.scopeManager.requestScope(self.reqtoken.key, None)
 
     def test_0000_authform_render(self):
@@ -76,12 +77,29 @@ class FormTestCase(ptc.PloneTestCase):
         self.assertRaises(Unauthorized, form.update)
 
     def test_2000_usertokenform_fail(self):
+        # have to add a token to show the button.
+        atok = self.tokenManager._generateBaseToken(self.consumer.key)
+        atok.access = True
+        atok.user = default_user
+        atok = self.tokenManager.add(atok)
+
+        self.login(default_user)
+        request = TestRequest()
+        form = user.UserTokenForm(self.portal, request)
+        self.assertIn('Revoke', form())
+
         request = TestRequest(form={
             'form.buttons.revoke': 1,
         })
         request.form['_authenticator'] = None
         form = user.UserTokenForm(self.portal, request)
         self.assertRaises(Unauthorized, form.update)
+
+    def test_2100_usertokenform_no_token_no_button(self):
+        # have to add a token to show the button.
+        request = TestRequest()
+        form = user.UserTokenForm(self.portal, request)
+        self.assertNotIn('Revoke', form())
 
 
 def test_suite():

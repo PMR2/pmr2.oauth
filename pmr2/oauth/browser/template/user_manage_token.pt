@@ -12,6 +12,8 @@
         <h1 i18n:translate="">
           Application Manager
         </h1>
+
+        <tal:if tal:condition="view/tokens">
         <p i18n:translate="">
           The following are applications and sites that have access to your
           content that you have approved previously.
@@ -36,6 +38,14 @@
             </li>
           </tal:loop>
         </ul>
+        </tal:if>
+
+        <tal:if tal:condition="not:view/tokens">
+          <p i18n:translate="">
+            No applications or sites have been approved to access your data.
+          </p>
+        </tal:if>
+
       </metal:fill>
 
       <metal:fill fill-slot="formbottom">

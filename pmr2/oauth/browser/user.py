@@ -57,8 +57,8 @@ class BaseUserTokenForm(form.PostForm):
         return tokens
 
     def update(self):
-        super(BaseUserTokenForm, self).update()
         self.tokens = self.getTokens()
+        super(BaseUserTokenForm, self).update()
         self.request['disable_border'] = True
 
     def revokeTokens(self):
@@ -107,13 +107,17 @@ class BaseUserTokenForm(form.PostForm):
                 type="info")
 
 
+def hasTokens(form):
+    return bool(form.tokens)
+
+
 class UserTokenForm(BaseUserTokenForm):
 
     def getUser(self):
         mt = getToolByName(self.context, 'portal_membership')
         return mt.getAuthenticatedMember().id
 
-    @button.buttonAndHandler(_('Revoke'), name='revoke')
+    @button.buttonAndHandler(_('Revoke'), name='revoke', condition=hasTokens)
     def handleRevoke(self, action):
         data, errors = self.extractData()
         return self.revokeTokens()
