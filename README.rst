@@ -13,9 +13,9 @@ using scope profiles, and clients can specify a list of them to better
 inform the resource owners of what will be accessed under their access
 rights.
 
-.. image:: https://travis-ci.org/PMR2/pmr2.oauth.png?branch=master
+.. image:: https://travis-ci.org/PMR2/pmr2.oauth.svg?branch=master
    :target: https://travis-ci.org/PMR2/pmr2.oauth
-.. image:: https://coveralls.io/repos/PMR2/pmr2.oauth/badge.png?branch=master
+.. image:: https://coveralls.io/repos/PMR2/pmr2.oauth/badge.svg?branch=master
    :target: https://coveralls.io/r/PMR2/pmr2.oauth?branch=master
 
 While the test coverage is fairly complete and demonstrates that access
