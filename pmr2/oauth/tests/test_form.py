@@ -110,7 +110,7 @@ class FormTestCase(ptc.PloneTestCase):
         })
         form = user.UserTokenForm(self.portal, request)
         result = form()
-        self.assertNotIn(atok.key, result)
+        self.assertFalse(atok.key in result)
         # Ideally this would not be rendered, but it is, due to how the
         # button and handler are coupled together.  If the button is not
         # available the action wouldn't be executed, which would have
