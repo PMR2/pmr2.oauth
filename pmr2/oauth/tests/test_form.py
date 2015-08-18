@@ -101,8 +101,8 @@ class FormTestCase(ptc.PloneTestCase):
         request = TestRequest()
         form = user.UserTokenForm(self.portal, request)
         result = form()
-        self.assertIn(atok.key, result)
-        self.assertIn('Revoke', result)
+        self.assertTrue(atok.key in result)
+        self.assertTrue('Revoke' in result)
 
         request = TestRequest(form={
             'form.widgets.key': [atok.key],
@@ -117,13 +117,13 @@ class FormTestCase(ptc.PloneTestCase):
         # meant that the token wouldn't be revoked...
 
         # This whole issue can probably be sidestepped with a redirect.
-        # self.assertNotIn('Revoke', result)
+        # self.assertFalse('Revoke' in result)
 
     def test_2200_usertokenform_no_token_no_button(self):
         # have to add a token to show the button.
         request = TestRequest()
         form = user.UserTokenForm(self.portal, request)
-        self.assertNotIn('Revoke', form())
+        self.assertFalse('Revoke' in form())
 
 
 def test_suite():
