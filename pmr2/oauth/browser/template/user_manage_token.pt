@@ -14,32 +14,32 @@
         </h1>
 
         <tal:if tal:condition="view/tokens">
-        <p i18n:translate="">
-          The following are applications and sites that have access to your
-          content that you have approved previously.
-        </p>
-        <p i18n:translate="">
-          To remove access, select the checkboxes next to the application
-          you wish to remove then activate the revoke button.
-        </p>
-        <ul id="pmr2_oauth_user_manage_token">
-          <tal:loop repeat="t view/tokens">
-            <li>
-              <input name="form.widgets.key" type="checkbox" 
-                  tal:attributes="
-                      value t/key;
-                      id string:form-widgets-key-${repeat/t/number};
-                  "
-              /> <label tal:content="t/consumer_title" tal:attributes="
-                     for string:form-widgets-key-${repeat/t/number};
-                  ">example.com</label> <a
-                  tal:attributes="
-                      href string:${view/url_expr}/view/${t/key};
-                  "
-              ><span i18n:translate="">[details]</span></a>
-            </li>
-          </tal:loop>
-        </ul>
+          <p i18n:translate="">
+            The following are applications and sites that have access to your
+            content that you have approved previously.
+          </p>
+          <p i18n:translate="">
+            To remove access, select the checkboxes next to the application
+            you wish to remove then activate the revoke button.
+          </p>
+          <ul id="pmr2_oauth_user_manage_token">
+            <tal:loop repeat="t view/tokens">
+              <li>
+                <input name="form.widgets.key" type="checkbox"
+                    tal:attributes="
+                        value t/key;
+                        id string:form-widgets-key-${repeat/t/number};
+                    "
+                /> <label tal:content="t/consumer_title" tal:attributes="
+                       for string:form-widgets-key-${repeat/t/number};
+                    ">example.com</label> <a
+                    tal:attributes="
+                        href string:${view/url_expr}/view/${t/key};
+                    "
+                ><span i18n:translate="">[details]</span></a>
+              </li>
+            </tal:loop>
+          </ul>
         </tal:if>
 
         <tal:if tal:condition="not:view/tokens">
