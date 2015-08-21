@@ -12,7 +12,6 @@ import zope.interface
 from zope.annotation.interfaces import IAttributeAnnotatable
 
 from Testing import ZopeTestCase as ztc
-from plone.session.tests.sessioncase import PloneSessionTestCase
 from Zope2.App import zcml
 from Products.Five import fiveconfigure
 from Products.PloneTestCase import PloneTestCase as ptc
@@ -41,18 +40,6 @@ def teardown():
 setup()
 teardown()
 ptc.setupPloneSite(products=('pmr2.oauth',))
-
-
-class OAuthTestCase(PloneSessionTestCase):
-
-    def afterSetUp(self):
-        PloneSessionTestCase.afterSetUp(self)
-        self.app.folder = self.folder
-
-        if self.folder.pas.hasObject("oauth"):
-            self.app.folder.pas._delObject("oauth")
-
-        self.app.folder.pas._setObject("oauth", OAuthPlugin("oauth"))
 
 
 class IOAuthTestLayer(zope.interface.Interface):
