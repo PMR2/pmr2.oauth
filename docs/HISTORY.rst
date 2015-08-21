@@ -8,6 +8,7 @@ Changelog
 
 * Usability enhancements; reworded the user facing form and added a user
   action for easier linkage to their approved applications.
+* Updated dependency to oauthlib>=1.0.2.
 
 ------------------
 0.5.1 - 2013-11-22
