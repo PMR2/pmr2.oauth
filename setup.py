@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import os
 
-version = '0.6'
+version = '0.6.0'
 
 setup(name='pmr2.oauth',
       version=version,
