@@ -38,7 +38,7 @@ class BaseEndpoint(base.BaseEndpoint):
             # an OAuth request.
             headers = {
                 u'Content-Type':
-                    safe_unicode(self.request.getHeader('Content-type')),
+                    safe_unicode(self.request.getHeader('Content-type', '')),
             }
             if self.request._auth:
                 headers[u'Authorization'] = safe_unicode(self.request._auth)
