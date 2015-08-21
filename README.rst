@@ -13,10 +13,10 @@ using scope profiles, and clients can specify a list of them to better
 inform the resource owners of what will be accessed under their access
 rights.
 
-.. image:: https://travis-ci.org/PMR2/pmr2.oauth.svg?branch=master
+.. image:: https://travis-ci.org/PMR2/pmr2.oauth.svg?branch=0.6.x
    :target: https://travis-ci.org/PMR2/pmr2.oauth
-.. image:: https://coveralls.io/repos/PMR2/pmr2.oauth/badge.svg?branch=master
-   :target: https://coveralls.io/r/PMR2/pmr2.oauth?branch=master
+.. image:: https://coveralls.io/repos/PMR2/pmr2.oauth/badge.svg?branch=0.6.x&service=github
+   :target: https://coveralls.io/github/PMR2/pmr2.oauth?branch=0.6.x
 
 While the test coverage is fairly complete and demonstrates that access
 permissions and scope restriction function as intended, the author does
