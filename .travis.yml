@@ -21,8 +21,7 @@ install:
   - python bootstrap.py -c travis-$PLONE.x.cfg
   - bin/buildout -N -t 5 -c travis-$PLONE.x.cfg
 script: 
-  - bin/test
+  - bin/coverage run --source=pmr2/oauth bin/test
 after_success:
   - pip install coveralls
-  - bin/coverage run --source=pmr2/oauth bin/test
   - coveralls
