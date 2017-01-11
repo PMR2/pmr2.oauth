@@ -23,5 +23,5 @@ install:
 script: 
   - bin/coverage run --source=pmr2/oauth bin/test
 after_success:
-  - pip install -q coveralls==0.5
+  - pip install -q coverage==4.3.1 coveralls==0.5
   - coveralls
