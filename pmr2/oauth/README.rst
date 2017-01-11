@@ -40,6 +40,12 @@ For this demonstration, first import all the modules needed::
     ...     (self.portal, request), name='test_current_user')
     >>> baseurl = self.portal.absolute_url()
 
+Setup a manager user::
+
+    >>> manager_user = 'manager_user'
+    >>> self.portal.acl_users.userFolderAddUser(
+    ...     manager_user, 'password', ['Manager'], [])
+
 The OAuth adapter should have been set up::
 
     >>> request = TestRequest()
@@ -655,6 +661,7 @@ customize them.  To do that views and forms are provided::
     >>> from pmr2.oauth.browser import scope
     >>> context = self.portal
     >>> request = TestRequest()
+    >>> self.login(manager_user)
     >>> view = scope.ContentTypeScopeManagerView(context, request)
     >>> print view()
     <BLANKLINE>
@@ -830,6 +837,7 @@ Verify that the mapping and associated metadata is saved::
     ...     'methods': 'GET HEAD OPTIONS',
     ... }
     True
+    >>> self.logout()
 
 
 ~~~~~~~~~~~~~~
