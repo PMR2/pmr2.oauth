@@ -39,7 +39,7 @@ setup(name='pmr2.oauth',
           'zope.interface',
           'zope.schema',
           'zope.annotation',
-          'pmr2.z3cform',
+          'pmr2.z3cform>=0.3.1',
       ],
       extras_require={
           'test': [
