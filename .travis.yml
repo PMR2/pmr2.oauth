@@ -23,6 +23,5 @@ install:
 script: 
   - bin/coverage run --source=pmr2/oauth bin/test
 after_success:
-  - bin/createcoverage
-  - bin/python -m coverage.pickle2json
-  - bin/coveralls
+  - pip install -q coveralls==0.5
+  - coveralls
