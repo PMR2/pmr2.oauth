@@ -3,6 +3,12 @@ Changelog
 =========
 
 ------------------
+0.6.1 - 2017-01-13
+------------------
+
+* Ensure the tests work with plone.protect>=3, and bumped dependencies.
+
+------------------
 0.6.0 - 2015-08-21
 ------------------
 
